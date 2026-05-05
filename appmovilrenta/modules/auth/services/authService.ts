@@ -1,9 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// authService.ts
-// Capa de acceso a datos del módulo de autenticación.
-// Cuando el backend esté listo: cambiar BASE_URL y descomentar las llamadas reales.
-// ─────────────────────────────────────────────────────────────────────────────
-
 const BASE_URL = 'https://tu-api.com/api/v1';
 
 export const authService = {
