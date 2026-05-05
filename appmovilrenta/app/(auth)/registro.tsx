@@ -7,27 +7,15 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { router } from 'expo-router';
 import { useRegistro } from '@/modules/auth/hooks/useAuth';
 import { InputField } from '@/components/ui/InputField';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { registroStyles as styles } from './registro.styles';
+import { registroStyles as styles } from './_registro.styles';
 
 export default function RegistroScreen() {
-  const { form, cargando, actualizarCampo, registrar, getError, registrado } = useRegistro();
-
-  // Pantalla de éxito tras registrarse
-  if (registrado) {
-    return (
-      <View style={styles.contenedorExito}>
-        <Text style={styles.iconoExito}>🎉</Text>
-        <Text style={styles.tituloExito}>¡Cuenta creada!</Text>
-        <Text style={styles.mensajeExito}>
-          Tu registro fue exitoso. Pronto podrás iniciar sesión cuando el módulo esté disponible.
-        </Text>
-      </View>
-    );
-  }
+  const { form, cargando, actualizarCampo, registrar, getError } = useRegistro();
 
   return (
     <KeyboardAvoidingView
@@ -39,6 +27,14 @@ export default function RegistroScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {/* ── Botón volver ───────────────────────────────────── */}
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.botonVolver}
+        >
+          <Text style={styles.textoVolver}>← Volver</Text>
+        </TouchableOpacity>
+
         {/* ── Encabezado ─────────────────────────────────────── */}
         <View style={styles.encabezado}>
           <Text style={styles.marca}>🚗 Renta Móvil</Text>
@@ -161,7 +157,7 @@ export default function RegistroScreen() {
         <View style={styles.pieFormulario}>
           <PrimaryButton
             titulo="Crear mi cuenta"
-            onPress={() => registrar(() => {})}
+            onPress={() => registrar(() => router.replace('/(auth)/login'))}
             cargando={cargando}
           />
         </View>

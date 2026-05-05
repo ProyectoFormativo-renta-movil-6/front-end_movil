@@ -103,6 +103,18 @@ export const registroStyles = StyleSheet.create({
     marginTop: 20,
   },
 
+  botonVolver: {
+  alignSelf: 'flex-start',
+  paddingVertical: 8,
+  paddingHorizontal: 4,
+  marginBottom: 8,
+},
+textoVolver: {
+  color: '#1D4ED8',
+  fontSize: 15,
+  fontWeight: '600',
+},
+
   // ── Pantalla de éxito ────────────────────────────────────────
   contenedorExito: {
     flex: 1,
