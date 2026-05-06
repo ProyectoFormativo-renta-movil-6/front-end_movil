@@ -1,24 +1,32 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(auth)',
-};
+import { useOnboarding } from '@/hooks/use-onboarding';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const { hasCompletedOnboarding } = useOnboarding();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        <Stack.Screen
+          name="modal"
+          options={{ presentation: 'modal', title: 'Modal' }}
+        />
       </Stack>
+
+      {!hasCompletedOnboarding
+        ? <Redirect href="/onboarding" />
+        : <Redirect href="/(auth)/login" />
+      }
+
       <StatusBar style="auto" />
     </ThemeProvider>
   );

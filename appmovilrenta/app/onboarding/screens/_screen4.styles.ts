@@ -1,0 +1,127 @@
+import { StyleSheet } from "react-native";
+
+export const screen4Styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 24,
+    alignItems: "center",
+  },
+  heroWrap: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  heroCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+  },
+  heroEmoji: {
+    fontSize: 48,
+  },
+  wompiTag: {
+    marginTop: 10,
+    backgroundColor: "#1D4ED8",
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  wompiText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#111827",
+    textAlign: "center",
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: "#6B7280",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  metodos: {
+    flexDirection: "row",
+    gap: 10,
+    width: "100%",
+    marginBottom: 20,
+  },
+  metodoCard: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+    borderRadius: 14,
+    padding: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    position: "relative",
+  },
+  metodoCardActive: {
+    borderColor: "#1D4ED8",
+    backgroundColor: "#EFF6FF",
+  },
+  metodoIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  metodoIcon: {
+    fontSize: 20,
+  },
+  metodoLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+  metodoLabelActive: {
+    color: "#1D4ED8",
+    fontWeight: "700",
+  },
+  metodoCheck: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#1D4ED8",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  seguridadCard: {
+    width: "100%",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    gap: 12,
+  },
+  seguridadRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  seguridadIcon: {
+    fontSize: 22,
+    width: 28,
+  },
+  seguridadText: {
+    fontSize: 13,
+    color: "#374151",
+    flex: 1,
+    lineHeight: 18,
+  },
+});
