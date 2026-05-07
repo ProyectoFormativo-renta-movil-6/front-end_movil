@@ -1,8 +1,8 @@
+import { useOnboarding } from "@/hooks/use-onboarding";
 import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { Animated, Image, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useOnboarding } from "@/hooks/use-onboarding";
 import { screen5Styles as styles } from "./_screen5.styles";
 
 const BENEFICIOS = [
@@ -42,12 +42,12 @@ export default function OnboardingScreen5() {
 
   const handleRegistro = () => {
     completeOnboarding();
-    router.push("/(auth)/registro");
+    router.replace("/(auth)/registro");
   };
 
   const handleLogin = () => {
     completeOnboarding();
-    router.push("/(auth)/login");
+    router.replace("/(auth)/login");
   };
 
   return (
@@ -108,9 +108,7 @@ export default function OnboardingScreen5() {
       </Animated.View>
 
       {/* Botones CTA */}
-      <Animated.View
-        style={[styles.ctaWrap, { opacity: fadeAnim }]}
-      >
+      <Animated.View style={[styles.ctaWrap, { opacity: fadeAnim }]}>
         <TouchableOpacity
           style={styles.ctaBtnPrimary}
           onPress={handleRegistro}
@@ -119,10 +117,7 @@ export default function OnboardingScreen5() {
           <Text style={styles.ctaBtnPrimaryText}>REGÍSTRATE</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.ctaBtnText}
-          onPress={handleLogin}
-        >
+        <TouchableOpacity style={styles.ctaBtnText} onPress={handleLogin}>
           <Text style={styles.ctaBtnTextNormal}>
             Ya tengo cuenta ·{" "}
             <Text style={styles.ctaBtnTextLink}>Iniciar Sesión</Text>
