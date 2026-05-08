@@ -1,15 +1,8 @@
-/**
- * RF10 — Catálogo de vehículos
- * RF10.1: Listar vehículos registrados
- * RF10.2: Filtrar por marca
- * RF10.3: Filtrar por disponibilidad
- * RF10.5: Vista según rol usuario
- * RF10.6: Mensajes de visualización
- */
 import React from "react";
 import {
   FlatList,
   Image,
+  Platform,
   ScrollView,
   StatusBar,
   Text,
@@ -23,19 +16,11 @@ import { CategoriaVehiculo, Vehiculo } from "@/modules/catalogo/types/catalogo.t
 import { catalogoStyles as styles } from "./_catalogo.styles";
 
 const CATEGORIAS: CategoriaVehiculo[] = [
-  "Todas",
-  "SUVs",
-  "Económicos",
-  "Sedán",
-  "Premium",
-  "Van",
+  "Todas", "SUVs", "Económicos", "Sedán", "Premium", "Van",
 ];
 
-// ── Tarjeta de vehículo ───────────────────────────────────────────────────────
 function VehiculoCard({
-  v,
-  onReservar,
-  onDetalles,
+  v, onReservar, onDetalles,
 }: {
   v: Vehiculo;
   onReservar: () => void;
@@ -51,30 +36,32 @@ function VehiculoCard({
 
   return (
     <View style={styles.card}>
-      {/* RF10.4 — Imagen del vehículo */}
       <Image
         source={v.imagen}
         style={styles.cardImage}
         resizeMode="cover"
       />
-
       <View style={styles.cardBody}>
-        {/* Nombre */}
-        <Text style={styles.cardNombre}>
+        <Text
+          style={styles.cardNombre}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+        >
           {v.marca} {v.modelo}
         </Text>
-
-        {/* Subtítulo */}
-        <Text style={styles.cardSubtitulo}>
-          {v.categoria} • {v.transmision === "automatica" ? "Automática" : "Mecánica"} • {v.combustible.charAt(0).toUpperCase() + v.combustible.slice(1)}
+        <Text style={styles.cardSubtitulo} numberOfLines={1}>
+          {v.categoria} •{" "}
+          {v.transmision === "automatica" ? "Automática" : "Mecánica"} •{" "}
+          {v.combustible.charAt(0).toUpperCase() + v.combustible.slice(1)}
         </Text>
-
-        {/* Chips de specs */}
-        <View style={styles.cardChipsRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.cardChipsRow}
+        >
           <View style={styles.cardChip}>
-            <Text style={styles.cardChipText}>
-              {v.capacidad} Plazas
-            </Text>
+            <Text style={styles.cardChipText}>{v.capacidad} Plazas</Text>
           </View>
           {v.aireAcondicionado && (
             <View style={styles.cardChip}>
@@ -86,38 +73,23 @@ function VehiculoCard({
               {v.kilometraje === "ilimitado" ? "Km ∞" : "Km limitado"}
             </Text>
           </View>
-        </View>
-
-        {/* Footer — precio + botones */}
+        </ScrollView>
         <View style={styles.cardFooter}>
           <View style={styles.cardPrecioWrap}>
-            {/* RF10.3 — Estado disponibilidad */}
             <View style={styles.cardEstadoRow}>
-              <View
-                style={[
-                  styles.cardEstadoDot,
-                  { backgroundColor: estadoCfg.color },
-                ]}
-              />
-              <Text
-                style={[styles.cardEstadoText, { color: estadoCfg.color }]}
-              >
+              <View style={[styles.cardEstadoDot, { backgroundColor: estadoCfg.color }]} />
+              <Text style={[styles.cardEstadoText, { color: estadoCfg.color }]}>
                 {estadoCfg.label}
               </Text>
             </View>
-            <Text style={styles.cardPrecio}>
+            <Text style={styles.cardPrecio} adjustsFontSizeToFit minimumFontScale={0.8}>
               ${v.precioDia.toLocaleString("es-CO")}
             </Text>
             <Text style={styles.cardPrecioDia}>/ día</Text>
           </View>
-
           <View style={styles.cardBtns}>
-            {/* RF10.4 — Ver detalles — lo implementa la compañera */}
             <TouchableOpacity
-              style={[
-                styles.btnReservar,
-                !disponible && styles.btnReservarOff,
-              ]}
+              style={[styles.btnReservar, !disponible && styles.btnReservarOff]}
               onPress={disponible ? onReservar : undefined}
               activeOpacity={disponible ? 0.85 : 1}
             >
@@ -125,10 +97,7 @@ function VehiculoCard({
                 {disponible ? "Reservar" : "No disponible"}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.btnDetalles}
-              onPress={onDetalles}
-            >
+            <TouchableOpacity style={styles.btnDetalles} onPress={onDetalles}>
               <Text style={styles.btnDetallesText}>VER DETALLES</Text>
             </TouchableOpacity>
           </View>
@@ -138,22 +107,14 @@ function VehiculoCard({
   );
 }
 
-// ── Pantalla principal ────────────────────────────────────────────────────────
 export default function CatalogoScreen() {
   const insets = useSafeAreaInsets();
-  const {
-    vehiculos,
-    totalVehiculos,
-    filtros,
-    actualizarFiltro,
-    resetFiltros,
-  } = useCatalogo();
+  const { vehiculos, totalVehiculos, filtros, actualizarFiltro, resetFiltros } = useCatalogo();
 
-  return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      {/* Header con logo */}
+  // ── Header completo como componente del FlatList ──────────────────────────
+  const ListHeader = () => (
+    <View>
+      {/* Logo */}
       <View style={styles.header}>
         <Image
           source={require("@/assets/images/logo.png")}
@@ -162,7 +123,7 @@ export default function CatalogoScreen() {
         />
       </View>
 
-      {/* RF10.2 — Búsqueda por marca/categoría/ciudad */}
+      {/* Búsqueda */}
       <View style={styles.searchWrap}>
         <View style={styles.searchBar}>
           <Text style={{ fontSize: 16 }}>🔍</Text>
@@ -182,7 +143,7 @@ export default function CatalogoScreen() {
         </View>
       </View>
 
-      {/* RF10.2 — Filtros por categoría */}
+      {/* Categorías */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -192,64 +153,66 @@ export default function CatalogoScreen() {
         {CATEGORIAS.map((cat) => (
           <TouchableOpacity
             key={cat}
-            style={[
-              styles.catChip,
-              filtros.categoria === cat && styles.catChipActive,
-            ]}
+            style={[styles.catChip, filtros.categoria === cat && styles.catChipActive]}
             onPress={() => actualizarFiltro("categoria", cat)}
           >
-            <Text
-              style={[
-                styles.catChipText,
-                filtros.categoria === cat && styles.catChipTextActive,
-              ]}
-            >
+            <Text style={[styles.catChipText, filtros.categoria === cat && styles.catChipTextActive]}>
               {cat}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* RF10.6 — Contador resultados */}
+      {/* Contador */}
       <View style={styles.contadorWrap}>
         <Text style={styles.contadorText}>
           {vehiculos.length} de {totalVehiculos} vehículos disponibles
         </Text>
       </View>
+    </View>
+  );
 
-      {/* RF10.1 — Lista de vehículos / RF10.6 empty state */}
-      {vehiculos.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyEmoji}>🔍</Text>
-          <Text style={styles.emptyTitle}>Sin resultados</Text>
-          <Text style={styles.emptySub}>
-            No encontramos vehículos con esos criterios de búsqueda.
-          </Text>
-          <TouchableOpacity style={styles.emptyBtn} onPress={resetFiltros}>
-            <Text style={styles.emptyBtnText}>Limpiar filtros</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <FlatList
-          data={vehiculos}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <VehiculoCard
-              v={item}
-              onReservar={() => {
-                // RF11 — Reserva — próximo módulo
-                console.log("Reservar:", item.id);
-              }}
-              onDetalles={() => {
-                // RF10.4 — Detalle — lo implementa la compañera
-                console.log("Detalles:", item.id);
-              }}
-            />
-          )}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+  // ── Empty state ───────────────────────────────────────────────────────────
+  const ListEmpty = () => (
+    <View style={styles.empty}>
+      <Text style={styles.emptyEmoji}>🔍</Text>
+      <Text style={styles.emptyTitle}>Sin resultados</Text>
+      <Text style={styles.emptySub}>
+        No encontramos vehículos con esos criterios de búsqueda.
+      </Text>
+      <TouchableOpacity style={styles.emptyBtn} onPress={resetFiltros}>
+        <Text style={styles.emptyBtnText}>Limpiar filtros</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      <FlatList
+        data={vehiculos}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <VehiculoCard
+            v={item}
+            onReservar={() => console.log("Reservar RF46:", item.id)}
+            onDetalles={() => console.log("Detalles RF45.4:", item.id)}
+          />
+        )}
+        ListHeaderComponent={<ListHeader />}
+        ListEmptyComponent={<ListEmpty />}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: Platform.OS === "android" ? 90 : 40 },
+        ]}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={Platform.OS === "android"}
+        initialNumToRender={4}
+        maxToRenderPerBatch={4}
+        windowSize={5}
+        keyboardShouldPersistTaps="handled"
+      />
     </View>
   );
 }
