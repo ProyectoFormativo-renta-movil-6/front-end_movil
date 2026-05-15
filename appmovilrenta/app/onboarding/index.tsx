@@ -5,6 +5,7 @@ import PagerView from "react-native-pager-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useOnboarding } from "@/hooks/use-onboarding";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import OnboardingNavigation from "./components/navigation";
 import OnboardingPagination from "./components/pagination";
 import OnboardingScreen1 from "./screens/screen-1";
@@ -22,6 +23,7 @@ const SCREENS = [
 ];
 
 export default function OnboardingFlow() {
+  const c = useTemaColores();
   const pagerRef = useRef<PagerView>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const { completeOnboarding } = useOnboarding();
@@ -29,7 +31,7 @@ export default function OnboardingFlow() {
 
   const goToLogin = () => {
     completeOnboarding();
-    router.push("/(auth)/login");
+    router.replace("/(auth)/login");
   };
 
   const handleNext = () => {
@@ -37,7 +39,7 @@ export default function OnboardingFlow() {
       pagerRef.current?.setPage(currentPage + 1);
     } else {
       completeOnboarding();
-      router.push("/(auth)/registro");
+      router.replace("/(auth)/registro");
     }
   };
 
@@ -48,8 +50,8 @@ export default function OnboardingFlow() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <View style={[styles.container, { backgroundColor: c.bg }]}>
+      <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bg} />
 
       <PagerView
         ref={pagerRef}
@@ -64,7 +66,7 @@ export default function OnboardingFlow() {
         ))}
       </PagerView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 12, backgroundColor: c.bg, borderTopColor: c.borderLight }]}>
         <OnboardingPagination total={SCREENS.length} current={currentPage} />
         <OnboardingNavigation
           currentPage={currentPage}

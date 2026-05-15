@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
 import { CategoriaVehiculo, Vehiculo } from "@/modules/catalogo/types/catalogo.types";
@@ -26,51 +28,40 @@ function VehiculoCard({
   onReservar: () => void;
   onDetalles: () => void;
 }) {
+  const { t } = useTranslation();
+  const c = useTemaColores();
   const estadoCfg = {
-    disponible:    { color: "#16A34A", label: "Disponible" },
-    reservado:     { color: "#DC2626", label: "Reservado" },
-    mantenimiento: { color: "#D97706", label: "Mantenimiento" },
+    disponible:    { color: "#16A34A", label: t("catalogo.estados.disponible") },
+    reservado:     { color: "#DC2626", label: t("catalogo.estados.reservado") },
+    mantenimiento: { color: "#D97706", label: t("catalogo.estados.mantenimiento") },
   }[v.estado];
 
   const disponible = v.estado === "disponible";
 
   return (
-    <View style={styles.card}>
-      <Image
-        source={v.imagen}
-        style={styles.cardImage}
-        resizeMode="cover"
-      />
+    <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+      <Image source={v.imagen} style={styles.cardImage} resizeMode="cover" />
       <View style={styles.cardBody}>
-        <Text
-          style={styles.cardNombre}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.8}
-        >
+        <Text style={[styles.cardNombre, { color: c.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
           {v.marca} {v.modelo}
         </Text>
-        <Text style={styles.cardSubtitulo} numberOfLines={1}>
+        <Text style={[styles.cardSubtitulo, { color: c.textSecondary }]} numberOfLines={1}>
           {v.categoria} •{" "}
-          {v.transmision === "automatica" ? "Automática" : "Mecánica"} •{" "}
+          {v.transmision === "automatica" ? t("catalogo.transmisionAutomatica") : t("catalogo.transmisionMecanica")} •{" "}
           {v.combustible.charAt(0).toUpperCase() + v.combustible.slice(1)}
         </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.cardChipsRow}
-        >
-          <View style={styles.cardChip}>
-            <Text style={styles.cardChipText}>{v.capacidad} Plazas</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardChipsRow}>
+          <View style={[styles.cardChip, { backgroundColor: c.bgInput, borderColor: c.border }]}>
+            <Text style={[styles.cardChipText, { color: c.textSecondary }]}>{v.capacidad} {t("catalogo.plazas")}</Text>
           </View>
           {v.aireAcondicionado && (
-            <View style={styles.cardChip}>
-              <Text style={styles.cardChipText}>A/C</Text>
+            <View style={[styles.cardChip, { backgroundColor: c.bgInput, borderColor: c.border }]}>
+              <Text style={[styles.cardChipText, { color: c.textSecondary }]}>A/C</Text>
             </View>
           )}
-          <View style={styles.cardChip}>
-            <Text style={styles.cardChipText}>
-              {v.kilometraje === "ilimitado" ? "Km ∞" : "Km limitado"}
+          <View style={[styles.cardChip, { backgroundColor: c.bgInput, borderColor: c.border }]}>
+            <Text style={[styles.cardChipText, { color: c.textSecondary }]}>
+              {v.kilometraje === "ilimitado" ? "Km ∞" : t("auth.invitado.kmLimitado")}
             </Text>
           </View>
         </ScrollView>
@@ -78,14 +69,12 @@ function VehiculoCard({
           <View style={styles.cardPrecioWrap}>
             <View style={styles.cardEstadoRow}>
               <View style={[styles.cardEstadoDot, { backgroundColor: estadoCfg.color }]} />
-              <Text style={[styles.cardEstadoText, { color: estadoCfg.color }]}>
-                {estadoCfg.label}
-              </Text>
+              <Text style={[styles.cardEstadoText, { color: estadoCfg.color }]}>{estadoCfg.label}</Text>
             </View>
             <Text style={styles.cardPrecio} adjustsFontSizeToFit minimumFontScale={0.8}>
               ${v.precioDia.toLocaleString("es-CO")}
             </Text>
-            <Text style={styles.cardPrecioDia}>/ día</Text>
+            <Text style={[styles.cardPrecioDia, { color: c.textMuted }]}>{t("catalogo.copDia")}</Text>
           </View>
           <View style={styles.cardBtns}>
             <TouchableOpacity
@@ -94,11 +83,11 @@ function VehiculoCard({
               activeOpacity={disponible ? 0.85 : 1}
             >
               <Text style={styles.btnReservarText}>
-                {disponible ? "Reservar" : "No disponible"}
+                {disponible ? t("catalogo.reservar") : t("catalogo.noDisponible")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.btnDetalles} onPress={onDetalles}>
-              <Text style={styles.btnDetallesText}>VER DETALLES</Text>
+              <Text style={styles.btnDetallesText}>{t("catalogo.verDetalles")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -108,14 +97,25 @@ function VehiculoCard({
 }
 
 export default function CatalogoScreen() {
+  const { t } = useTranslation();
+  const c = useTemaColores();
   const insets = useSafeAreaInsets();
   const { vehiculos, totalVehiculos, filtros, actualizarFiltro, resetFiltros } = useCatalogo();
 
+  const CATEGORIA_LABELS: Record<CategoriaVehiculo, string> = {
+    Todas: t("catalogo.categorias.todas"),
+    SUVs: t("catalogo.categorias.suv"),
+    Económicos: t("catalogo.categorias.economico"),
+    Sedán: t("catalogo.categorias.sedan"),
+    Premium: t("catalogo.categorias.premium"),
+    Van: t("catalogo.categorias.van"),
+  };
+
   // ── Header completo como componente del FlatList ──────────────────────────
   const ListHeader = () => (
-    <View>
+    <View style={{ backgroundColor: c.bgHeader }}>
       {/* Logo */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: c.bgHeader }]}>
         <Image
           source={require("@/assets/images/logo.png")}
           style={styles.logo}
@@ -124,20 +124,20 @@ export default function CatalogoScreen() {
       </View>
 
       {/* Búsqueda */}
-      <View style={styles.searchWrap}>
-        <View style={styles.searchBar}>
+      <View style={[styles.searchWrap, { backgroundColor: c.bgHeader }]}>
+        <View style={[styles.searchBar, { backgroundColor: c.bgInput, borderColor: c.border }]}>
           <Text style={{ fontSize: 16 }}>🔍</Text>
           <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar marca, categoría o ciudad..."
-            placeholderTextColor="#9CA3AF"
+            style={[styles.searchInput, { color: c.textPrimary }]}
+            placeholder={t("catalogo.buscar")}
+            placeholderTextColor={c.textMuted}
             value={filtros.busqueda}
-            onChangeText={(t) => actualizarFiltro("busqueda", t)}
+            onChangeText={(v) => actualizarFiltro("busqueda", v)}
             autoCapitalize="none"
           />
           {filtros.busqueda.length > 0 && (
             <TouchableOpacity onPress={() => actualizarFiltro("busqueda", "")}>
-              <Text style={styles.searchClear}>✕</Text>
+              <Text style={[styles.searchClear, { color: c.textMuted }]}>✕</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -148,25 +148,25 @@ export default function CatalogoScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.catsContent}
-        style={styles.catsRow}
+        style={[styles.catsRow, { backgroundColor: c.bgHeader }]}
       >
         {CATEGORIAS.map((cat) => (
           <TouchableOpacity
             key={cat}
-            style={[styles.catChip, filtros.categoria === cat && styles.catChipActive]}
+            style={[styles.catChip, { backgroundColor: c.bgInput, borderColor: c.border }, filtros.categoria === cat && styles.catChipActive]}
             onPress={() => actualizarFiltro("categoria", cat)}
           >
-            <Text style={[styles.catChipText, filtros.categoria === cat && styles.catChipTextActive]}>
-              {cat}
+            <Text style={[styles.catChipText, { color: c.textSecondary }, filtros.categoria === cat && styles.catChipTextActive]}>
+              {CATEGORIA_LABELS[cat]}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
       {/* Contador */}
-      <View style={styles.contadorWrap}>
-        <Text style={styles.contadorText}>
-          {vehiculos.length} de {totalVehiculos} vehículos disponibles
+      <View style={[styles.contadorWrap, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
+        <Text style={[styles.contadorText, { color: c.textSecondary }]}>
+          {vehiculos.length} de {totalVehiculos} {t("catalogo.contador")}
         </Text>
       </View>
     </View>
@@ -176,19 +176,17 @@ export default function CatalogoScreen() {
   const ListEmpty = () => (
     <View style={styles.empty}>
       <Text style={styles.emptyEmoji}>🔍</Text>
-      <Text style={styles.emptyTitle}>Sin resultados</Text>
-      <Text style={styles.emptySub}>
-        No encontramos vehículos con esos criterios de búsqueda.
-      </Text>
+      <Text style={[styles.emptyTitle, { color: c.textPrimary }]}>{t("catalogo.sinResultados")}</Text>
+      <Text style={[styles.emptySub, { color: c.textSecondary }]}>{t("catalogo.sinResultadosSubLargo")}</Text>
       <TouchableOpacity style={styles.emptyBtn} onPress={resetFiltros}>
-        <Text style={styles.emptyBtnText}>Limpiar filtros</Text>
+        <Text style={styles.emptyBtnText}>{t("catalogo.limpiarFiltros")}</Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
+      <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
 
       <FlatList
         data={vehiculos}

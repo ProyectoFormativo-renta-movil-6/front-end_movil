@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
   return (
@@ -11,6 +12,7 @@ function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
 }
 
 export default function TabLayout() {
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -36,34 +38,34 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Inicio',
+          title: t('tabs.inicio'),
           tabBarIcon: ({ focused }) => (
             <TabIcon emoji="🏠" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
-        name="buscar"
+        name="notificaciones"
         options={{
-          title: 'Buscar',
+          title: t('tabs.notificaciones'),
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="🔍" focused={focused} />
+            <TabIcon emoji="🔔" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
-        name="reservar"
+        name="mis-reservas"
         options={{
-          title: 'Reservar',
+          title: t('tabs.misReservas'),
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="📅" focused={focused} />
+            <TabIcon emoji="🗂️" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="perfil"
         options={{
-          title: 'Perfil',
+          title: t('tabs.perfil'),
           tabBarIcon: ({ focused }) => (
             <TabIcon emoji="👤" focused={focused} />
           ),
