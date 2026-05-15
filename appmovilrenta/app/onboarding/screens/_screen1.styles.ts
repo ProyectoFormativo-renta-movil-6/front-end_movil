@@ -30,8 +30,9 @@ export const screen1Styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#DBEAFE",
   },
-  heroEmoji: {
-    fontSize: 88,
+  heroLogo: {
+    width: 140,
+    height: 140,
   },
   heroBadge: {
     position: "absolute",
@@ -98,4 +99,12 @@ export const screen1Styles = StyleSheet.create({
     color: "#6B7280",
     fontWeight: "500",
   },
+  selectorWrap: {
+  width: "100%",
+  marginTop: 16,
+},
+titleAccent: {
+  color: "#1D4ED8",
+  fontWeight: "800",
+},
 });

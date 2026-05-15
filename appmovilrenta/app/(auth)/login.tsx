@@ -2,8 +2,11 @@ import { InputField } from "@/components/ui/InputField";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { useLogin } from "@/modules/auth/hooks/useAuth";
+import { useOnboarding } from "@/hooks/use-onboarding";
 import { router } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import {
   Image,
   KeyboardAvoidingView,
@@ -16,9 +19,18 @@ import {
 import { loginStyles as styles } from "./_login.styles";
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
+  const c = useTemaColores();
+  const { resetOnboarding } = useOnboarding();
   const { form, errores, cargando, bloqueado, actualizarCampo, iniciarSesion } =
     useLogin();
   const errorGlobal = errores.find((e) => !e.campo)?.mensaje;
+
+  // TODO: quitar antes de producción
+  function handleResetOnboarding() {
+    resetOnboarding();
+    router.replace("/");
+  }
 
   function handleLogin() {
     iniciarSesion(() => {
@@ -34,7 +46,7 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: c.bg }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
@@ -44,14 +56,14 @@ export default function LoginScreen() {
       >
         {/* ── Encabezado con logo ────────────────────────────── */}
         <View style={styles.encabezado}>
-          <View style={styles.logoWrapper}>
+          <View style={[styles.logoWrapper, { backgroundColor: c.primaryBg }]}>
             <Image
               source={require("@/assets/images/logo.png")}
               style={styles.logo}
             />
           </View>
-          <Text style={styles.titulo}>Bienvenido de nuevo</Text>
-          <Text style={styles.subtitulo}>Inicia sesión para continuar</Text>
+          <Text style={[styles.titulo, { color: c.textPrimary }]}>{t("auth.login.bienvenido")}</Text>
+          <Text style={[styles.subtitulo, { color: c.textSecondary }]}>{t("auth.login.subtitulo")}</Text>
         </View>
 
         {/* ── Banner error global (bloqueo / credenciales) ───── */}
@@ -64,7 +76,7 @@ export default function LoginScreen() {
         {/* ── Formulario ─────────────────────────────────────── */}
         <View style={styles.formulario}>
           <InputField
-            label="Correo electrónico *"
+            label={`${t("auth.login.correo")} *`}
             placeholder="ejemplo@correo.com"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -73,8 +85,8 @@ export default function LoginScreen() {
             error={errores.find((e) => e.campo === "correo")?.mensaje}
           />
           <PasswordInput
-            label="Contraseña *"
-            placeholder="Tu contraseña"
+            label={`${t("auth.login.contrasena")} *`}
+            placeholder={t("auth.login.contrasena")}
             value={form.contrasena}
             onChangeText={(val) => actualizarCampo("contrasena", val)}
             error={errores.find((e) => e.campo === "contrasena")?.mensaje}
@@ -83,14 +95,14 @@ export default function LoginScreen() {
             onPress={() => router.push("/(auth)/olvide-contrasena")}
             style={styles.enlaceOlvide}
           >
-            <Text style={styles.textoEnlace}>¿Olvidaste tu contraseña?</Text>
+            <Text style={styles.textoEnlace}>{t("auth.login.olvidaste")}</Text>
           </TouchableOpacity>
         </View>
 
         {/* ── Acciones ───────────────────────────────────────── */}
         <View style={styles.acciones}>
           <PrimaryButton
-            titulo={bloqueado ? "Cuenta bloqueada" : "Iniciar sesión"}
+            titulo={bloqueado ? t("auth.login.bloqueado") : t("auth.login.iniciarSesion")}
             onPress={handleLogin}
             cargando={cargando}
             deshabilitado={bloqueado}
@@ -98,26 +110,36 @@ export default function LoginScreen() {
 
           {bloqueado ? (
             <Text style={styles.hintBloqueado}>
-              Cuenta bloqueada tras 3 intentos. Usa ¿Olvidaste tu contraseña?
+              {t("auth.login.hintBloqueado")}
             </Text>
           ) : null}
 
           <View style={styles.separador}>
-            <View style={styles.lineaSeparador} />
-            <Text style={styles.textoSeparador}>o</Text>
-            <View style={styles.lineaSeparador} />
+            <View style={[styles.lineaSeparador, { backgroundColor: c.border }]} />
+            <Text style={[styles.textoSeparador, { color: c.textMuted }]}>{t("auth.login.separador")}</Text>
+            <View style={[styles.lineaSeparador, { backgroundColor: c.border }]} />
           </View>
 
           <PrimaryButton
-            titulo="Crear cuenta nueva"
+            titulo={t("auth.login.crearCuenta")}
             variante="secundario"
             onPress={() => router.push("/(auth)/registro")}
           />
           <PrimaryButton
-            titulo="Continuar como invitado"
+            titulo={t("auth.login.invitado")}
             variante="texto"
             onPress={handleInvitado}
           />
+
+          {/* TODO: quitar antes de producción */}
+          <TouchableOpacity
+            onPress={handleResetOnboarding}
+            style={{ marginTop: 24, alignItems: "center" }}
+          >
+            <Text style={{ fontSize: 11, color: "#DC2626" }}>
+              🔄 [DEV] Ver onboarding de nuevo
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

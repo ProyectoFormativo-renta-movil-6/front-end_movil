@@ -20,12 +20,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { IdiomaKey, IDIOMAS } from "@/modules/i18n";
+import { useIdioma, useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { usePerfil } from "@/modules/perfil/hooks/usePerfil";
 import { ModalCambiarCorreo } from "@/modules/perfil/components/ModalCambiarCorreo";
 import { perfilStyles as styles } from "./_perfil.styles";
 
 export default function PerfilScreen() {
+  const { t } = useTranslation();
+  const { idiomaActual, cambiarIdioma, temaActual, cambiarTema } = useIdioma();
+  const c = useTemaColores();
   const insets = useSafeAreaInsets();
   const [editando, setEditando] = useState(false);
 
@@ -50,16 +56,16 @@ export default function PerfilScreen() {
     guardarCambios(
       () => {
         Alert.alert(
-          "✅ Cambios guardados",
-          "Tu información fue actualizada correctamente.",
-          [{ text: "OK", onPress: () => setEditando(false) }]
+          t("perfil.cambiosGuardados"),
+          t("perfil.cambiosGuardadosMsg"),
+          [{ text: t("perfil.ok"), onPress: () => setEditando(false) }]
         );
       },
       () => {
         Alert.alert(
-          "❌ Error",
-          "Por favor revisa los campos marcados.",
-          [{ text: "Entendido" }]
+          t("perfil.errorTitulo"),
+          t("perfil.errorMsg"),
+          [{ text: t("perfil.errorBtn") }]
         );
       }
     );
@@ -74,25 +80,25 @@ export default function PerfilScreen() {
     guardarCambioCorreo(
       () => {
         Alert.alert(
-          "✅ Correo actualizado",
-          "Tu correo fue cambiado correctamente.",
-          [{ text: "OK" }]
+          t("perfil.correoActualizadoTitulo"),
+          t("perfil.correoActualizadoMsg"),
+          [{ text: t("perfil.ok") }]
         );
       },
       (msg) => {
-        Alert.alert("❌ Error", msg, [{ text: "Entendido" }]);
+        Alert.alert(t("perfil.errorTitulo"), msg, [{ text: t("perfil.errorBtn") }]);
       }
     );
   };
 
   const handleCerrarSesion = () => {
     Alert.alert(
-      "Cerrar sesión",
-      "¿Estás seguro que deseas cerrar sesión?",
+      t("perfil.cerrarSesionTitulo"),
+      t("perfil.cerrarSesionMsg"),
       [
-        { text: "Cancelar", style: "cancel" },
+        { text: t("perfil.cancelar"), style: "cancel" },
         {
-          text: "Cerrar sesión",
+          text: t("perfil.confirmarCerrar"),
           style: "destructive",
           onPress: () => {
             // RF43.9 — Cerrar sesión segura — se conecta al backend
@@ -105,12 +111,12 @@ export default function PerfilScreen() {
 
   const handleEliminarCuenta = () => {
     Alert.alert(
-      "⚠️ Eliminar cuenta",
-      "Esta acción es irreversible. ¿Deseas eliminar tu cuenta definitivamente?",
+      t("perfil.eliminarTitulo"),
+      t("perfil.eliminarMsg"),
       [
-        { text: "Cancelar", style: "cancel" },
+        { text: t("perfil.cancelar"), style: "cancel" },
         {
-          text: "Eliminar",
+          text: t("perfil.confirmarEliminar"),
           style: "destructive",
           onPress: () => {
             // RF52 — Eliminar cuenta — se conecta al backend
@@ -124,26 +130,24 @@ export default function PerfilScreen() {
   // ── Vista editar perfil ───────────────────────────────────────────────────
   if (editando) {
     return (
-      <View style={[styles.editContainer, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={[styles.editContainer, { paddingTop: insets.top, backgroundColor: c.bg }]}>
+        <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
 
         {/* Header editar */}
-        <View style={styles.editHeader}>
+        <View style={[styles.editHeader, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
           <TouchableOpacity
-            style={styles.editHeaderBack}
+            style={[styles.editHeaderBack, { backgroundColor: c.bgInput }]}
             onPress={handleCancelar}
           >
-            <Text style={styles.editHeaderBackText}>←</Text>
+            <Text style={[styles.editHeaderBackText, { color: c.textPrimary }]}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.editHeaderTitle}>Editar Perfil</Text>
+          <Text style={[styles.editHeaderTitle, { color: c.textPrimary }]}>{t("perfil.editarTitulo")}</Text>
         </View>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{
-            paddingBottom: Platform.OS === "android" ? 100 : 60,
-          }}
+          contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 100 : 60 }}
         >
           {/* Avatar */}
           <View style={styles.editAvatarWrap}>
@@ -158,72 +162,57 @@ export default function PerfilScreen() {
           </View>
 
           {/* Formulario */}
-          <View style={styles.editCard}>
+          <View style={[styles.editCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
             {/* Nombre completo */}
             <View style={styles.editCampoWrap}>
-              <Text style={styles.editCampoLabel}>Nombre Completo</Text>
+              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.nombreCompleto")}</Text>
               <TextInput
-                style={[
-                  styles.editInput,
-                  errores.nombre ? styles.editInputError : null,
-                ]}
+                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.nombre ? styles.editInputError : null]}
                 value={form.nombre}
                 onChangeText={(val) => actualizarCampo("nombre", val)}
                 placeholder="Tu nombre"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={c.textMuted}
                 autoCapitalize="words"
               />
-              {errores.nombre && (
-                <Text style={styles.editErrorText}>{errores.nombre}</Text>
-              )}
+              {errores.nombre && <Text style={styles.editErrorText}>{errores.nombre}</Text>}
             </View>
 
             {/* Apellido */}
             <View style={styles.editCampoWrap}>
-              <Text style={styles.editCampoLabel}>Apellido</Text>
+              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.apellido")}</Text>
               <TextInput
-                style={[
-                  styles.editInput,
-                  errores.apellido ? styles.editInputError : null,
-                ]}
+                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.apellido ? styles.editInputError : null]}
                 value={form.apellido}
                 onChangeText={(val) => actualizarCampo("apellido", val)}
                 placeholder="Tu apellido"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={c.textMuted}
                 autoCapitalize="words"
               />
-              {errores.apellido && (
-                <Text style={styles.editErrorText}>{errores.apellido}</Text>
-              )}
+              {errores.apellido && <Text style={styles.editErrorText}>{errores.apellido}</Text>}
             </View>
 
             {/* Teléfono */}
             <View style={styles.editCampoWrap}>
-              <Text style={styles.editCampoLabel}>Teléfono de contacto</Text>
+              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.telefono")}</Text>
               <TextInput
-                style={[
-                  styles.editInput,
-                  errores.telefono ? styles.editInputError : null,
-                ]}
+                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.telefono ? styles.editInputError : null]}
                 value={form.telefono}
                 onChangeText={(val) => actualizarCampo("telefono", val)}
                 placeholder="+57 300 000 0000"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={c.textMuted}
                 keyboardType="phone-pad"
                 maxLength={10}
               />
-              {errores.telefono && (
-                <Text style={styles.editErrorText}>{errores.telefono}</Text>
-              )}
+              {errores.telefono && <Text style={styles.editErrorText}>{errores.telefono}</Text>}
             </View>
 
             {/* Dirección */}
             <View style={styles.editCampoWrap}>
-              <Text style={styles.editCampoLabel}>Dirección de residencia</Text>
+              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.direccion")}</Text>
               <TextInput
-                style={styles.editInput}
+                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }]}
                 placeholder="Calle 10 # 24-50, Neiva"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={c.textMuted}
                 autoCapitalize="words"
               />
             </View>
@@ -231,10 +220,7 @@ export default function PerfilScreen() {
 
           {/* Botón guardar */}
           <TouchableOpacity
-            style={[
-              styles.editBtnGuardar,
-              cargando && styles.editBtnGuardarDisabled,
-            ]}
+            style={[styles.editBtnGuardar, cargando && styles.editBtnGuardarDisabled]}
             onPress={handleGuardar}
             activeOpacity={0.85}
             disabled={cargando}
@@ -242,7 +228,7 @@ export default function PerfilScreen() {
             {cargando ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.editBtnGuardarText}>GUARDAR CAMBIOS</Text>
+              <Text style={styles.editBtnGuardarText}>{t("perfil.guardarCambios")}</Text>
             )}
           </TouchableOpacity>
         </ScrollView>
@@ -252,99 +238,137 @@ export default function PerfilScreen() {
 
   // ── Vista principal perfil ─────────────────────────────────────────────────
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
+      <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
 
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Mi Perfil</Text>
+      <View style={[styles.header, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
+        <Text style={[styles.headerTitle, { color: c.textPrimary }]}>{t("perfil.titulo")}</Text>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: Platform.OS === "android" ? 100 : 60,
-        }}
+        contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 100 : 60 }}
       >
         {/* Card usuario */}
-        <View style={styles.userCard}>
+        <View style={[styles.userCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
               {usuario.nombre.charAt(0)}{usuario.apellido.charAt(0)}
             </Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>
+            <Text style={[styles.userName, { color: c.textPrimary }]}>
               {usuario.nombre} {usuario.apellido}
             </Text>
-            <Text style={styles.userEmail}>{usuario.correo}</Text>
+            <Text style={[styles.userEmail, { color: c.textSecondary }]}>{usuario.correo}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.btnEditar}
-            onPress={() => setEditando(true)}
-          >
-            <Text style={styles.btnEditarText}>EDITAR</Text>
+          <TouchableOpacity style={styles.btnEditar} onPress={() => setEditando(true)}>
+            <Text style={styles.btnEditarText}>{t("perfil.editar")}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Menú opciones */}
-        <View style={styles.menuSection}>
-          {/* Historial de viajes */}
+        <View style={[styles.menuSection, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           <TouchableOpacity
-            style={[styles.menuItem, styles.menuItemBorder]}
+            style={[styles.menuItem, styles.menuItemBorder, { borderBottomColor: c.borderLight }]}
             onPress={() => console.log("Historial")}
           >
-            <View style={styles.menuIconWrap}>
+            <View style={[styles.menuIconWrap, { backgroundColor: c.primaryBg }]}>
               <Text style={styles.menuIcon}>📋</Text>
             </View>
             <View style={styles.menuTextos}>
-              <Text style={styles.menuLabel}>Historial de viajes</Text>
-              <Text style={styles.menuSub}>Ver tus reservas anteriores</Text>
+              <Text style={[styles.menuLabel, { color: c.textPrimary }]}>{t("perfil.historial")}</Text>
+              <Text style={[styles.menuSub, { color: c.textMuted }]}>{t("perfil.historialSub")}</Text>
             </View>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuArrow, { color: c.textMuted }]}>›</Text>
           </TouchableOpacity>
 
-          {/* Seguridad y contraseña */}
           <TouchableOpacity
-            style={[styles.menuItem, styles.menuItemBorder]}
+            style={[styles.menuItem, styles.menuItemBorder, { borderBottomColor: c.borderLight }]}
             onPress={() => setMostrarModalCorreo(true)}
           >
-            <View style={styles.menuIconWrap}>
+            <View style={[styles.menuIconWrap, { backgroundColor: c.primaryBg }]}>
               <Text style={styles.menuIcon}>🔐</Text>
             </View>
             <View style={styles.menuTextos}>
-              <Text style={styles.menuLabel}>Seguridad y Contraseña</Text>
-              <Text style={styles.menuSub}>Cambiar correo o contraseña</Text>
+              <Text style={[styles.menuLabel, { color: c.textPrimary }]}>{t("perfil.seguridad")}</Text>
+              <Text style={[styles.menuSub, { color: c.textMuted }]}>{t("perfil.seguridadSub")}</Text>
             </View>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuArrow, { color: c.textMuted }]}>›</Text>
           </TouchableOpacity>
 
-          {/* Mis tarjetas */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => console.log("Tarjetas")}
-          >
-            <View style={styles.menuIconWrap}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => console.log("Tarjetas")}>
+            <View style={[styles.menuIconWrap, { backgroundColor: c.primaryBg }]}>
               <Text style={styles.menuIcon}>💳</Text>
             </View>
             <View style={styles.menuTextos}>
-              <Text style={styles.menuLabel}>Mis tarjetas de pago</Text>
-              <Text style={styles.menuSub}>Gestiona tus métodos de pago</Text>
+              <Text style={[styles.menuLabel, { color: c.textPrimary }]}>{t("perfil.tarjetas")}</Text>
+              <Text style={[styles.menuSub, { color: c.textMuted }]}>{t("perfil.tarjetasSub")}</Text>
             </View>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuArrow, { color: c.textMuted }]}>›</Text>
           </TouchableOpacity>
         </View>
 
+        {/* Configuración: Tema e Idioma */}
+        <View style={[configStyles.seccion, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+          <Text style={configStyles.seccionTitulo}>
+            {t("config.tema")} &amp; {t("config.idioma")}
+          </Text>
+
+          <View style={configStyles.filaLabel}>
+            <Text style={[configStyles.label, { color: c.textPrimary }]}>🎨 {t("config.tema")}</Text>
+          </View>
+          <View style={configStyles.temaRow}>
+            <TouchableOpacity
+              style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, temaActual === "claro" && configStyles.temaBtnActivo]}
+              onPress={() => cambiarTema("claro")}
+            >
+              <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, temaActual === "claro" && configStyles.temaBtnTextoActivo]}>
+                {t("config.claro")}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, temaActual === "oscuro" && configStyles.temaBtnActivoDark]}
+              onPress={() => cambiarTema("oscuro")}
+            >
+              <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, temaActual === "oscuro" && { color: "#F0F4FF" }]}>
+                {t("config.oscuro")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={[configStyles.filaLabel, { marginTop: 16 }]}>
+            <Text style={[configStyles.label, { color: c.textPrimary }]}>🌐 {t("config.idioma")}</Text>
+          </View>
+          <View style={configStyles.idiomasWrap}>
+            {(Object.keys(IDIOMAS) as IdiomaKey[]).map((key) => (
+              <TouchableOpacity
+                key={key}
+                style={[configStyles.idiomaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, idiomaActual === key && configStyles.idiomaBtnActivo]}
+                onPress={() => cambiarIdioma(key)}
+              >
+                <Text style={configStyles.idiomaFlag}>{IDIOMAS[key].flag}</Text>
+                <Text style={[configStyles.idiomaLabel, { color: c.textPrimary }, idiomaActual === key && configStyles.idiomaLabelActivo]}>
+                  {IDIOMAS[key].label}
+                </Text>
+                {idiomaActual === key && (
+                  <View style={configStyles.idiomaCheck}>
+                    <Text style={{ fontSize: 10, color: "#fff", fontWeight: "800" }}>✓</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         {/* Cerrar sesión */}
-        <View style={styles.cerrarSection}>
-          <TouchableOpacity
-            style={styles.cerrarBtn}
-            onPress={handleCerrarSesion}
-          >
+        <View style={[styles.cerrarSection, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+          <TouchableOpacity style={styles.cerrarBtn} onPress={handleCerrarSesion}>
             <View style={styles.cerrarIconWrap}>
               <Text style={styles.menuIcon}>→</Text>
             </View>
-            <Text style={styles.cerrarLabel}>Cerrar sesión</Text>
+            <Text style={styles.cerrarLabel}>{t("perfil.cerrarSesion")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -354,9 +378,7 @@ export default function PerfilScreen() {
             style={styles.eliminarBtn}
             onPress={handleEliminarCuenta}
           >
-            <Text style={styles.eliminarText}>
-              Eliminar mi cuenta definitivamente
-            </Text>
+            <Text style={styles.eliminarText}>{t("perfil.eliminarCuenta")}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -375,3 +397,97 @@ export default function PerfilScreen() {
     </View>
   );
 }
+
+const configStyles = StyleSheet.create({
+  seccion: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  seccionTitulo: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#1D4ED8",
+    letterSpacing: 1.2,
+    marginBottom: 14,
+  },
+  filaLabel: {
+    marginBottom: 8,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  temaRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  temaBtn: {
+    flex: 1,
+    paddingVertical: 11,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "#F9FAFB",
+    alignItems: "center",
+  },
+  temaBtnActivo: {
+    backgroundColor: "#EEF2FF",
+    borderColor: "#1D4ED8",
+  },
+  temaBtnActivoDark: {
+    backgroundColor: "#1C2330",
+    borderColor: "#4A5568",
+  },
+  temaBtnTexto: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  temaBtnTextoActivo: {
+    color: "#1D4ED8",
+  },
+  idiomasWrap: {
+    gap: 8,
+  },
+  idiomaBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "#F9FAFB",
+  },
+  idiomaBtnActivo: {
+    backgroundColor: "#EEF2FF",
+    borderColor: "#1D4ED8",
+  },
+  idiomaFlag: {
+    fontSize: 20,
+  },
+  idiomaLabel: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  idiomaLabelActivo: {
+    color: "#1D4ED8",
+  },
+  idiomaCheck: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#1D4ED8",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

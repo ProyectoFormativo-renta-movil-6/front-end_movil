@@ -6,7 +6,7 @@ export default function BuscarScreen() {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Text style={styles.text}>Buscar — próximamente</Text>
+      <Text style={styles.text}>Notificaciones — próximamente</Text>
     </View>
   );
 }
