@@ -16,10 +16,19 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { invitadoStyles as styles } from "./_invitado.styles";
+import { invitadoStyles as styles } from "@/modules/invitado/styles/invitado.styles";
 
 const P = "#1D4ED8";
-const CATEGORIAS = ["Todos", "SUV", "Económico", "Sedán", "Premium", "Van"];
+
+type CatKey = { valor: string; tKey: string };
+const CATEGORIAS_DEF: CatKey[] = [
+  { valor: "Todos",     tKey: "auth.invitado.catTodos"    },
+  { valor: "SUV",       tKey: "auth.invitado.catSUV"      },
+  { valor: "Económico", tKey: "auth.invitado.catEconomico"},
+  { valor: "Sedán",     tKey: "auth.invitado.catSedan"    },
+  { valor: "Premium",   tKey: "auth.invitado.catPremium"  },
+  { valor: "Van",       tKey: "auth.invitado.catVan"      },
+];
 
 function Pill({ emoji, label }: { emoji: string; label: string }) {
   return (
@@ -77,7 +86,7 @@ function VehiculoCard({
           <Pill
             emoji="⛽"
             label={
-              v.combustible.charAt(0).toUpperCase() + v.combustible.slice(1)
+              t(`auth.invitado.comb_${v.combustible}`)
             }
           />
         </View>
@@ -86,7 +95,7 @@ function VehiculoCard({
             <Text style={styles.precio}>
               ${v.precioDia.toLocaleString("es-CO")}
             </Text>
-            <Text style={styles.precioDia}>COP / día</Text>
+            <Text style={styles.precioDia}>{t("auth.invitado.copDia")}</Text>
           </View>
           <View style={styles.ratingRow}>
             <Text style={{ color: "#F59E0B", fontSize: 15 }}>★</Text>
@@ -187,11 +196,10 @@ function DetalleModal({
                     : t("auth.invitado.kmLimitado")}
                 </Text>
               </View>
-              <Text style={{ fontSize: 48 }}>{v.emoji}</Text>
             </View>
             <Text style={styles.sectionTitle}>{t("auth.invitado.descripcion")}</Text>
             <View style={styles.descCard}>
-              <Text style={styles.descText}>{v.descripcion}</Text>
+              <Text style={styles.descText}>{t(`auth.invitado.desc_${v.id}`)}</Text>
             </View>
             <Text style={styles.sectionTitle}>{t("auth.invitado.especificaciones")}</Text>
             <View style={styles.specsGrid}>
@@ -204,9 +212,7 @@ function DetalleModal({
                 {
                   icon: "⛽",
                   lbl: t("auth.invitado.combustibleLabel"),
-                  val:
-                    v.combustible.charAt(0).toUpperCase() +
-                    v.combustible.slice(1),
+                  val: t(`auth.invitado.comb_${v.combustible}`),
                 },
                 {
                   icon: "👥",
@@ -227,14 +233,14 @@ function DetalleModal({
               {v.serviciosIncluidos.map((servicio) => (
                 <View key={servicio} style={styles.servicioRow}>
                   <Text style={styles.servicioCheck}>✓</Text>
-                  <Text style={styles.servicioText}>{servicio}</Text>
+                  <Text style={styles.servicioText}>{t(`auth.invitado.${servicio}`)}</Text>
                 </View>
               ))}
             </View>
             <Text style={styles.sectionTitle}>{t("auth.invitado.disponibilidad")}</Text>
             <View style={styles.calendarioCard}>
               <View style={styles.calendarioHeader}>
-                <Text style={styles.calendarioMes}>Mayo 2026</Text>
+                <Text style={styles.calendarioMes}>{t("auth.invitado.mesCalendario")}</Text>
                 <View style={styles.calendarioBadge}>
                   <Text style={styles.calendarioBadgeText}>{t("auth.invitado.soloConsulta")}</Text>
                 </View>
@@ -398,22 +404,22 @@ export default function InvitadoScreen() {
         contentContainerStyle={styles.catsContent}
         style={styles.catsRow}
       >
-        {CATEGORIAS.map((cat) => (
+        {CATEGORIAS_DEF.map(({ valor, tKey }) => (
           <TouchableOpacity
-            key={cat}
+            key={valor}
             style={[
               styles.catChip,
-              filtros.categoria === cat && styles.catChipActive,
+              filtros.categoria === valor && styles.catChipActive,
             ]}
-            onPress={() => actualizarFiltro("categoria", cat as any)}
+            onPress={() => actualizarFiltro("categoria", valor as any)}
           >
             <Text
               style={[
                 styles.catChipText,
-                filtros.categoria === cat && styles.catChipTextActive,
+                filtros.categoria === valor && styles.catChipTextActive,
               ]}
             >
-              {cat}
+              {t(tKey)}
             </Text>
           </TouchableOpacity>
         ))}

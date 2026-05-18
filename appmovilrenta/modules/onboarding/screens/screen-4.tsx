@@ -3,7 +3,7 @@ import { Animated, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { screen4Styles as styles } from "./_screen4.styles";
+import { screen4Styles as styles } from "@/modules/onboarding/styles/screen4.styles";
 
 const METODOS = [
   { icon: "🏦", label: "PSE",     color: "#1D4ED8", active: true  },
@@ -24,7 +24,7 @@ export default function OnboardingScreen4() {
       Animated.timing(fadeAnim, { toValue: 1, duration: 550, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   const SEGURIDAD = [
     { icon: "🛡️", texto: t("onboarding.screen4.seg1") },

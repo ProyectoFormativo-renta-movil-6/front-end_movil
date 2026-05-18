@@ -24,11 +24,11 @@ export function InfoPersonal({ usuario, onEditar, onCambiarCorreo }: Props) {
       <View style={styles.avatarWrap}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {usuario.nombre.charAt(0)}{usuario.apellido.charAt(0)}
+            {usuario.nombres.charAt(0)}{usuario.apellidos.charAt(0)}
           </Text>
         </View>
         <Text style={styles.nombreCompleto}>
-          {usuario.nombre} {usuario.apellido}
+          {usuario.nombres} {usuario.apellidos}
         </Text>
         <Text style={styles.correoAvatar}>{usuario.correo}</Text>
       </View>
@@ -38,20 +38,20 @@ export function InfoPersonal({ usuario, onEditar, onCambiarCorreo }: Props) {
         <Text style={styles.seccionLabel}>DATOS PERSONALES</Text>
 
         <View style={styles.campo}>
-          <Text style={styles.campoLabel}>Nombre</Text>
-          <Text style={styles.campoValor}>{usuario.nombre}</Text>
+          <Text style={styles.campoLabel}>Nombres</Text>
+          <Text style={styles.campoValor}>{usuario.nombres}</Text>
         </View>
         <View style={styles.divider} />
 
         <View style={styles.campo}>
-          <Text style={styles.campoLabel}>Apellido</Text>
-          <Text style={styles.campoValor}>{usuario.apellido}</Text>
+          <Text style={styles.campoLabel}>Apellidos</Text>
+          <Text style={styles.campoValor}>{usuario.apellidos}</Text>
         </View>
         <View style={styles.divider} />
 
         <View style={styles.campo}>
-          <Text style={styles.campoLabel}>Cédula</Text>
-          <Text style={styles.campoValor}>{usuario.cedula}</Text>
+          <Text style={styles.campoLabel}>Documento</Text>
+          <Text style={styles.campoValor}>{usuario.tipoDocumento} {usuario.numeroDocumento}</Text>
         </View>
         <View style={styles.divider} />
 

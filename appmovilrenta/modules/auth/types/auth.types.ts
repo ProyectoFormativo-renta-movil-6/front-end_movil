@@ -4,13 +4,7 @@ export interface LoginForm {
 }
 
 export interface RegistroForm {
-  nombreCompleto: string;
-  nacionalidad: string;
-  numeroDocumento: string;
   correo: string;
-  confirmarCorreo: string;
-  numeroCelular: string;
-  fechaNacimiento: string;
   contrasena: string;
   confirmarContrasena: string;
   aceptaTerminos: boolean;

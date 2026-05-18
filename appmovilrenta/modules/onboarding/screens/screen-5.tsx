@@ -1,11 +1,11 @@
-import { useOnboarding } from "@/hooks/use-onboarding";
+import { useOnboarding } from "@/modules/onboarding/hooks/use-onboarding";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { Animated, Image, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { screen5Styles as styles } from "./_screen5.styles";
+import { screen5Styles as styles } from "@/modules/onboarding/styles/screen5.styles";
 
 export default function OnboardingScreen5() {
   const { t } = useTranslation();
@@ -22,7 +22,7 @@ export default function OnboardingScreen5() {
       Animated.spring(scaleAnim, { toValue: 1, tension: 55, friction: 9, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [fadeAnim, scaleAnim, slideAnim]);
 
   const BENEFICIOS = [
     { icon: "✅", txt: t("onboarding.screen5.ben1") },

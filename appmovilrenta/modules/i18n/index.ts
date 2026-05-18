@@ -40,6 +40,7 @@ const getIdiomaInicial = (idiomaGuardado?: string): IdiomaKey => {
 };
 
 // Inicializar i18next — RF28.3
+// eslint-disable-next-line import/no-named-as-default-member
 i18n.use(initReactI18next).init({
   resources: {
     es: { translation: es },

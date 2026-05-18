@@ -15,7 +15,7 @@ import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
 import { CategoriaVehiculo, Vehiculo } from "@/modules/catalogo/types/catalogo.types";
-import { catalogoStyles as styles } from "./_catalogo.styles";
+import { catalogoStyles as styles } from "@/modules/catalogo/styles/catalogo.styles";
 
 const CATEGORIAS: CategoriaVehiculo[] = [
   "Todas", "SUVs", "Económicos", "Sedán", "Premium", "Van",

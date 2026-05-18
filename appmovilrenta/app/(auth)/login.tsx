@@ -2,9 +2,8 @@ import { InputField } from "@/components/ui/InputField";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { useLogin } from "@/modules/auth/hooks/useAuth";
-import { useOnboarding } from "@/hooks/use-onboarding";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import {
@@ -12,30 +11,26 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { loginStyles as styles } from "./_login.styles";
+import { SocialAuthButtons } from "@/modules/auth/components/SocialAuthButtons";
+import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
 
 export default function LoginScreen() {
   const { t } = useTranslation();
   const c = useTemaColores();
-  const { resetOnboarding } = useOnboarding();
   const { form, errores, cargando, bloqueado, actualizarCampo, iniciarSesion } =
     useLogin();
   const errorGlobal = errores.find((e) => !e.campo)?.mensaje;
-
-  // TODO: quitar antes de producción
-  function handleResetOnboarding() {
-    resetOnboarding();
-    router.replace("/");
-  }
+  const [loginExitoso, setLoginExitoso] = useState(false);
 
   function handleLogin() {
     iniciarSesion(() => {
-      // Usuario registrado → va al catálogo con todas las funcionalidades
-      router.replace("/(tabs)");
+      setLoginExitoso(true);
+      setTimeout(() => router.replace("/(tabs)"), 1500);
     });
   }
 
@@ -66,8 +61,15 @@ export default function LoginScreen() {
           <Text style={[styles.subtitulo, { color: c.textSecondary }]}>{t("auth.login.subtitulo")}</Text>
         </View>
 
+        {/* ── Banner éxito ───────────────────────────────────── */}
+        {loginExitoso ? (
+          <View style={loginLocalS.bannerExito}>
+            <Text style={loginLocalS.bannerExitoTexto}>✓ {t("auth.login.exitoMsg")}</Text>
+          </View>
+        ) : null}
+
         {/* ── Banner error global (bloqueo / credenciales) ───── */}
-        {errorGlobal ? (
+        {!loginExitoso && errorGlobal ? (
           <View style={styles.bannerError}>
             <Text style={styles.bannerErrorTexto}>⚠️ {errorGlobal}</Text>
           </View>
@@ -114,6 +116,11 @@ export default function LoginScreen() {
             </Text>
           ) : null}
 
+          <SocialAuthButtons
+            onGoogle={() => console.log("Google login")}
+            onFacebook={() => console.log("Facebook login")}
+          />
+
           <View style={styles.separador}>
             <View style={[styles.lineaSeparador, { backgroundColor: c.border }]} />
             <Text style={[styles.textoSeparador, { color: c.textMuted }]}>{t("auth.login.separador")}</Text>
@@ -131,17 +138,30 @@ export default function LoginScreen() {
             onPress={handleInvitado}
           />
 
-          {/* TODO: quitar antes de producción */}
-          <TouchableOpacity
-            onPress={handleResetOnboarding}
-            style={{ marginTop: 24, alignItems: "center" }}
-          >
-            <Text style={{ fontSize: 11, color: "#DC2626" }}>
-              🔄 [DEV] Ver onboarding de nuevo
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
+
+const loginLocalS = StyleSheet.create({
+  bannerExito: {
+    backgroundColor: "#D1FAE5",
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#6EE7B7",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  bannerExitoTexto: {
+    color: "#065F46",
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
+    textAlign: "center",
+  },
+});

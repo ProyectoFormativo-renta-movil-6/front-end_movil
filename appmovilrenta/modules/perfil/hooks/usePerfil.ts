@@ -12,22 +12,25 @@
 import { useState } from "react";
 import {
   ErroresCambiarCorreo,
+  ErroresCompletarPerfil,
   ErroresPerfil,
   FormCambiarCorreo,
+  FormCompletarPerfil,
   FormEditarPerfil,
   UsuarioPerfil,
 } from "../types/perfil.types";
 
-// ── Usuario mock — se reemplaza por llamada API REST ─────────────────────────
 const USUARIO_MOCK: UsuarioPerfil = {
   id: "1",
-  nombre: "Danna Valentina",
-  apellido: "Barrios Penagos",
+  nombres: "",
+  apellidos: "",
   correo: "danna@correo.com",
-  telefono: "3001234567",
-  cedula: "1075234567",
-  fechaNacimiento: "1998-06-15",
-  nacionalidad: "Colombiana",
+  telefono: "",
+  tipoDocumento: "",
+  numeroDocumento: "",
+  fechaNacimiento: "",
+  nacionalidad: "",
+  perfilCompleto: false,
 };
 
 export function usePerfil() {
@@ -38,8 +41,8 @@ export function usePerfil() {
 
   // Formulario editar perfil
   const [form, setForm] = useState<FormEditarPerfil>({
-    nombre: usuario.nombre,
-    apellido: usuario.apellido,
+    nombres: usuario.nombres,
+    apellidos: usuario.apellidos,
     telefono: usuario.telefono,
   });
 
@@ -68,16 +71,16 @@ export function usePerfil() {
   const validarPerfil = (): boolean => {
     const nuevosErrores: ErroresPerfil = {};
 
-    if (!form.nombre.trim()) {
-      nuevosErrores.nombre = "El nombre es obligatorio";
-    } else if (form.nombre.trim().length < 2) {
-      nuevosErrores.nombre = "El nombre debe tener al menos 2 caracteres";
+    if (!form.nombres.trim()) {
+      nuevosErrores.nombres = "Los nombres son obligatorios";
+    } else if (form.nombres.trim().length < 2) {
+      nuevosErrores.nombres = "Los nombres deben tener al menos 2 caracteres";
     }
 
-    if (!form.apellido.trim()) {
-      nuevosErrores.apellido = "El apellido es obligatorio";
-    } else if (form.apellido.trim().length < 2) {
-      nuevosErrores.apellido = "El apellido debe tener al menos 2 caracteres";
+    if (!form.apellidos.trim()) {
+      nuevosErrores.apellidos = "Los apellidos son obligatorios";
+    } else if (form.apellidos.trim().length < 2) {
+      nuevosErrores.apellidos = "Los apellidos deben tener al menos 2 caracteres";
     }
 
     if (!form.telefono.trim()) {
@@ -130,8 +133,8 @@ export function usePerfil() {
     setTimeout(() => {
       setUsuario((prev) => ({
         ...prev,
-        nombre: form.nombre.trim(),
-        apellido: form.apellido.trim(),
+        nombres: form.nombres.trim(),
+        apellidos: form.apellidos.trim(),
         telefono: form.telefono.trim(),
       }));
       setEditando(false);
@@ -143,8 +146,8 @@ export function usePerfil() {
   // ── Cancelar edición ───────────────────────────────────────────────────────
   const cancelarEdicion = () => {
     setForm({
-      nombre: usuario.nombre,
-      apellido: usuario.apellido,
+      nombres: usuario.nombres,
+      apellidos: usuario.apellidos,
       telefono: usuario.telefono,
     });
     setErrores({});
@@ -181,6 +184,10 @@ export function usePerfil() {
     setMostrarModalCorreo(false);
   };
 
+  const marcarPerfilCompleto = () => {
+    setUsuario(prev => ({ ...prev, perfilCompleto: true }));
+  };
+
   return {
     usuario,
     editando,
@@ -198,5 +205,74 @@ export function usePerfil() {
     setMostrarModalCorreo,
     guardarCambioCorreo,
     cerrarModalCorreo,
+    marcarPerfilCompleto,
   };
+}
+
+export function useCompletarPerfil() {
+  const [form, setForm] = useState<FormCompletarPerfil>({
+    nombres: "",
+    apellidos: "",
+    telefono: "",
+    fechaNacimiento: "",
+    tipoDocumento: "",
+    numeroDocumento: "",
+    nacionalidad: "",
+  });
+  const [errores, setErrores] = useState<ErroresCompletarPerfil>({});
+  const [cargando, setCargando] = useState(false);
+
+  const actualizarCampo = (campo: keyof FormCompletarPerfil, valor: string) => {
+    setForm(prev => ({ ...prev, [campo]: valor }));
+    setErrores(prev => ({ ...prev, [campo]: undefined }));
+  };
+
+  const validar = (): boolean => {
+    const e: ErroresCompletarPerfil = {};
+
+    if (!form.nombres.trim())
+      e.nombres = "Los nombres son obligatorios";
+    else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(form.nombres))
+      e.nombres = "Solo letras y espacios";
+
+    if (!form.apellidos.trim())
+      e.apellidos = "Los apellidos son obligatorios";
+    else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(form.apellidos))
+      e.apellidos = "Solo letras y espacios";
+
+    if (!form.telefono.trim())
+      e.telefono = "El teléfono es obligatorio";
+    else if (!/^3\d{9}$/.test(form.telefono.trim()))
+      e.telefono = "Debe tener 10 dígitos y empezar con 3";
+
+    if (!form.fechaNacimiento)
+      e.fechaNacimiento = "La fecha de nacimiento es obligatoria";
+    else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.fechaNacimiento))
+      e.fechaNacimiento = "Formato: YYYY-MM-DD";
+
+    if (!form.tipoDocumento)
+      e.tipoDocumento = "Selecciona el tipo de documento";
+
+    if (!form.numeroDocumento.trim())
+      e.numeroDocumento = "El número de documento es obligatorio";
+    else if (!/^\d{6,10}$/.test(form.numeroDocumento))
+      e.numeroDocumento = "Entre 6 y 10 dígitos numéricos";
+
+    if (!form.nacionalidad)
+      e.nacionalidad = "Selecciona tu nacionalidad";
+
+    setErrores(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const guardar = (onExito: () => void, onError: () => void) => {
+    if (!validar()) { onError(); return; }
+    setCargando(true);
+    setTimeout(() => {
+      setCargando(false);
+      onExito();
+    }, 1000);
+  };
+
+  return { form, errores, cargando, actualizarCampo, guardar };
 }

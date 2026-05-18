@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { olvideStyles as styles } from "./olvide-contrasena.styles";
+import { olvideStyles as styles } from "@/modules/auth/styles/olvide-contrasena.styles";
 
 const SEGUNDOS_ESPERA = 30;
 

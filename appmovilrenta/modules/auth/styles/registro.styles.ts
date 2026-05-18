@@ -10,7 +10,7 @@ export const registroStyles = StyleSheet.create({
   contenedor: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 56,
+    paddingTop: 20,
     paddingBottom: 48,
   },
 

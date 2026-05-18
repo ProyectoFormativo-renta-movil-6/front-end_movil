@@ -1,7 +1,6 @@
-import { Dimensions, Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 const P = "#1D4ED8";
-const { width } = Dimensions.get("window");
 
 export const perfilStyles = StyleSheet.create({
   container: {
