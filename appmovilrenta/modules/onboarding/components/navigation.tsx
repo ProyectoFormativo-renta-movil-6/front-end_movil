@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useOnboarding } from "@/hooks/use-onboarding";
+import { useOnboarding } from "@/modules/onboarding/hooks/use-onboarding";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 
 interface Props {

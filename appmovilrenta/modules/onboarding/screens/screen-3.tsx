@@ -3,7 +3,7 @@ import { Animated, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { screen3Styles as styles } from "./_screen3.styles";
+import { screen3Styles as styles } from "@/modules/onboarding/styles/screen3.styles";
 
 export default function OnboardingScreen3() {
   const { t } = useTranslation();
@@ -17,7 +17,7 @@ export default function OnboardingScreen3() {
       Animated.timing(fadeAnim, { toValue: 1, duration: 550, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   const PASOS = [
     { num: "1", icon: "🔍", titulo: t("onboarding.screen3.paso1Titulo"), desc: t("onboarding.screen3.paso1Desc") },

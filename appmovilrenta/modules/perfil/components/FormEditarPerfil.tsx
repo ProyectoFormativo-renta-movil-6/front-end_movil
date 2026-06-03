@@ -47,35 +47,35 @@ export function FormEditarPerfil({
       <View style={styles.card}>
         <Text style={styles.seccionLabel}>DATOS EDITABLES</Text>
 
-        {/* Nombre */}
+        {/* Nombres */}
         <View style={styles.campoWrap}>
-          <Text style={styles.campoLabel}>Nombre *</Text>
+          <Text style={styles.campoLabel}>Nombres *</Text>
           <TextInput
-            style={[styles.input, errores.nombre ? styles.inputError : null]}
-            value={form.nombre}
-            onChangeText={(val) => onCambiar("nombre", val)}
-            placeholder="Tu nombre"
+            style={[styles.input, errores.nombres ? styles.inputError : null]}
+            value={form.nombres}
+            onChangeText={(val) => onCambiar("nombres", val)}
+            placeholder="Tus nombres"
             placeholderTextColor="#9CA3AF"
             autoCapitalize="words"
           />
-          {errores.nombre && (
-            <Text style={styles.errorText}>{errores.nombre}</Text>
+          {errores.nombres && (
+            <Text style={styles.errorText}>{errores.nombres}</Text>
           )}
         </View>
 
-        {/* Apellido */}
+        {/* Apellidos */}
         <View style={styles.campoWrap}>
-          <Text style={styles.campoLabel}>Apellido *</Text>
+          <Text style={styles.campoLabel}>Apellidos *</Text>
           <TextInput
-            style={[styles.input, errores.apellido ? styles.inputError : null]}
-            value={form.apellido}
-            onChangeText={(val) => onCambiar("apellido", val)}
-            placeholder="Tu apellido"
+            style={[styles.input, errores.apellidos ? styles.inputError : null]}
+            value={form.apellidos}
+            onChangeText={(val) => onCambiar("apellidos", val)}
+            placeholder="Tus apellidos"
             placeholderTextColor="#9CA3AF"
             autoCapitalize="words"
           />
-          {errores.apellido && (
-            <Text style={styles.errorText}>{errores.apellido}</Text>
+          {errores.apellidos && (
+            <Text style={styles.errorText}>{errores.apellidos}</Text>
           )}
         </View>
 

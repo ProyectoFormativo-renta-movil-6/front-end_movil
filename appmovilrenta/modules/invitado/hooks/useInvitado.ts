@@ -24,7 +24,7 @@ const VEHICULOS_MOCK: VehiculoInvitado[] = [
     imagen: require("@/assets/images/vehiculos/ToyotaRav4.png"),
     kilometraje: "ilimitado",
     descripcion: "SUV espaciosa ideal para viajes largos y familia.",
-    serviciosIncluidos: ["SOAT", "GPS", "Aire acondicionado"],
+    serviciosIncluidos: ["serv_soat", "serv_gps", "serv_aire"],
   },
   {
     id: "2",
@@ -43,7 +43,7 @@ const VEHICULOS_MOCK: VehiculoInvitado[] = [
     imagen: require("@/assets/images/vehiculos/chevroletspark.png"),
     kilometraje: "limitado",
     descripcion: "Perfecto para ciudad, bajo consumo de combustible.",
-    serviciosIncluidos: ["SOAT", "Aire acondicionado"],
+    serviciosIncluidos: ["serv_soat", "serv_aire"],
   },
   {
     id: "3",
@@ -62,7 +62,7 @@ const VEHICULOS_MOCK: VehiculoInvitado[] = [
     imagen: require("@/assets/images/vehiculos/camionetamazda.png"),
     kilometraje: "ilimitado",
     descripcion: "SUV premium con tecnología de punta.",
-    serviciosIncluidos: ["SOAT", "GPS", "Seguro todo riesgo"],
+    serviciosIncluidos: ["serv_soat", "serv_gps", "serv_seguroRiesgo"],
   },
   {
     id: "4",
@@ -81,7 +81,7 @@ const VEHICULOS_MOCK: VehiculoInvitado[] = [
     imagen: require("@/assets/images/vehiculos/RenaultLogan.png"),
     kilometraje: "limitado",
     descripcion: "Sedán económico cómodo para uso diario.",
-    serviciosIncluidos: ["SOAT"],
+    serviciosIncluidos: ["serv_soat"],
   },
   {
     id: "5",
@@ -101,10 +101,10 @@ const VEHICULOS_MOCK: VehiculoInvitado[] = [
     kilometraje: "ilimitado",
     descripcion: "Experiencia de lujo en cada kilómetro.",
     serviciosIncluidos: [
-      "SOAT",
-      "GPS",
-      "Seguro todo riesgo",
-      "Chofer opcional",
+      "serv_soat",
+      "serv_gps",
+      "serv_seguroRiesgo",
+      "serv_chofer",
     ],
   },
   {
@@ -124,7 +124,7 @@ const VEHICULOS_MOCK: VehiculoInvitado[] = [
     imagen: require("@/assets/images/vehiculos/Hyundai.png"),
     kilometraje: "ilimitado",
     descripcion: "Híbrido eficiente con gran confort.",
-    serviciosIncluidos: ["SOAT", "GPS"],
+    serviciosIncluidos: ["serv_soat", "serv_gps"],
   },
   {
     id: "7",
@@ -143,7 +143,7 @@ const VEHICULOS_MOCK: VehiculoInvitado[] = [
     imagen: require("@/assets/images/vehiculos/Volkswagen.png"),
     kilometraje: "limitado",
     descripcion: "Ideal para grupos y viajes corporativos.",
-    serviciosIncluidos: ["SOAT", "Seguro pasajeros"],
+    serviciosIncluidos: ["serv_soat", "serv_seguroPasajeros"],
   },
   {
     id: "8",
@@ -162,7 +162,7 @@ const VEHICULOS_MOCK: VehiculoInvitado[] = [
     imagen: require("@/assets/images/vehiculos/kiastinger.png"),
     kilometraje: "ilimitado",
     descripcion: "Sedán deportivo con motor de alto rendimiento.",
-    serviciosIncluidos: ["SOAT", "GPS", "Seguro todo riesgo"],
+    serviciosIncluidos: ["serv_soat", "serv_gps", "serv_seguroRiesgo"],
   },
 ];
 

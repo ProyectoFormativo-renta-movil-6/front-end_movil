@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { IdiomaKey, IDIOMAS } from "../index";
-import { TemaApp, useIdioma } from "../hooks/useIdioma";
+import { useIdioma } from "../hooks/useIdioma";
 
 interface Props {
   mostrarTitulo?: boolean;

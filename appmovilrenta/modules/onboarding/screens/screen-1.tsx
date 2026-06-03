@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { IdiomaKey, IDIOMAS } from "@/modules/i18n";
 import { useIdioma, useTemaColores } from "@/modules/i18n/hooks/useIdioma";
-import { screen1Styles as styles } from "./_screen1.styles";
+import { screen1Styles as styles } from "@/modules/onboarding/styles/screen1.styles";
 
 export default function OnboardingScreen1() {
   const insets = useSafeAreaInsets();
@@ -23,7 +23,7 @@ export default function OnboardingScreen1() {
       Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 24, backgroundColor: c.bg }]}>

@@ -26,7 +26,8 @@ import { IdiomaKey, IDIOMAS } from "@/modules/i18n";
 import { useIdioma, useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { usePerfil } from "@/modules/perfil/hooks/usePerfil";
 import { ModalCambiarCorreo } from "@/modules/perfil/components/ModalCambiarCorreo";
-import { perfilStyles as styles } from "./_perfil.styles";
+import { FormCompletarPerfil } from "@/modules/perfil/components/FormCompletarPerfil";
+import { perfilStyles as styles } from "@/modules/perfil/styles/perfil.styles";
 
 export default function PerfilScreen() {
   const { t } = useTranslation();
@@ -34,6 +35,7 @@ export default function PerfilScreen() {
   const c = useTemaColores();
   const insets = useSafeAreaInsets();
   const [editando, setEditando] = useState(false);
+  const [completando, setCompletando] = useState(false);
 
   const {
     usuario,
@@ -50,6 +52,7 @@ export default function PerfilScreen() {
     setMostrarModalCorreo,
     guardarCambioCorreo,
     cerrarModalCorreo,
+    marcarPerfilCompleto,
   } = usePerfil();
 
   const handleGuardar = () => {
@@ -127,6 +130,36 @@ export default function PerfilScreen() {
     );
   };
 
+  // ── Vista completar perfil ────────────────────────────────────────────────
+  if (completando) {
+    return (
+      <View style={[styles.editContainer, { paddingTop: insets.top, backgroundColor: c.bg }]}>
+        <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
+        <View style={[styles.editHeader, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
+          <TouchableOpacity
+            style={[styles.editHeaderBack, { backgroundColor: c.bgInput }]}
+            onPress={() => setCompletando(false)}
+          >
+            <Text style={[styles.editHeaderBackText, { color: c.textPrimary }]}>←</Text>
+          </TouchableOpacity>
+          <Text style={[styles.editHeaderTitle, { color: c.textPrimary }]}>{t("perfil.completarPerfil")}</Text>
+        </View>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ padding: 16, paddingBottom: Platform.OS === "android" ? 100 : 60 }}
+        >
+          <FormCompletarPerfil
+            onGuardado={() => {
+              marcarPerfilCompleto();
+              setCompletando(false);
+            }}
+          />
+        </ScrollView>
+      </View>
+    );
+  }
+
   // ── Vista editar perfil ───────────────────────────────────────────────────
   if (editando) {
     return (
@@ -153,7 +186,7 @@ export default function PerfilScreen() {
           <View style={styles.editAvatarWrap}>
             <View style={styles.editAvatar}>
               <Text style={styles.editAvatarText}>
-                {usuario.nombre.charAt(0)}{usuario.apellido.charAt(0)}
+                {usuario.nombres.charAt(0)}{usuario.apellidos.charAt(0)}
               </Text>
               <View style={styles.editAvatarPlus}>
                 <Text style={styles.editAvatarPlusText}>+</Text>
@@ -163,32 +196,32 @@ export default function PerfilScreen() {
 
           {/* Formulario */}
           <View style={[styles.editCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
-            {/* Nombre completo */}
+            {/* Nombres */}
             <View style={styles.editCampoWrap}>
-              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.nombreCompleto")}</Text>
+              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.nombres")}</Text>
               <TextInput
-                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.nombre ? styles.editInputError : null]}
-                value={form.nombre}
-                onChangeText={(val) => actualizarCampo("nombre", val)}
-                placeholder="Tu nombre"
+                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.nombres ? styles.editInputError : null]}
+                value={form.nombres}
+                onChangeText={(val) => actualizarCampo("nombres", val)}
+                placeholder="Tus nombres"
                 placeholderTextColor={c.textMuted}
                 autoCapitalize="words"
               />
-              {errores.nombre && <Text style={styles.editErrorText}>{errores.nombre}</Text>}
+              {errores.nombres && <Text style={styles.editErrorText}>{errores.nombres}</Text>}
             </View>
 
-            {/* Apellido */}
+            {/* Apellidos */}
             <View style={styles.editCampoWrap}>
-              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.apellido")}</Text>
+              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.apellidos")}</Text>
               <TextInput
-                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.apellido ? styles.editInputError : null]}
-                value={form.apellido}
-                onChangeText={(val) => actualizarCampo("apellido", val)}
-                placeholder="Tu apellido"
+                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.apellidos ? styles.editInputError : null]}
+                value={form.apellidos}
+                onChangeText={(val) => actualizarCampo("apellidos", val)}
+                placeholder="Tus apellidos"
                 placeholderTextColor={c.textMuted}
                 autoCapitalize="words"
               />
-              {errores.apellido && <Text style={styles.editErrorText}>{errores.apellido}</Text>}
+              {errores.apellidos && <Text style={styles.editErrorText}>{errores.apellidos}</Text>}
             </View>
 
             {/* Teléfono */}
@@ -198,23 +231,12 @@ export default function PerfilScreen() {
                 style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.telefono ? styles.editInputError : null]}
                 value={form.telefono}
                 onChangeText={(val) => actualizarCampo("telefono", val)}
-                placeholder="+57 300 000 0000"
+                placeholder="3001234567"
                 placeholderTextColor={c.textMuted}
                 keyboardType="phone-pad"
                 maxLength={10}
               />
               {errores.telefono && <Text style={styles.editErrorText}>{errores.telefono}</Text>}
-            </View>
-
-            {/* Dirección */}
-            <View style={styles.editCampoWrap}>
-              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.direccion")}</Text>
-              <TextInput
-                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }]}
-                placeholder="Calle 10 # 24-50, Neiva"
-                placeholderTextColor={c.textMuted}
-                autoCapitalize="words"
-              />
             </View>
           </View>
 
@@ -254,12 +276,12 @@ export default function PerfilScreen() {
         <View style={[styles.userCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {usuario.nombre.charAt(0)}{usuario.apellido.charAt(0)}
+              {usuario.nombres.charAt(0)}{usuario.apellidos.charAt(0)}
             </Text>
           </View>
           <View style={styles.userInfo}>
             <Text style={[styles.userName, { color: c.textPrimary }]}>
-              {usuario.nombre} {usuario.apellido}
+              {usuario.nombres} {usuario.apellidos}
             </Text>
             <Text style={[styles.userEmail, { color: c.textSecondary }]}>{usuario.correo}</Text>
           </View>
@@ -267,6 +289,24 @@ export default function PerfilScreen() {
             <Text style={styles.btnEditarText}>{t("perfil.editar")}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Banner completar perfil */}
+        {!usuario.perfilCompleto && (
+          <TouchableOpacity
+            style={[localS.banner, { backgroundColor: c.primaryBg, borderColor: "#1D4ED8" }]}
+            onPress={() => setCompletando(true)}
+            activeOpacity={0.85}
+          >
+            <View style={localS.bannerIcono}>
+              <Text style={{ fontSize: 22 }}>👤</Text>
+            </View>
+            <View style={localS.bannerTextos}>
+              <Text style={localS.bannerTitulo}>{t("perfil.completarPerfil")}</Text>
+              <Text style={[localS.bannerSub, { color: c.textSecondary }]}>{t("perfil.completarPerfilSub")}</Text>
+            </View>
+            <Text style={{ color: "#1D4ED8", fontSize: 18 }}>›</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Menú opciones */}
         <View style={[styles.menuSection, { backgroundColor: c.bgCard, borderColor: c.border }]}>
@@ -397,6 +437,38 @@ export default function PerfilScreen() {
     </View>
   );
 }
+
+const localS = StyleSheet.create({
+  banner: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 12,
+  },
+  bannerIcono: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#1D4ED8",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bannerTextos: { flex: 1 },
+  bannerTitulo: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1D4ED8",
+    marginBottom: 2,
+  },
+  bannerSub: {
+    fontSize: 12,
+    color: "#6B7280",
+  },
+});
 
 const configStyles = StyleSheet.create({
   seccion: {

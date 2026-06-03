@@ -1,23 +1,33 @@
-/**
- * RF50 — Editar información del usuario
- * Tipos del módulo de perfil
- */
+export type TipoDocumento = 'CC' | 'TI' | 'Doc. Extranjero' | 'Pasaporte';
+export type Nacionalidad = 'Colombia' | 'USA' | 'Francia' | 'Portugal' | 'Brasil';
 
 export interface UsuarioPerfil {
   id: string;
-  nombre: string;
-  apellido: string;
+  nombres: string;
+  apellidos: string;
   correo: string;
   telefono: string;
-  cedula: string;
+  tipoDocumento: TipoDocumento | '';
+  numeroDocumento: string;
   fechaNacimiento: string;
-  nacionalidad: string;
+  nacionalidad: Nacionalidad | '';
+  perfilCompleto: boolean;
 }
 
 export interface FormEditarPerfil {
-  nombre: string;
-  apellido: string;
+  nombres: string;
+  apellidos: string;
   telefono: string;
+}
+
+export interface FormCompletarPerfil {
+  nombres: string;
+  apellidos: string;
+  telefono: string;
+  fechaNacimiento: string;
+  tipoDocumento: TipoDocumento | '';
+  numeroDocumento: string;
+  nacionalidad: Nacionalidad | '';
 }
 
 export interface FormCambiarCorreo {
@@ -27,9 +37,19 @@ export interface FormCambiarCorreo {
 }
 
 export interface ErroresPerfil {
-  nombre?: string;
-  apellido?: string;
+  nombres?: string;
+  apellidos?: string;
   telefono?: string;
+}
+
+export interface ErroresCompletarPerfil {
+  nombres?: string;
+  apellidos?: string;
+  telefono?: string;
+  fechaNacimiento?: string;
+  tipoDocumento?: string;
+  numeroDocumento?: string;
+  nacionalidad?: string;
 }
 
 export interface ErroresCambiarCorreo {

@@ -8,7 +8,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import i18n, { IdiomaKey, IDIOMAS } from "../index";
+import i18n, { IdiomaKey } from "../index";
 
 export type TemaApp = "claro" | "oscuro";
 

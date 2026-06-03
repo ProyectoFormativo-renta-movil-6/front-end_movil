@@ -3,7 +3,7 @@ import { Animated, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { screen2Styles as styles } from "./_screen2.styles";
+import { screen2Styles as styles } from "@/modules/onboarding/styles/screen2.styles";
 
 export default function OnboardingScreen2() {
   const { t } = useTranslation();
@@ -17,7 +17,7 @@ export default function OnboardingScreen2() {
       Animated.timing(fadeAnim, { toValue: 1, duration: 550, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 24, backgroundColor: c.bg }]}>

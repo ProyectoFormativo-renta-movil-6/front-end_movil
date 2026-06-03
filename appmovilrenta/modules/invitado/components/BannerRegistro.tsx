@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { VENTAJAS_REGISTRO } from "../hooks/useInvitado";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   visible: boolean;
@@ -27,6 +27,15 @@ export function BannerRegistro({
   onLogin,
   onCerrar,
 }: Props) {
+  const { t } = useTranslation();
+
+  const ventajas = [
+    { icon: "📅", tituloKey: "auth.invitado.ventaja1Titulo", descKey: "auth.invitado.ventaja1Desc" },
+    { icon: "💳", tituloKey: "auth.invitado.ventaja2Titulo", descKey: "auth.invitado.ventaja2Desc" },
+    { icon: "📄", tituloKey: "auth.invitado.ventaja3Titulo", descKey: "auth.invitado.ventaja3Desc" },
+    { icon: "🔔", tituloKey: "auth.invitado.ventaja4Titulo", descKey: "auth.invitado.ventaja4Desc" },
+  ];
+
   return (
     <Modal
       visible={visible}
@@ -36,69 +45,43 @@ export function BannerRegistro({
     >
       <View style={styles.overlay}>
         <View style={styles.sheet}>
-          {/* Handle */}
           <View style={styles.handle} />
 
-          {/* Ícono */}
           <View style={styles.iconWrap}>
             <View style={styles.iconCircle}>
               <Text style={styles.iconEmoji}>🔒</Text>
             </View>
           </View>
 
-          {/* Título RF5.7 */}
-          <Text style={styles.title}>Función exclusiva para miembros</Text>
-          <Text style={styles.subtitle}>
-            Para reservar un vehículo necesitas una cuenta. ¡Es gratis y toma
-            menos de 2 minutos!
-          </Text>
+          <Text style={styles.title}>{t("auth.invitado.bannerTitulo")}</Text>
+          <Text style={styles.subtitle}>{t("auth.invitado.bannerSubtitulo")}</Text>
 
-          {/* Ventajas RF5.10 */}
-          <ScrollView
-            style={styles.ventajasScroll}
-            showsVerticalScrollIndicator={false}
-          >
-            <Text style={styles.ventajasTitle}>
-              ¿Por qué crear una cuenta?
-            </Text>
+          <ScrollView style={styles.ventajasScroll} showsVerticalScrollIndicator={false}>
+            <Text style={styles.ventajasTitle}>{t("auth.invitado.bannerPorQue")}</Text>
             <View style={styles.ventajasList}>
-              {VENTAJAS_REGISTRO.map((v) => (
-                <View key={v.titulo} style={styles.ventajaRow}>
+              {ventajas.map(({ icon, tituloKey, descKey }) => (
+                <View key={tituloKey} style={styles.ventajaRow}>
                   <View style={styles.ventajaIconWrap}>
-                    <Text style={styles.ventajaIcon}>{v.icon}</Text>
+                    <Text style={styles.ventajaIcon}>{icon}</Text>
                   </View>
                   <View style={styles.ventajaTextos}>
-                    <Text style={styles.ventajaTitulo}>{v.titulo}</Text>
-                    <Text style={styles.ventajaDesc}>{v.descripcion}</Text>
+                    <Text style={styles.ventajaTitulo}>{t(tituloKey)}</Text>
+                    <Text style={styles.ventajaDesc}>{t(descKey)}</Text>
                   </View>
                 </View>
               ))}
             </View>
           </ScrollView>
 
-          {/* Acciones RF5.9 */}
           <View style={styles.actions}>
-            {/* Registrarse */}
-            <TouchableOpacity
-              style={styles.btnPrimary}
-              onPress={onRegistro}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.btnPrimaryText}>CREAR CUENTA GRATIS</Text>
+            <TouchableOpacity style={styles.btnPrimary} onPress={onRegistro} activeOpacity={0.85}>
+              <Text style={styles.btnPrimaryText}>{t("auth.invitado.bannerBtnCrear")}</Text>
             </TouchableOpacity>
-
-            {/* Ya tengo cuenta */}
-            <TouchableOpacity
-              style={styles.btnSecondary}
-              onPress={onLogin}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.btnSecondaryText}>Ya tengo cuenta</Text>
+            <TouchableOpacity style={styles.btnSecondary} onPress={onLogin} activeOpacity={0.85}>
+              <Text style={styles.btnSecondaryText}>{t("auth.invitado.bannerBtnTengo")}</Text>
             </TouchableOpacity>
-
-            {/* Seguir explorando */}
             <TouchableOpacity style={styles.btnText} onPress={onCerrar}>
-              <Text style={styles.btnTextText}>Seguir explorando</Text>
+              <Text style={styles.btnTextText}>{t("auth.invitado.bannerBtnExplorar")}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -4,15 +4,15 @@ import { StatusBar, StyleSheet, View } from "react-native";
 import PagerView from "react-native-pager-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useOnboarding } from "@/hooks/use-onboarding";
+import { useOnboarding } from "@/modules/onboarding/hooks/use-onboarding";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
-import OnboardingNavigation from "./components/navigation";
-import OnboardingPagination from "./components/pagination";
-import OnboardingScreen1 from "./screens/screen-1";
-import OnboardingScreen2 from "./screens/screen-2";
-import OnboardingScreen3 from "./screens/screen-3";
-import OnboardingScreen4 from "./screens/screen-4";
-import OnboardingScreen5 from "./screens/screen-5";
+import OnboardingNavigation from "@/modules/onboarding/components/navigation";
+import OnboardingPagination from "@/modules/onboarding/components/pagination";
+import OnboardingScreen1 from "@/modules/onboarding/screens/screen-1";
+import OnboardingScreen2 from "@/modules/onboarding/screens/screen-2";
+import OnboardingScreen3 from "@/modules/onboarding/screens/screen-3";
+import OnboardingScreen4 from "@/modules/onboarding/screens/screen-4";
+import OnboardingScreen5 from "@/modules/onboarding/screens/screen-5";
 
 const SCREENS = [
   OnboardingScreen1,
@@ -99,3 +99,7 @@ const styles = StyleSheet.create({
     borderTopColor: "#F3F4F6",
   },
 });
+
+
+
+
