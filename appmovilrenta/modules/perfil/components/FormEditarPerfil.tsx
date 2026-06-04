@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { ErroresPerfil, FormEditarPerfil as FormEditarPerfilType } from "../types/perfil.types";
 
 interface Props {
@@ -35,6 +36,7 @@ export function FormEditarPerfil({
   onGuardar,
   onCancelar,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <ScrollView
       style={styles.container}
@@ -45,16 +47,16 @@ export function FormEditarPerfil({
       }}
     >
       <View style={styles.card}>
-        <Text style={styles.seccionLabel}>DATOS EDITABLES</Text>
+        <Text style={styles.seccionLabel}>{t('perfil.datosEditables')}</Text>
 
         {/* Nombres */}
         <View style={styles.campoWrap}>
-          <Text style={styles.campoLabel}>Nombres *</Text>
+          <Text style={styles.campoLabel}>{t('perfil.nombres')} *</Text>
           <TextInput
             style={[styles.input, errores.nombres ? styles.inputError : null]}
             value={form.nombres}
             onChangeText={(val) => onCambiar("nombres", val)}
-            placeholder="Tus nombres"
+            placeholder={t('perfil.placeholderNombres')}
             placeholderTextColor="#9CA3AF"
             autoCapitalize="words"
           />
@@ -65,12 +67,12 @@ export function FormEditarPerfil({
 
         {/* Apellidos */}
         <View style={styles.campoWrap}>
-          <Text style={styles.campoLabel}>Apellidos *</Text>
+          <Text style={styles.campoLabel}>{t('perfil.apellidos')} *</Text>
           <TextInput
             style={[styles.input, errores.apellidos ? styles.inputError : null]}
             value={form.apellidos}
             onChangeText={(val) => onCambiar("apellidos", val)}
-            placeholder="Tus apellidos"
+            placeholder={t('perfil.placeholderApellidos')}
             placeholderTextColor="#9CA3AF"
             autoCapitalize="words"
           />
@@ -81,15 +83,15 @@ export function FormEditarPerfil({
 
         {/* Teléfono */}
         <View style={styles.campoWrap}>
-          <Text style={styles.campoLabel}>Teléfono *</Text>
+          <Text style={styles.campoLabel}>{t('perfil.telefono')} *</Text>
           <TextInput
             style={[styles.input, errores.telefono ? styles.inputError : null]}
             value={form.telefono}
             onChangeText={(val) => onCambiar("telefono", val)}
-            placeholder="3001234567"
+            placeholder={t('perfil.placeholderTelefono')}
             placeholderTextColor="#9CA3AF"
             keyboardType="phone-pad"
-            maxLength={10}
+            maxLength={20}
           />
           {errores.telefono && (
             <Text style={styles.errorText}>{errores.telefono}</Text>
@@ -99,8 +101,7 @@ export function FormEditarPerfil({
         {/* Nota campos no editables */}
         <View style={styles.notaWrap}>
           <Text style={styles.notaText}>
-            ℹ️ Cédula, fecha de nacimiento y nacionalidad no son editables.
-            Para cambiar estos datos contacta al soporte.
+            ℹ️ {t('perfil.notaCamposNoEditables')}
           </Text>
         </View>
       </View>
@@ -115,7 +116,7 @@ export function FormEditarPerfil({
         {cargando ? (
           <ActivityIndicator color="#FFFFFF" />
         ) : (
-          <Text style={styles.btnGuardarText}>✓  Guardar cambios</Text>
+          <Text style={styles.btnGuardarText}>{t('perfil.btnGuardar')}</Text>
         )}
       </TouchableOpacity>
 
@@ -125,7 +126,7 @@ export function FormEditarPerfil({
         activeOpacity={0.85}
         disabled={cargando}
       >
-        <Text style={styles.btnCancelarText}>Cancelar</Text>
+        <Text style={styles.btnCancelarText}>{t('perfil.cancelar')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

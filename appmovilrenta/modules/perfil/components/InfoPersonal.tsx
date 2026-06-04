@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { UsuarioPerfil } from "../types/perfil.types";
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function InfoPersonal({ usuario, onEditar, onCambiarCorreo }: Props) {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
       {/* Avatar */}
@@ -35,64 +37,64 @@ export function InfoPersonal({ usuario, onEditar, onCambiarCorreo }: Props) {
 
       {/* Datos personales */}
       <View style={styles.seccion}>
-        <Text style={styles.seccionLabel}>DATOS PERSONALES</Text>
+        <Text style={styles.seccionLabel}>{t('perfil.datosPersonales')}</Text>
 
         <View style={styles.campo}>
-          <Text style={styles.campoLabel}>Nombres</Text>
+          <Text style={styles.campoLabel}>{t('perfil.nombres')}</Text>
           <Text style={styles.campoValor}>{usuario.nombres}</Text>
         </View>
         <View style={styles.divider} />
 
         <View style={styles.campo}>
-          <Text style={styles.campoLabel}>Apellidos</Text>
+          <Text style={styles.campoLabel}>{t('perfil.apellidos')}</Text>
           <Text style={styles.campoValor}>{usuario.apellidos}</Text>
         </View>
         <View style={styles.divider} />
 
         <View style={styles.campo}>
-          <Text style={styles.campoLabel}>Documento</Text>
+          <Text style={styles.campoLabel}>{t('perfil.documento')}</Text>
           <Text style={styles.campoValor}>{usuario.tipoDocumento} {usuario.numeroDocumento}</Text>
         </View>
         <View style={styles.divider} />
 
         <View style={styles.campo}>
-          <Text style={styles.campoLabel}>Teléfono</Text>
+          <Text style={styles.campoLabel}>{t('perfil.telefono')}</Text>
           <Text style={styles.campoValor}>{usuario.telefono}</Text>
         </View>
         <View style={styles.divider} />
 
         <View style={styles.campo}>
-          <Text style={styles.campoLabel}>Fecha de nacimiento</Text>
+          <Text style={styles.campoLabel}>{t('perfil.fechaNac')}</Text>
           <Text style={styles.campoValor}>{usuario.fechaNacimiento}</Text>
         </View>
         <View style={styles.divider} />
 
         <View style={styles.campo}>
-          <Text style={styles.campoLabel}>Nacionalidad</Text>
+          <Text style={styles.campoLabel}>{t('perfil.nacionalidad')}</Text>
           <Text style={styles.campoValor}>{usuario.nacionalidad}</Text>
         </View>
       </View>
 
       {/* Correo con botón cambiar */}
       <View style={styles.seccion}>
-        <Text style={styles.seccionLabel}>CORREO ELECTRÓNICO</Text>
+        <Text style={styles.seccionLabel}>{t('perfil.correoElectronico')}</Text>
         <View style={styles.correoRow}>
           <View style={styles.correoInfo}>
-            <Text style={styles.campoLabel}>Correo actual</Text>
+            <Text style={styles.campoLabel}>{t('perfil.correoActual')}</Text>
             <Text style={styles.campoValor}>{usuario.correo}</Text>
           </View>
           <TouchableOpacity
             style={styles.btnCambiarCorreo}
             onPress={onCambiarCorreo}
           >
-            <Text style={styles.btnCambiarCorreoText}>Cambiar</Text>
+            <Text style={styles.btnCambiarCorreoText}>{t('perfil.cambiar')}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Botón editar */}
       <TouchableOpacity style={styles.btnEditar} onPress={onEditar}>
-        <Text style={styles.btnEditarText}>✏️  Editar información</Text>
+        <Text style={styles.btnEditarText}>✏️  {t('perfil.editarInfo')}</Text>
       </TouchableOpacity>
     </View>
   );

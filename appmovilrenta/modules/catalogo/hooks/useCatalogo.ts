@@ -7,184 +7,9 @@
  * RF10.6: Mensajes de visualización
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FiltrosCatalogo, Vehiculo } from "../types/catalogo.types";
-
-const VEHICULOS_MOCK: Vehiculo[] = [
-  {
-    id: "1",
-    marca: "Toyota",
-    modelo: "RAV4",
-    anio: 2023,
-    categoria: "SUVs",
-    precioDia: 180000,
-    tarifaDia: 180000,
-    capacidad: 5,
-    transmision: "automatica",
-    combustible: "gasolina",
-    estado: "disponible",
-    sucursal: "Neiva Centro",
-    calificacion: 4.8,
-    totalCalificaciones: 124,
-    imagen: require("@/assets/images/vehiculos/ToyotaRav4.png"),
-    kilometraje: "ilimitado",
-    descripcion: "SUV espaciosa ideal para viajes largos y familia.",
-    serviciosIncluidos: ["SOAT", "GPS", "Aire acondicionado"],
-    aireAcondicionado: true,
-  },
-  {
-    id: "2",
-    marca: "Chevrolet",
-    modelo: "Spark",
-    anio: 2022,
-    categoria: "Económicos",
-    precioDia: 85000,
-    tarifaDia: 85000,
-    capacidad: 4,
-    transmision: "manual",
-    combustible: "gasolina",
-    estado: "disponible",
-    sucursal: "Neiva Norte",
-    calificacion: 4.5,
-    totalCalificaciones: 89,
-    imagen: require("@/assets/images/vehiculos/chevroletspark.png"),
-    kilometraje: "limitado",
-    descripcion: "Perfecto para ciudad, bajo consumo de combustible.",
-    serviciosIncluidos: ["SOAT", "Aire acondicionado"],
-    aireAcondicionado: true,
-  },
-  {
-    id: "3",
-    marca: "Mazda",
-    modelo: "CX-5",
-    anio: 2023,
-    categoria: "SUVs",
-    precioDia: 210000,
-    tarifaDia: 210000,
-    capacidad: 5,
-    transmision: "automatica",
-    combustible: "gasolina",
-    estado: "disponible",
-    sucursal: "Neiva Centro",
-    calificacion: 4.9,
-    totalCalificaciones: 203,
-    imagen: require("@/assets/images/vehiculos/camionetamazda.png"),
-    kilometraje: "ilimitado",
-    descripcion: "SUV premium con tecnología de punta.",
-    serviciosIncluidos: ["SOAT", "GPS", "Seguro todo riesgo"],
-    aireAcondicionado: true,
-  },
-  {
-    id: "4",
-    marca: "Renault",
-    modelo: "Logan",
-    anio: 2021,
-    categoria: "Económicos",
-    precioDia: 75000,
-    tarifaDia: 75000,
-    capacidad: 5,
-    transmision: "manual",
-    combustible: "gasolina",
-    estado: "reservado",
-    sucursal: "Neiva Sur",
-    calificacion: 4.2,
-    totalCalificaciones: 56,
-    imagen: require("@/assets/images/vehiculos/RenaultLogan.png"),
-    kilometraje: "limitado",
-    descripcion: "Sedán económico cómodo para uso diario.",
-    serviciosIncluidos: ["SOAT"],
-    aireAcondicionado: false,
-  },
-  {
-    id: "5",
-    marca: "Mercedes-Benz",
-    modelo: "GLE 350",
-    anio: 2023,
-    categoria: "Premium",
-    precioDia: 450000,
-    tarifaDia: 450000,
-    capacidad: 5,
-    transmision: "automatica",
-    combustible: "diesel",
-    estado: "disponible",
-    sucursal: "Neiva Centro",
-    calificacion: 5.0,
-    totalCalificaciones: 42,
-    imagen: require("@/assets/images/vehiculos/MercedesBenzsGle.png"),
-    kilometraje: "ilimitado",
-    descripcion: "Experiencia de lujo en cada kilómetro.",
-    serviciosIncluidos: [
-      "SOAT",
-      "GPS",
-      "Seguro todo riesgo",
-      "Chofer opcional",
-    ],
-    aireAcondicionado: true,
-  },
-  {
-    id: "6",
-    marca: "Hyundai",
-    modelo: "Tucson",
-    anio: 2022,
-    categoria: "SUVs",
-    precioDia: 165000,
-    tarifaDia: 165000,
-    capacidad: 5,
-    transmision: "automatica",
-    combustible: "hibrido",
-    estado: "disponible",
-    sucursal: "Neiva Norte",
-    calificacion: 4.7,
-    totalCalificaciones: 118,
-    imagen: require("@/assets/images/vehiculos/Hyundai.png"),
-    kilometraje: "ilimitado",
-    descripcion: "Híbrido eficiente con gran confort.",
-    serviciosIncluidos: ["SOAT", "GPS"],
-    aireAcondicionado: true,
-  },
-  {
-    id: "7",
-    marca: "Volkswagen",
-    modelo: "Transporter",
-    anio: 2022,
-    categoria: "Van",
-    precioDia: 220000,
-    tarifaDia: 220000,
-    capacidad: 9,
-    transmision: "manual",
-    combustible: "diesel",
-    estado: "disponible",
-    sucursal: "Neiva Sur",
-    calificacion: 4.6,
-    totalCalificaciones: 31,
-    imagen: require("@/assets/images/vehiculos/Volkswagen.png"),
-    kilometraje: "limitado",
-    descripcion: "Ideal para grupos y viajes corporativos.",
-    serviciosIncluidos: ["SOAT", "Seguro pasajeros"],
-    aireAcondicionado: false,
-  },
-  {
-    id: "8",
-    marca: "Kia",
-    modelo: "Stinger",
-    anio: 2023,
-    categoria: "Sedán",
-    precioDia: 195000,
-    tarifaDia: 195000,
-    capacidad: 5,
-    transmision: "automatica",
-    combustible: "gasolina",
-    estado: "mantenimiento",
-    sucursal: "Neiva Centro",
-    calificacion: 4.8,
-    totalCalificaciones: 67,
-    imagen: require("@/assets/images/vehiculos/kiastinger.png"),
-    kilometraje: "ilimitado",
-    descripcion: "Sedán deportivo con motor de alto rendimiento.",
-    serviciosIncluidos: ["SOAT", "GPS", "Seguro todo riesgo"],
-    aireAcondicionado: true,
-  },
-];
+import { getVehiculos } from "../services/catalogoService";
 
 const FILTROS_INICIALES: FiltrosCatalogo = {
   categoria: "Todas",
@@ -193,10 +18,15 @@ const FILTROS_INICIALES: FiltrosCatalogo = {
 };
 
 export function useCatalogo() {
+  const [todosLosVehiculos, setTodosLosVehiculos] = useState<Vehiculo[]>([]);
   const [filtros, setFiltros] = useState<FiltrosCatalogo>(FILTROS_INICIALES);
 
+  useEffect(() => {
+    getVehiculos().then(setTodosLosVehiculos);
+  }, []);
+
   const vehiculos = useMemo(() => {
-    return VEHICULOS_MOCK.filter((v) => {
+    return todosLosVehiculos.filter((v) => {
       if (filtros.categoria !== "Todas" && v.categoria !== filtros.categoria)
         return false;
       if (filtros.soloDisponibles && v.estado !== "disponible") return false;
@@ -211,7 +41,7 @@ export function useCatalogo() {
       }
       return true;
     });
-  }, [filtros]);
+  }, [filtros, todosLosVehiculos]);
 
   const actualizarFiltro = <K extends keyof FiltrosCatalogo>(
     clave: K,
@@ -222,7 +52,7 @@ export function useCatalogo() {
 
   return {
     vehiculos,
-    totalVehiculos: VEHICULOS_MOCK.length,
+    totalVehiculos: todosLosVehiculos.length,
     filtros,
     actualizarFiltro,
     resetFiltros,

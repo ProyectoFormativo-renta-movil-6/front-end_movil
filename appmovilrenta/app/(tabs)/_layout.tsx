@@ -1,12 +1,17 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
+function TabIcon({ name, focused }: { name: React.ComponentProps<typeof Ionicons>['name']; focused: boolean }) {
   return (
     <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-      <Text style={styles.iconEmoji}>{emoji}</Text>
+      <Ionicons
+        name={focused ? name : `${name}-outline` as React.ComponentProps<typeof Ionicons>['name']}
+        size={22}
+        color={focused ? '#1D4ED8' : '#9CA3AF'}
+      />
     </View>
   );
 }
@@ -40,7 +45,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.inicio'),
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="🏠" focused={focused} />
+            <TabIcon name="car" focused={focused} />
           ),
         }}
       />
@@ -49,7 +54,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.notificaciones'),
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="🔔" focused={focused} />
+            <TabIcon name="notifications" focused={focused} />
           ),
         }}
       />
@@ -58,7 +63,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.misReservas'),
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="🗂️" focused={focused} />
+            <TabIcon name="calendar" focused={focused} />
           ),
         }}
       />
@@ -67,7 +72,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.perfil'),
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="👤" focused={focused} />
+            <TabIcon name="person" focused={focused} />
           ),
         }}
       />
