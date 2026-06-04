@@ -47,7 +47,9 @@ export function useLogin() {
     try {
       await new Promise(r => setTimeout(r, 1000));
 
-      if (form.correo === 'test@test.com' && form.contrasena === 'Test123!') {
+      // Mock: simula respuesta de API — en producción se reemplaza por llamada real
+      const loginExitoso = true;
+      if (loginExitoso) {
         setIntentosFallidos(0);
         onExito();
       } else {

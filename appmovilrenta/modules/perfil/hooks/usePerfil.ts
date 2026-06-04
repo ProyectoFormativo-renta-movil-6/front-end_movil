@@ -19,22 +19,10 @@ import {
   FormEditarPerfil,
   UsuarioPerfil,
 } from "../types/perfil.types";
-
-const USUARIO_MOCK: UsuarioPerfil = {
-  id: "1",
-  nombres: "",
-  apellidos: "",
-  correo: "danna@correo.com",
-  telefono: "",
-  tipoDocumento: "",
-  numeroDocumento: "",
-  fechaNacimiento: "",
-  nacionalidad: "",
-  perfilCompleto: false,
-};
+import usuarioMock from "../data/usuario.mock";
 
 export function usePerfil() {
-  const [usuario, setUsuario] = useState<UsuarioPerfil>(USUARIO_MOCK);
+  const [usuario, setUsuario] = useState<UsuarioPerfil>(usuarioMock);
   const [editando, setEditando] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [mostrarModalCorreo, setMostrarModalCorreo] = useState(false);
@@ -85,8 +73,8 @@ export function usePerfil() {
 
     if (!form.telefono.trim()) {
       nuevosErrores.telefono = "El teléfono es obligatorio";
-    } else if (!/^3\d{9}$/.test(form.telefono.trim())) {
-      nuevosErrores.telefono = "Debe tener 10 dígitos y empezar con 3";
+    } else if (!/^\+?[\d\s\-(). ]{7,20}$/.test(form.telefono.trim())) {
+      nuevosErrores.telefono = "Número inválido (ej: +57 300 123 4567)";
     }
 
     setErrores(nuevosErrores);
@@ -157,19 +145,14 @@ export function usePerfil() {
   // ── Guardar cambio de correo ───────────────────────────────────────────────
   const guardarCambioCorreo = (
     onExito: () => void,
-    onError: (msg: string) => void
+    _onError: (msg: string) => void
   ) => {
     if (!validarCambioCorreo()) return;
 
     setCargando(true);
     // Simula llamada API — se reemplaza por servicio real
     setTimeout(() => {
-      // Simula verificación de contraseña
-      if (formCorreo.contrasenaActual !== "Password123@") {
-        setCargando(false);
-        onError("Contraseña incorrecta");
-        return;
-      }
+      // Mock: simula verificación de contraseña — en producción se valida contra la API
       setUsuario((prev) => ({ ...prev, correo: formCorreo.nuevoCorreo }));
       setFormCorreo({ nuevoCorreo: "", confirmarCorreo: "", contrasenaActual: "" });
       setMostrarModalCorreo(false);
@@ -242,8 +225,8 @@ export function useCompletarPerfil() {
 
     if (!form.telefono.trim())
       e.telefono = "El teléfono es obligatorio";
-    else if (!/^3\d{9}$/.test(form.telefono.trim()))
-      e.telefono = "Debe tener 10 dígitos y empezar con 3";
+    else if (!/^\+?[\d\s\-(). ]{7,20}$/.test(form.telefono.trim()))
+      e.telefono = "Número inválido (ej: +57 300 123 4567)";
 
     if (!form.fechaNacimiento)
       e.fechaNacimiento = "La fecha de nacimiento es obligatoria";

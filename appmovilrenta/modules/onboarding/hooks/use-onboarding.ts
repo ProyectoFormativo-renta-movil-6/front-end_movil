@@ -25,7 +25,7 @@ export const useOnboarding = create<OnboardingStore>()(
       setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
     }),
     {
-      name: "onboarding-storage-v6",
+      name: "onboarding-storage-v7",
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);

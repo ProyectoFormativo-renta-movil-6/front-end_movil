@@ -166,7 +166,7 @@ export default function PerfilScreen() {
       <View style={[styles.editContainer, { paddingTop: insets.top, backgroundColor: c.bg }]}>
         <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
 
-        {/* Header editar */}
+        {/* Header */}
         <View style={[styles.editHeader, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
           <TouchableOpacity
             style={[styles.editHeaderBack, { backgroundColor: c.bgInput }]}
@@ -177,70 +177,66 @@ export default function PerfilScreen() {
           <Text style={[styles.editHeaderTitle, { color: c.textPrimary }]}>{t("perfil.editarTitulo")}</Text>
         </View>
 
+        {/* Avatar */}
+        <View style={styles.editAvatarWrap}>
+          <View style={styles.editAvatar}>
+            <Text style={styles.editAvatarText}>
+              {usuario.nombres.charAt(0)}{usuario.apellidos.charAt(0)}
+            </Text>
+            <View style={styles.editAvatarPlus}>
+              <Text style={styles.editAvatarPlusText}>+</Text>
+            </View>
+          </View>
+        </View>
+
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 100 : 60 }}
         >
-          {/* Avatar */}
-          <View style={styles.editAvatarWrap}>
-            <View style={styles.editAvatar}>
-              <Text style={styles.editAvatarText}>
-                {usuario.nombres.charAt(0)}{usuario.apellidos.charAt(0)}
-              </Text>
-              <View style={styles.editAvatarPlus}>
-                <Text style={styles.editAvatarPlusText}>+</Text>
-              </View>
-            </View>
-          </View>
-
           {/* Formulario */}
           <View style={[styles.editCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
-            {/* Nombres */}
             <View style={styles.editCampoWrap}>
               <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.nombres")}</Text>
               <TextInput
                 style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.nombres ? styles.editInputError : null]}
                 value={form.nombres}
                 onChangeText={(val) => actualizarCampo("nombres", val)}
-                placeholder="Tus nombres"
+                placeholder={t("perfil.placeholderNombres")}
                 placeholderTextColor={c.textMuted}
                 autoCapitalize="words"
               />
               {errores.nombres && <Text style={styles.editErrorText}>{errores.nombres}</Text>}
             </View>
 
-            {/* Apellidos */}
             <View style={styles.editCampoWrap}>
               <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.apellidos")}</Text>
               <TextInput
                 style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.apellidos ? styles.editInputError : null]}
                 value={form.apellidos}
                 onChangeText={(val) => actualizarCampo("apellidos", val)}
-                placeholder="Tus apellidos"
+                placeholder={t("perfil.placeholderApellidos")}
                 placeholderTextColor={c.textMuted}
                 autoCapitalize="words"
               />
               {errores.apellidos && <Text style={styles.editErrorText}>{errores.apellidos}</Text>}
             </View>
 
-            {/* Teléfono */}
             <View style={styles.editCampoWrap}>
               <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.telefono")}</Text>
               <TextInput
                 style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.telefono ? styles.editInputError : null]}
                 value={form.telefono}
                 onChangeText={(val) => actualizarCampo("telefono", val)}
-                placeholder="3001234567"
+                placeholder={t("perfil.placeholderTelefono")}
                 placeholderTextColor={c.textMuted}
                 keyboardType="phone-pad"
-                maxLength={10}
+                maxLength={20}
               />
               {errores.telefono && <Text style={styles.editErrorText}>{errores.telefono}</Text>}
             </View>
           </View>
 
-          {/* Botón guardar */}
           <TouchableOpacity
             style={[styles.editBtnGuardar, cargando && styles.editBtnGuardarDisabled]}
             onPress={handleGuardar}
