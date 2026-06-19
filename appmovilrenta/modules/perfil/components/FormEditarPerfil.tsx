@@ -1,0 +1,217 @@
+/**
+ * RF50 — Editar información del usuario
+ * RF50.1: Modificar nombre
+ * RF50.3: Modificar teléfono
+ * RF50.5: Guardar cambios validados
+ * RF50.6: Cancelar edición
+ */
+import React from "react";
+import {
+  ActivityIndicator,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useTranslation } from "react-i18next";
+import { ErroresPerfil, FormEditarPerfil as FormEditarPerfilType } from "../types/perfil.types";
+
+interface Props {
+  form: FormEditarPerfilType;
+  errores: ErroresPerfil;
+  cargando: boolean;
+  onCambiar: (campo: keyof FormEditarPerfilType, valor: string) => void;
+  onGuardar: () => void;
+  onCancelar: () => void;
+}
+
+export function FormEditarPerfil({
+  form,
+  errores,
+  cargando,
+  onCambiar,
+  onGuardar,
+  onCancelar,
+}: Props) {
+  const { t } = useTranslation();
+  return (
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{
+        paddingBottom: Platform.OS === "android" ? 80 : 40,
+      }}
+    >
+      <View style={styles.card}>
+        <Text style={styles.seccionLabel}>{t('perfil.datosEditables')}</Text>
+
+        {/* Nombres */}
+        <View style={styles.campoWrap}>
+          <Text style={styles.campoLabel}>{t('perfil.nombres')} *</Text>
+          <TextInput
+            style={[styles.input, errores.nombres ? styles.inputError : null]}
+            value={form.nombres}
+            onChangeText={(val) => onCambiar("nombres", val)}
+            placeholder={t('perfil.placeholderNombres')}
+            placeholderTextColor="#9CA3AF"
+            autoCapitalize="words"
+          />
+          {errores.nombres && (
+            <Text style={styles.errorText}>{errores.nombres}</Text>
+          )}
+        </View>
+
+        {/* Apellidos */}
+        <View style={styles.campoWrap}>
+          <Text style={styles.campoLabel}>{t('perfil.apellidos')} *</Text>
+          <TextInput
+            style={[styles.input, errores.apellidos ? styles.inputError : null]}
+            value={form.apellidos}
+            onChangeText={(val) => onCambiar("apellidos", val)}
+            placeholder={t('perfil.placeholderApellidos')}
+            placeholderTextColor="#9CA3AF"
+            autoCapitalize="words"
+          />
+          {errores.apellidos && (
+            <Text style={styles.errorText}>{errores.apellidos}</Text>
+          )}
+        </View>
+
+        {/* Teléfono */}
+        <View style={styles.campoWrap}>
+          <Text style={styles.campoLabel}>{t('perfil.telefono')} *</Text>
+          <TextInput
+            style={[styles.input, errores.telefono ? styles.inputError : null]}
+            value={form.telefono}
+            onChangeText={(val) => onCambiar("telefono", val)}
+            placeholder={t('perfil.placeholderTelefono')}
+            placeholderTextColor="#9CA3AF"
+            keyboardType="phone-pad"
+            maxLength={20}
+          />
+          {errores.telefono && (
+            <Text style={styles.errorText}>{errores.telefono}</Text>
+          )}
+        </View>
+
+        {/* Nota campos no editables */}
+        <View style={styles.notaWrap}>
+          <Text style={styles.notaText}>
+            ℹ️ {t('perfil.notaCamposNoEditables')}
+          </Text>
+        </View>
+      </View>
+
+      {/* Botones */}
+      <TouchableOpacity
+        style={[styles.btnGuardar, cargando && styles.btnGuardarDisabled]}
+        onPress={onGuardar}
+        activeOpacity={0.85}
+        disabled={cargando}
+      >
+        {cargando ? (
+          <ActivityIndicator color="#FFFFFF" />
+        ) : (
+          <Text style={styles.btnGuardarText}>{t('perfil.btnGuardar')}</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.btnCancelar}
+        onPress={onCancelar}
+        activeOpacity={0.85}
+        disabled={cargando}
+      >
+        <Text style={styles.btnCancelarText}>{t('perfil.cancelar')}</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { width: "100%" },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 16,
+    marginBottom: 16,
+  },
+  seccionLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#1D4ED8",
+    letterSpacing: 1.2,
+    marginBottom: 16,
+  },
+  campoWrap: { marginBottom: 14 },
+  campoLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: "#F9FAFB",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === "android" ? 10 : 13,
+    fontSize: 14,
+    color: "#111827",
+  },
+  inputError: {
+    borderColor: "#DC2626",
+    backgroundColor: "#FEF2F2",
+  },
+  errorText: {
+    fontSize: 12,
+    color: "#DC2626",
+    marginTop: 4,
+  },
+  notaWrap: {
+    backgroundColor: "#EFF6FF",
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+    marginTop: 8,
+  },
+  notaText: {
+    fontSize: 12,
+    color: "#1D4ED8",
+    lineHeight: 18,
+  },
+  btnGuardar: {
+    backgroundColor: "#1D4ED8",
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  btnGuardarDisabled: { backgroundColor: "#93C5FD" },
+  btnGuardarText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  btnCancelar: {
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "#FFFFFF",
+  },
+  btnCancelarText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+});
