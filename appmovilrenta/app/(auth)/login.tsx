@@ -5,6 +5,7 @@ import { SocialAuthButtons } from "@/modules/auth/components/SocialAuthButtons";
 import { useLogin } from "@/modules/auth/hooks/useAuth";
 import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useAuthStore } from "@/store/authStore";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,11 +25,17 @@ export default function LoginScreen() {
   const c = useTemaColores();
   const { form, errores, cargando, bloqueado, actualizarCampo, iniciarSesion } =
     useLogin();
+  const setUsuario = useAuthStore((s) => s.setUsuario);
   const errorGlobal = errores.find((e) => !e.campo)?.mensaje;
   const [loginExitoso, setLoginExitoso] = useState(false);
 
   function handleLogin() {
     iniciarSesion(() => {
+      // Marca al usuario como autenticado (invitado = false en el catálogo)
+      setUsuario(
+        { id: "1", correo: form.correo, rol: "cliente" },
+        "token-demo",
+      );
       setLoginExitoso(true);
       setTimeout(() => router.replace("/(tabs)"), 1500);
     });
