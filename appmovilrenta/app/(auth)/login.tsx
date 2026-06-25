@@ -1,40 +1,55 @@
+// app/(auth)/login.tsx
+
 import { InputField } from "@/components/ui/InputField";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { SocialAuthButtons } from "@/modules/auth/components/SocialAuthButtons";
 import { useLogin } from "@/modules/auth/hooks/useAuth";
+import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useAuthStore } from "@/store/authStore";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { loginStyles as styles } from "./_login.styles";
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
+  const c = useTemaColores();
   const { form, errores, cargando, bloqueado, actualizarCampo, iniciarSesion } =
     useLogin();
+  const setUsuario = useAuthStore((s) => s.setUsuario);
   const errorGlobal = errores.find((e) => !e.campo)?.mensaje;
+  const [loginExitoso, setLoginExitoso] = useState(false);
 
   function handleLogin() {
     iniciarSesion(() => {
-      // Usuario registrado → va al catálogo con todas las funcionalidades
-      router.replace("/(tabs)");
+      setUsuario(
+        { id: "1", correo: form.correo, rol: "cliente" },
+        "token-demo",
+      );
+      setLoginExitoso(true);
+      setTimeout(() => router.replace("/(tabs)/catalogo"), 1500);
     });
   }
 
+  // CORREGIDO: Redirige explícitamente a la pestaña del catálogo, no al index general de pestañas
   function handleInvitado() {
-    // Invitado → va al catálogo con funcionalidades limitadas
-    router.push("/(auth)/invitado");
+    router.replace("/(tabs)/catalogo");
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: c.bg }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
@@ -42,29 +57,42 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Encabezado con logo ────────────────────────────── */}
+        {/* Encabezado */}
         <View style={styles.encabezado}>
-          <View style={styles.logoWrapper}>
+          <View style={[styles.logoWrapper, { backgroundColor: c.primaryBg }]}>
             <Image
               source={require("@/assets/images/logo.png")}
               style={styles.logo}
             />
           </View>
-          <Text style={styles.titulo}>Bienvenido de nuevo</Text>
-          <Text style={styles.subtitulo}>Inicia sesión para continuar</Text>
+          <Text style={[styles.titulo, { color: c.textPrimary }]}>
+            {t("auth.login.bienvenido")}
+          </Text>
+          <Text style={[styles.subtitulo, { color: c.textSecondary }]}>
+            {t("auth.login.subtitulo")}
+          </Text>
         </View>
 
-        {/* ── Banner error global (bloqueo / credenciales) ───── */}
-        {errorGlobal ? (
+        {/* Banner éxito */}
+        {loginExitoso ? (
+          <View style={loginLocalS.bannerExito}>
+            <Text style={loginLocalS.bannerExitoTexto}>
+              ✓ {t("auth.login.exitoMsg")}
+            </Text>
+          </View>
+        ) : null}
+
+        {/* Banner error global */}
+        {!loginExitoso && errorGlobal ? (
           <View style={styles.bannerError}>
             <Text style={styles.bannerErrorTexto}>⚠️ {errorGlobal}</Text>
           </View>
         ) : null}
 
-        {/* ── Formulario ─────────────────────────────────────── */}
+        {/* Formulario */}
         <View style={styles.formulario}>
           <InputField
-            label="Correo electrónico *"
+            label={`${t("auth.login.correo")} *`}
             placeholder="ejemplo@correo.com"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -73,8 +101,8 @@ export default function LoginScreen() {
             error={errores.find((e) => e.campo === "correo")?.mensaje}
           />
           <PasswordInput
-            label="Contraseña *"
-            placeholder="Tu contraseña"
+            label={`${t("auth.login.contrasena")} *`}
+            placeholder={t("auth.login.contrasena")}
             value={form.contrasena}
             onChangeText={(val) => actualizarCampo("contrasena", val)}
             error={errores.find((e) => e.campo === "contrasena")?.mensaje}
@@ -83,14 +111,18 @@ export default function LoginScreen() {
             onPress={() => router.push("/(auth)/olvide-contrasena")}
             style={styles.enlaceOlvide}
           >
-            <Text style={styles.textoEnlace}>¿Olvidaste tu contraseña?</Text>
+            <Text style={styles.textoEnlace}>{t("auth.login.olvidaste")}</Text>
           </TouchableOpacity>
         </View>
 
-        {/* ── Acciones ───────────────────────────────────────── */}
+        {/* Acciones */}
         <View style={styles.acciones}>
           <PrimaryButton
-            titulo={bloqueado ? "Cuenta bloqueada" : "Iniciar sesión"}
+            titulo={
+              bloqueado
+                ? t("auth.login.bloqueado")
+                : t("auth.login.iniciarSesion")
+            }
             onPress={handleLogin}
             cargando={cargando}
             deshabilitado={bloqueado}
@@ -98,23 +130,34 @@ export default function LoginScreen() {
 
           {bloqueado ? (
             <Text style={styles.hintBloqueado}>
-              Cuenta bloqueada tras 3 intentos. Usa ¿Olvidaste tu contraseña?
+              {t("auth.login.hintBloqueado")}
             </Text>
           ) : null}
 
+          <SocialAuthButtons
+            onGoogle={() => console.log("Google login")}
+            onFacebook={() => console.log("Facebook login")}
+          />
+
           <View style={styles.separador}>
-            <View style={styles.lineaSeparador} />
-            <Text style={styles.textoSeparador}>o</Text>
-            <View style={styles.lineaSeparador} />
+            <View
+              style={[styles.lineaSeparador, { backgroundColor: c.border }]}
+            />
+            <Text style={[styles.textoSeparador, { color: c.textMuted }]}>
+              {t("auth.login.separador")}
+            </Text>
+            <View
+              style={[styles.lineaSeparador, { backgroundColor: c.border }]}
+            />
           </View>
 
           <PrimaryButton
-            titulo="Crear cuenta nueva"
+            titulo={t("auth.login.crearCuenta")}
             variante="secundario"
             onPress={() => router.push("/(auth)/registro")}
           />
           <PrimaryButton
-            titulo="Continuar como invitado"
+            titulo={t("auth.login.invitado")}
             variante="texto"
             onPress={handleInvitado}
           />
@@ -123,3 +166,25 @@ export default function LoginScreen() {
     </KeyboardAvoidingView>
   );
 }
+
+const loginLocalS = StyleSheet.create({
+  bannerExito: {
+    backgroundColor: "#D1FAE5",
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#6EE7B7",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  bannerExitoTexto: {
+    color: "#065F46",
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
+    textAlign: "center",
+  },
+});

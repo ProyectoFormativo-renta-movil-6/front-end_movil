@@ -1,34 +1,54 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+// app/(tabs)/_layout.tsx
 
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import React from "react";
+import { Platform, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
+
+function TabIcon({ name, focused }: { name: IoniconName; focused: boolean }) {
   return (
     <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-      <Text style={styles.iconEmoji}>{emoji}</Text>
+      <Ionicons
+        name={focused ? name : (`${name}-outline` as IoniconName)}
+        size={22}
+        color={focused ? "#2f4ea2" : "#9CA3AF"}
+      />
     </View>
   );
 }
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
+  const tabBarHeight =
+    Platform.OS === "android" ? 58 + insets.bottom : 60 + insets.bottom;
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#1D4ED8',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: "#2f4ea2",
+        tabBarInactiveTintColor: "#9CA3AF",
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#E5E7EB',
+          backgroundColor: "#FFFFFF",
+          borderTopColor: "#E5E7EB",
           borderTopWidth: 1,
-          height: Platform.OS === 'android' ? 65 : 80,
-          paddingBottom: Platform.OS === 'android' ? 8 : 20,
+          height: tabBarHeight,
+          paddingBottom:
+            Platform.OS === "android" ? insets.bottom + 4 : insets.bottom + 8,
           paddingTop: 6,
-          elevation: 8,
+          elevation: 12,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
+          fontWeight: "600",
           marginTop: 2,
         },
       }}
@@ -36,44 +56,44 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Inicio',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="🏠" focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="buscar"
-        options={{
-          title: 'Buscar',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="🔍" focused={focused} />
-          ),
+          title: "Inicio",
+          tabBarIcon: ({ focused }) => <TabIcon name="car" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="reservar"
         options={{
-          title: 'Reservar',
+          title: "Reservar",
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="📅" focused={focused} />
+            <TabIcon name="calendar" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="perfil"
         options={{
-          title: 'Perfil',
+          title: "Perfil",
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="👤" focused={focused} />
+            <TabIcon name="person" focused={focused} />
           ),
         }}
       />
-      {/* Ocultar explore del template */}
       <Tabs.Screen
-        name="explore"
-        options={{ href: null }}
+        name="buscar"
+        options={{
+          title: "Explorar",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="compass" focused={focused} />
+          ),
+        }}
       />
+
+      {/* Pantallas sin tab */}
+      <Tabs.Screen name="catalogo" options={{ href: null }} />
+      <Tabs.Screen name="busqueda" options={{ href: null }} />
+      <Tabs.Screen name="explore" options={{ href: null }} />
+      <Tabs.Screen name="mis-reservas" options={{ href: null }} />
+      <Tabs.Screen name="notificaciones" options={{ href: null }} />
     </Tabs>
   );
 }
@@ -83,13 +103,10 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconWrapActive: {
-    backgroundColor: '#EEF2FF',
-  },
-  iconEmoji: {
-    fontSize: 22,
+    backgroundColor: "#EEF2FF",
   },
 });

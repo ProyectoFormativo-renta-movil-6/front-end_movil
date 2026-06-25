@@ -1,39 +1,69 @@
-import { ImageSourcePropType } from "react-native";
+// modules/catalogo/types/catalogo.types.ts
 
-export type CategoriaVehiculo =
-  | "Todas"
-  | "SUVs"
-  | "Económicos"
-  | "Sedán"
-  | "Premium"
-  | "Van";
-
-export type EstadoVehiculo = "disponible" | "reservado" | "mantenimiento";
-
-export interface Vehiculo {
-  id: string;
-  marca: string;
-  modelo: string;
-  anio: number;
-  categoria: CategoriaVehiculo;
-  precioDia: number;
-  capacidad: number;
-  transmision: "manual" | "automatica";
-  combustible: "gasolina" | "diesel" | "hibrido" | "electrico";
-  estado: EstadoVehiculo;
-  sucursal: string;
-  calificacion: number;
-  totalCalificaciones: number;
-  imagen: ImageSourcePropType;
-  kilometraje: "limitado" | "ilimitado";
-  descripcion: string;
-  serviciosIncluidos: string[];
-  tarifaDia: number;
-  aireAcondicionado: boolean;
+export interface Tarifa {
+  km?: number;
+  precio: number;
+  excedente?: number;
 }
 
-export interface FiltrosCatalogo {
-  categoria: CategoriaVehiculo;
+export interface Seguro {
+  nombre: string;
+  precio: number;
+}
+
+export interface Vehiculo {
+  id: number;
+  nombre: string;
+  // 👇 AQUÍ ESTÁ EL CAMBIO: Añadidos para solucionar el filtrado y quitar los "any"
+  marca: string; // O 'marca?: string;' si es opcional en tu base de datos
+  modelo: string; // O 'modelo?: string;' si es opcional en tu base de datos
+  categoria: string;
+  transmision: string;
+  combustible: string;
+  precio: number;
+  calificacion: number;
+  disponible: boolean;
+  destacado?: boolean;
+  puertas?: number;
+  pasajeros?: number;
+  maletero?: number;
+  cilindraje?: string;
+  color?: string;
+  año?: number;
+  placa?: string;
+  sucursal?: string;
+  // Características booleanas
+  aireAcondicionado?: boolean;
+  vidriosElectricos?: boolean;
+  cierreCentralizado?: boolean;
+  bluetooth?: boolean;
+  camaraReversa?: boolean;
+  sensoresParqueo?: boolean;
+  tarifas?: {
+    kmLimitado?: Tarifa;
+    kmIlimitado?: Tarifa;
+  };
+  seguros?: Seguro[];
+  imagenes?: string[];
+  imagen?: string;
+  foto?: string;
+}
+
+export interface FiltrosCatalogoState {
+  categoria: string;
+  precioMin: string;
+  precioMax: string;
+  transmision: string;
+  combustible: string;
+  sucursal: string;
+  orden: string;
   busqueda: string;
-  soloDisponibles: boolean;
+}
+
+export interface BusquedaForm {
+  lugarRecogida: string;
+  lugarDevolucion: string;
+  fechaInicio: string;
+  fechaFin: string;
+  mismoLugar: boolean;
 }

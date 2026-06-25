@@ -1,230 +1,154 @@
-/**
- * RF10 — Catálogo de vehículos
- * RF10.1: Listar vehículos registrados
- * RF10.2: Filtrar por marca
- * RF10.3: Filtrar por disponibilidad
- * RF10.5: Vista según rol
- * RF10.6: Mensajes de visualización
- */
-
+import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { FiltrosCatalogo, Vehiculo } from "../types/catalogo.types";
+import { Alert } from "react-native";
+import { FILTROS_BASE, VEHICULOS_MOCK } from "../constants/catalogo.constants";
+import {
+  BusquedaForm,
+  FiltrosCatalogoState,
+  Vehiculo,
+} from "../types/catalogo.types";
 
-const VEHICULOS_MOCK: Vehiculo[] = [
-  {
-    id: "1",
-    marca: "Toyota",
-    modelo: "RAV4",
-    anio: 2023,
-    categoria: "SUVs",
-    precioDia: 180000,
-    tarifaDia: 180000,
-    capacidad: 5,
-    transmision: "automatica",
-    combustible: "gasolina",
-    estado: "disponible",
-    sucursal: "Neiva Centro",
-    calificacion: 4.8,
-    totalCalificaciones: 124,
-    imagen: require("@/assets/images/vehiculos/ToyotaRav4.png"),
-    kilometraje: "ilimitado",
-    descripcion: "SUV espaciosa ideal para viajes largos y familia.",
-    serviciosIncluidos: ["SOAT", "GPS", "Aire acondicionado"],
-    aireAcondicionado: true,
-  },
-  {
-    id: "2",
-    marca: "Chevrolet",
-    modelo: "Spark",
-    anio: 2022,
-    categoria: "Económicos",
-    precioDia: 85000,
-    tarifaDia: 85000,
-    capacidad: 4,
-    transmision: "manual",
-    combustible: "gasolina",
-    estado: "disponible",
-    sucursal: "Neiva Norte",
-    calificacion: 4.5,
-    totalCalificaciones: 89,
-    imagen: require("@/assets/images/vehiculos/chevroletspark.png"),
-    kilometraje: "limitado",
-    descripcion: "Perfecto para ciudad, bajo consumo de combustible.",
-    serviciosIncluidos: ["SOAT", "Aire acondicionado"],
-    aireAcondicionado: true,
-  },
-  {
-    id: "3",
-    marca: "Mazda",
-    modelo: "CX-5",
-    anio: 2023,
-    categoria: "SUVs",
-    precioDia: 210000,
-    tarifaDia: 210000,
-    capacidad: 5,
-    transmision: "automatica",
-    combustible: "gasolina",
-    estado: "disponible",
-    sucursal: "Neiva Centro",
-    calificacion: 4.9,
-    totalCalificaciones: 203,
-    imagen: require("@/assets/images/vehiculos/camionetamazda.png"),
-    kilometraje: "ilimitado",
-    descripcion: "SUV premium con tecnología de punta.",
-    serviciosIncluidos: ["SOAT", "GPS", "Seguro todo riesgo"],
-    aireAcondicionado: true,
-  },
-  {
-    id: "4",
-    marca: "Renault",
-    modelo: "Logan",
-    anio: 2021,
-    categoria: "Económicos",
-    precioDia: 75000,
-    tarifaDia: 75000,
-    capacidad: 5,
-    transmision: "manual",
-    combustible: "gasolina",
-    estado: "reservado",
-    sucursal: "Neiva Sur",
-    calificacion: 4.2,
-    totalCalificaciones: 56,
-    imagen: require("@/assets/images/vehiculos/RenaultLogan.png"),
-    kilometraje: "limitado",
-    descripcion: "Sedán económico cómodo para uso diario.",
-    serviciosIncluidos: ["SOAT"],
-    aireAcondicionado: false,
-  },
-  {
-    id: "5",
-    marca: "Mercedes-Benz",
-    modelo: "GLE 350",
-    anio: 2023,
-    categoria: "Premium",
-    precioDia: 450000,
-    tarifaDia: 450000,
-    capacidad: 5,
-    transmision: "automatica",
-    combustible: "diesel",
-    estado: "disponible",
-    sucursal: "Neiva Centro",
-    calificacion: 5.0,
-    totalCalificaciones: 42,
-    imagen: require("@/assets/images/vehiculos/MercedesBenzsGle.png"),
-    kilometraje: "ilimitado",
-    descripcion: "Experiencia de lujo en cada kilómetro.",
-    serviciosIncluidos: [
-      "SOAT",
-      "GPS",
-      "Seguro todo riesgo",
-      "Chofer opcional",
-    ],
-    aireAcondicionado: true,
-  },
-  {
-    id: "6",
-    marca: "Hyundai",
-    modelo: "Tucson",
-    anio: 2022,
-    categoria: "SUVs",
-    precioDia: 165000,
-    tarifaDia: 165000,
-    capacidad: 5,
-    transmision: "automatica",
-    combustible: "hibrido",
-    estado: "disponible",
-    sucursal: "Neiva Norte",
-    calificacion: 4.7,
-    totalCalificaciones: 118,
-    imagen: require("@/assets/images/vehiculos/Hyundai.png"),
-    kilometraje: "ilimitado",
-    descripcion: "Híbrido eficiente con gran confort.",
-    serviciosIncluidos: ["SOAT", "GPS"],
-    aireAcondicionado: true,
-  },
-  {
-    id: "7",
-    marca: "Volkswagen",
-    modelo: "Transporter",
-    anio: 2022,
-    categoria: "Van",
-    precioDia: 220000,
-    tarifaDia: 220000,
-    capacidad: 9,
-    transmision: "manual",
-    combustible: "diesel",
-    estado: "disponible",
-    sucursal: "Neiva Sur",
-    calificacion: 4.6,
-    totalCalificaciones: 31,
-    imagen: require("@/assets/images/vehiculos/Volkswagen.png"),
-    kilometraje: "limitado",
-    descripcion: "Ideal para grupos y viajes corporativos.",
-    serviciosIncluidos: ["SOAT", "Seguro pasajeros"],
-    aireAcondicionado: false,
-  },
-  {
-    id: "8",
-    marca: "Kia",
-    modelo: "Stinger",
-    anio: 2023,
-    categoria: "Sedán",
-    precioDia: 195000,
-    tarifaDia: 195000,
-    capacidad: 5,
-    transmision: "automatica",
-    combustible: "gasolina",
-    estado: "mantenimiento",
-    sucursal: "Neiva Centro",
-    calificacion: 4.8,
-    totalCalificaciones: 67,
-    imagen: require("@/assets/images/vehiculos/kiastinger.png"),
-    kilometraje: "ilimitado",
-    descripcion: "Sedán deportivo con motor de alto rendimiento.",
-    serviciosIncluidos: ["SOAT", "GPS", "Seguro todo riesgo"],
-    aireAcondicionado: true,
-  },
-];
-
-const FILTROS_INICIALES: FiltrosCatalogo = {
-  categoria: "Todas",
-  busqueda: "",
-  soloDisponibles: false,
-};
+// Tipo extendido local para que useCatalogo reconozca las propiedades marca y modelo de forma opcional si tu interfaz base no las tiene todavía.
+export interface VehiculoConDetalles extends Vehiculo {
+  marca?: string;
+  modelo?: string;
+}
 
 export function useCatalogo() {
-  const [filtros, setFiltros] = useState<FiltrosCatalogo>(FILTROS_INICIALES);
+  const [vehiculos] = useState<VehiculoConDetalles[]>(VEHICULOS_MOCK);
+  const [cargando] = useState(false);
+  const [error] = useState<string | null>(null);
 
-  const vehiculos = useMemo(() => {
-    return VEHICULOS_MOCK.filter((v) => {
-      if (filtros.categoria !== "Todas" && v.categoria !== filtros.categoria)
-        return false;
-      if (filtros.soloDisponibles && v.estado !== "disponible") return false;
-      if (filtros.busqueda.trim()) {
-        const q = filtros.busqueda.toLowerCase();
-        if (
-          !`${v.marca} ${v.modelo} ${v.categoria} ${v.sucursal}`
-            .toLowerCase()
-            .includes(q)
-        )
-          return false;
-      }
-      return true;
+  const [filtros, setFiltros] = useState<FiltrosCatalogoState>(FILTROS_BASE);
+  const [busquedaForm, setBusquedaForm] = useState<BusquedaForm>({
+    lugarRecogida: "",
+    lugarDevolucion: "",
+    fechaInicio: "",
+    fechaFin: "",
+    mismoLugar: true,
+  });
+  const [busquedaRealizada, setBusquedaRealizada] = useState(false);
+  const [errorBusqueda, setErrorBusqueda] = useState("");
+  const [pagina, setPagina] = useState(1);
+
+  const setFiltro = (campo: keyof FiltrosCatalogoState, valor: string) => {
+    setFiltros((prev) => ({ ...prev, [campo]: valor }));
+    setPagina(1);
+  };
+
+  const setForm = (campo: keyof BusquedaForm, valor: string | boolean) => {
+    setBusquedaForm((prev) => ({ ...prev, [campo]: valor }));
+    setErrorBusqueda("");
+  };
+
+  const handleBuscarInvitado = () => {
+    Alert.alert(
+      "Modo invitado",
+      "Inicia sesión o regístrate para guardar y realizar búsquedas avanzadas.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Ir a registrarse",
+          onPress: () => router.push("/(auth)/registro"),
+        },
+      ],
+    );
+  };
+
+  const handleBuscar = () => {
+    if (!busquedaForm.lugarRecogida || !busquedaForm.lugarDevolucion) {
+      setErrorBusqueda("Selecciona los puntos de recogida y devolución");
+      return;
+    }
+    if (!busquedaForm.fechaInicio || !busquedaForm.fechaFin) {
+      setErrorBusqueda("Selecciona las fechas de recogida y devolución");
+      return;
+    }
+    setErrorBusqueda("");
+    router.push({
+      pathname: "/(tabs)/catalogo",
+      params: {
+        sucursal: busquedaForm.lugarRecogida,
+        fechaInicio: busquedaForm.fechaInicio,
+        fechaFin: busquedaForm.fechaFin,
+      },
     });
-  }, [filtros]);
+  };
 
-  const actualizarFiltro = <K extends keyof FiltrosCatalogo>(
-    clave: K,
-    valor: FiltrosCatalogo[K],
-  ) => setFiltros((prev) => ({ ...prev, [clave]: valor }));
+  const limpiar = () => {
+    setFiltros(FILTROS_BASE);
+    setBusquedaForm({
+      lugarRecogida: "",
+      lugarDevolucion: "",
+      fechaInicio: "",
+      fechaFin: "",
+      mismoLugar: true,
+    });
+    setBusquedaRealizada(false);
+    setErrorBusqueda("");
+    setPagina(1);
+  };
 
-  const resetFiltros = () => setFiltros(FILTROS_INICIALES);
+  const resultado = useMemo(() => {
+    let arr = [...vehiculos];
+
+    if (filtros.busqueda.trim()) {
+      const busq = filtros.busqueda.toLowerCase();
+      arr = arr.filter((v) => v.nombre.toLowerCase().includes(busq));
+    }
+
+    if (filtros.categoria !== "Todos")
+      arr = arr.filter((v) => v.categoria === filtros.categoria);
+    if (filtros.transmision !== "Todas")
+      arr = arr.filter((v) => v.transmision === filtros.transmision);
+    if (filtros.combustible !== "Todos")
+      arr = arr.filter((v) => v.combustible === filtros.combustible);
+    if (filtros.sucursal !== "Todas las sucursales")
+      arr = arr.filter((v) => v.sucursal === filtros.sucursal);
+
+    const min = filtros.precioMin ? Number(filtros.precioMin) : null;
+    const max = filtros.precioMax ? Number(filtros.precioMax) : null;
+    if (min !== null) arr = arr.filter((v) => v.precio >= min);
+    if (max !== null) arr = arr.filter((v) => v.precio <= max);
+
+    if (filtros.orden === "precio_asc") arr.sort((a, b) => a.precio - b.precio);
+    if (filtros.orden === "precio_desc")
+      arr.sort((a, b) => b.precio - a.precio);
+    if (filtros.orden === "calificacion")
+      arr.sort((a, b) => (b.calificacion ?? 0) - (a.calificacion ?? 0));
+
+    return arr;
+  }, [vehiculos, filtros]);
+
+  const POR_PAGINA = 6;
+  const totalPaginas = Math.max(1, Math.ceil(resultado.length / POR_PAGINA));
+
+  const vehiculosPagina = useMemo(() => {
+    const inicio = (pagina - 1) * POR_PAGINA;
+    return resultado.slice(inicio, inicio + POR_PAGINA);
+  }, [resultado, pagina]);
 
   return {
     vehiculos,
-    totalVehiculos: VEHICULOS_MOCK.length,
+    cargando,
+    error,
     filtros,
-    actualizarFiltro,
-    resetFiltros,
+    setFiltro,
+    busquedaForm,
+    setForm,
+    busquedaRealizada,
+    errorBusqueda,
+    limpiar,
+    handleBuscarInvitado,
+    handleBuscar,
+    pagina,
+    setPagina,
+    totalPaginas,
+    vehiculosFiltrados: resultado,
+    vehiculosPaginados: vehiculosPagina,
+    resetFiltros: limpiar,
+    paginaActual: pagina,
+    paginaSiguiente: () => setPagina((p) => Math.min(p + 1, totalPaginas)),
+    paginaAnterior: () => setPagina((p) => Math.max(p - 1, 1)),
   };
 }

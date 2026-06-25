@@ -2,22 +2,29 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  Image,
   ScrollView,
+  StyleSheet,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   Modal,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTemaColores } from '@/modules/i18n/hooks/useIdioma';
 import { useRegistro } from '@/modules/auth/hooks/useAuth';
 import { InputField } from '@/components/ui/InputField';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { registroStyles as styles } from './_registro.styles';
+import { SocialAuthButtons } from '@/modules/auth/components/SocialAuthButtons';
+import { PasswordRequirements } from '@/modules/auth/components/PasswordRequirements';
+import { registroStyles as styles } from '@/modules/auth/styles/registro.styles';
 
 export default function RegistroScreen() {
+  const { t } = useTranslation();
+  const c = useTemaColores();
+  const insets = useSafeAreaInsets();
   const {
     form,
     cargando,
@@ -27,180 +34,137 @@ export default function RegistroScreen() {
   } = useRegistro();
 
   const [modalTerminos, setModalTerminos] = useState(false);
+  const [registroExitoso, setRegistroExitoso] = useState(false);
+  const [correoTocado, setCorreoTocado] = useState(false);
+
+  const errorCorreo = getError('correo') ??
+    (correoTocado && form.correo.length > 0 && !form.correo.includes('@')
+      ? t('auth.registro.errorAt')
+      : undefined);
 
   function handleRegistrar() {
     registrar(
-      () => {
-        Alert.alert(
-          '✅ Registro exitoso',
-          'Tu cuenta fue creada correctamente.',
-          [{ text: 'Ir al login', onPress: () => router.replace('/(auth)/login') }]
-        );
-      },
-      () => {
-        Alert.alert(
-          '❌ Registro fallido',
-          'Por favor revisa los campos marcados en rojo e intenta de nuevo.',
-          [{ text: 'Entendido' }]
-        );
-      }
+      () => setRegistroExitoso(true),
+      () => {}
+    );
+  }
+
+  if (registroExitoso) {
+    return (
+      <View style={[styles.flex, { backgroundColor: c.bg, alignItems: 'center', justifyContent: 'center', padding: 32 }]}>
+        <View style={[exitoS.circulo, { backgroundColor: c.primaryBg }]}>
+          <Text style={exitoS.check}>✓</Text>
+        </View>
+        <Text style={[exitoS.titulo, { color: c.textPrimary }]}>{t('auth.registro.exitoTitulo')}</Text>
+        <Text style={[exitoS.msg, { color: c.textSecondary }]}>{t('auth.registro.exitoMsg')}</Text>
+        <TouchableOpacity
+          style={exitoS.btn}
+          onPress={() => router.replace('/(auth)/login')}
+          activeOpacity={0.85}
+        >
+          <Text style={exitoS.btnTexto}>{t('auth.registro.exitoBtn')} →</Text>
+        </TouchableOpacity>
+      </View>
     );
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: '#1D4ED8' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView
-        contentContainerStyle={styles.contenedor}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Botón volver ───────────────────────────────────── */}
-        <TouchableOpacity onPress={() => router.back()} style={styles.botonVolver}>
-          <Text style={styles.textoVolver}>← Volver</Text>
+      {/* ── Header azul ─────────────────────────────────────── */}
+      <View style={[newS.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(auth)/login')}
+          style={newS.backBtn}
+        >
+          <Text style={newS.backTxt}>←</Text>
         </TouchableOpacity>
+        <Text style={newS.titulo}>{t('auth.registro.titulo')}</Text>
+        <Text style={newS.subtitulo}>{t('auth.registro.subtitulo')}</Text>
+      </View>
 
-        {/* ── Encabezado ─────────────────────────────────────── */}
-        <View style={styles.encabezado}>
-          <View style={styles.logoWrapper}>
-            <Image
-              source={require('@/assets/images/logo.png')}
-              style={styles.logo}
+      {/* ── Sheet blanca ────────────────────────────────────── */}
+      <View style={[newS.sheet, { backgroundColor: c.bg }]}>
+        <ScrollView
+          contentContainerStyle={newS.sheetContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Correo */}
+          <InputField
+            label={t('auth.registro.correo')}
+            placeholder="ejemplo@correo.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={form.correo}
+            onChangeText={val => actualizarCampo('correo', val)}
+            onBlur={() => setCorreoTocado(true)}
+            error={errorCorreo}
+          />
+
+          {/* Contraseña */}
+          <PasswordInput
+            label={t('auth.registro.contrasena')}
+            placeholder={t('auth.registro.contrasena')}
+            value={form.contrasena}
+            onChangeText={val => actualizarCampo('contrasena', val)}
+            error={getError('contrasena')}
+          />
+          <PasswordRequirements password={form.contrasena} />
+          <PasswordInput
+            label={t('auth.registro.confirmarContrasena')}
+            placeholder={t('auth.registro.confirmarContrasena')}
+            value={form.confirmarContrasena}
+            onChangeText={val => actualizarCampo('confirmarContrasena', val)}
+            error={getError('confirmarContrasena')}
+          />
+
+          {/* Términos */}
+          <View style={styles.filaTerminos}>
+            <TouchableOpacity
+              onPress={() => actualizarCampo('aceptaTerminos', !form.aceptaTerminos)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.checkbox, form.aceptaTerminos && styles.checkboxActivo]}>
+                {form.aceptaTerminos ? <Text style={styles.checkmark}>✓</Text> : null}
+              </View>
+            </TouchableOpacity>
+            <Text style={[styles.textoTerminos, { color: c.textSecondary }]}>
+              {t('auth.registro.terminosAcepto')}{' '}
+              <Text style={styles.enlaceTerminos} onPress={() => setModalTerminos(true)}>
+                {t('auth.registro.terminosLink')}
+              </Text>
+              {' '}{t('auth.registro.terminosDel')}
+            </Text>
+          </View>
+          {getError('aceptaTerminos') ? (
+            <Text style={styles.errorTerminos}>{getError('aceptaTerminos')}</Text>
+          ) : null}
+
+          {/* Botón */}
+          <View style={styles.pieFormulario}>
+            <PrimaryButton
+              titulo={t('auth.registro.btnCrear')}
+              onPress={handleRegistrar}
+              cargando={cargando}
+            />
+            <SocialAuthButtons
+              onGoogle={() => console.log('Google registro')}
+              onFacebook={() => console.log('Facebook registro')}
             />
           </View>
-          <Text style={styles.titulo}>Crear cuenta</Text>
-        </View>
-
-        {/* ── Datos personales ───────────────────────────────── */}
-        <Text style={styles.seccionLabel}>Datos personales</Text>
-
-        <InputField
-          label="Nombre completo *"
-          placeholder="Ej: Laura Vanessa Pérez Perdomo"
-          autoCapitalize="words"
-          value={form.nombreCompleto}
-          onChangeText={val => actualizarCampo('nombreCompleto', val)}
-          error={getError('nombreCompleto')}
-        />
-        <InputField
-          label="Nacionalidad *"
-          placeholder="Ej: Colombiana"
-          autoCapitalize="words"
-          value={form.nacionalidad}
-          onChangeText={val => actualizarCampo('nacionalidad', val)}
-          error={getError('nacionalidad')}
-        />
-        <InputField
-          label="Número de documento *"
-          placeholder="Entre 6 y 10 dígitos"
-          keyboardType="numeric"
-          value={form.numeroDocumento}
-          onChangeText={val => actualizarCampo('numeroDocumento', val)}
-          error={getError('numeroDocumento')}
-        />
-        <InputField
-          label="Número celular *"
-          placeholder="3001234567 (10 dígitos, empieza con 3)"
-          keyboardType="phone-pad"
-          value={form.numeroCelular}
-          onChangeText={val => actualizarCampo('numeroCelular', val)}
-          error={getError('numeroCelular')}
-        />
-        <InputField
-          label="Fecha de nacimiento *"
-          placeholder="YYYY-MM-DD  (ej: 1995-06-15)"
-          value={form.fechaNacimiento}
-          onChangeText={val => actualizarCampo('fechaNacimiento', val)}
-          error={getError('fechaNacimiento')}
-        />
-
-        {/* ── Correo ─────────────────────────────────────────── */}
-        <Text style={styles.seccionLabel}>Correo electrónico</Text>
-
-        <InputField
-          label="Correo *"
-          placeholder="ejemplo@correo.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={form.correo}
-          onChangeText={val => actualizarCampo('correo', val)}
-          error={getError('correo')}
-        />
-        <InputField
-          label="Confirmar correo *"
-          placeholder="Repite tu correo"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={form.confirmarCorreo}
-          onChangeText={val => actualizarCampo('confirmarCorreo', val)}
-          error={getError('confirmarCorreo')}
-        />
-
-        {/* ── Contraseña ─────────────────────────────────────── */}
-        <Text style={styles.seccionLabel}>Contraseña</Text>
-        <Text style={styles.seccionHint}>
-          Mínimo 8 caracteres · 1 mayúscula · 1 minúscula · 1 número · 1 símbolo (@$!%*?&)
-        </Text>
-
-        <PasswordInput
-          label="Contraseña *"
-          placeholder="Crea tu contraseña"
-          value={form.contrasena}
-          onChangeText={val => actualizarCampo('contrasena', val)}
-          error={getError('contrasena')}
-        />
-        <PasswordInput
-          label="Confirmar contraseña *"
-          placeholder="Repite tu contraseña"
-          value={form.confirmarContrasena}
-          onChangeText={val => actualizarCampo('confirmarContrasena', val)}
-          error={getError('confirmarContrasena')}
-        />
-
-        {/* ── Términos y condiciones ─────────────────────────── */}
-        <View style={styles.filaTerminos}>
-          <TouchableOpacity
-            onPress={() => actualizarCampo('aceptaTerminos', !form.aceptaTerminos)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.checkbox, form.aceptaTerminos && styles.checkboxActivo]}>
-              {form.aceptaTerminos ? <Text style={styles.checkmark}>✓</Text> : null}
-            </View>
-          </TouchableOpacity>
-          <Text style={styles.textoTerminos}>
-            Acepto los{' '}
-            <Text
-              style={styles.enlaceTerminos}
-              onPress={() => setModalTerminos(true)}
-            >
-              términos y condiciones
-            </Text>
-            {' '}del servicio
-          </Text>
-        </View>
-        {getError('aceptaTerminos') ? (
-          <Text style={styles.errorTerminos}>{getError('aceptaTerminos')}</Text>
-        ) : null}
-
-        {/* ── Botón ──────────────────────────────────────────── */}
-        <View style={styles.pieFormulario}>
-          <PrimaryButton
-            titulo="Crear mi cuenta"
-            onPress={handleRegistrar}
-            cargando={cargando}
-          />
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       {/* ── Modal: Términos y condiciones ──────────────────────── */}
       <Modal visible={modalTerminos} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContenedor}>
-            <View style={styles.modalHandle} />
+          <View style={[styles.modalContenedor, { backgroundColor: c.bgCard }]}>
+            <View style={[styles.modalHandle, { backgroundColor: c.border }]} />
             <View style={styles.modalEncabezado}>
-              <Text style={styles.modalTitulo}>Términos y condiciones</Text>
+              <Text style={[styles.modalTitulo, { color: c.textPrimary }]}>{t('auth.registro.modalTitulo')}</Text>
               <TouchableOpacity
                 style={styles.modalBotonCerrar}
                 onPress={() => setModalTerminos(false)}
@@ -209,36 +173,24 @@ export default function RegistroScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-              <Text style={styles.modalSeccionTitulo}>1. Objeto del servicio</Text>
-              <Text style={styles.modalTexto}>
-                Renta Móvil Location presta el servicio de arrendamiento de vehículos a personas naturales mayores de 18 años, con documento de identidad válido y licencia de conducción vigente.
-              </Text>
-              <Text style={styles.modalSeccionTitulo}>2. Requisitos del arrendatario</Text>
-              <Text style={styles.modalTexto}>
-                El usuario debe presentar documento de identidad original, licencia de conducción válida y una tarjeta de crédito o débito a su nombre. No se permite el subarrendamiento del vehículo a terceros.
-              </Text>
-              <Text style={styles.modalSeccionTitulo}>3. Condiciones de uso del vehículo</Text>
-              <Text style={styles.modalTexto}>
-                El vehículo debe ser utilizado únicamente en el territorio nacional, respetando las normas de tránsito vigentes. Queda prohibido conducir bajo efectos de alcohol o sustancias psicoactivas.
-              </Text>
-              <Text style={styles.modalSeccionTitulo}>4. Responsabilidad por daños</Text>
-              <Text style={styles.modalTexto}>
-                El arrendatario es responsable de cualquier daño, multa o infracción ocurrida durante el periodo de alquiler. Los daños deben reportarse de inmediato a Renta Móvil Location.
-              </Text>
-              <Text style={styles.modalSeccionTitulo}>5. Cancelaciones</Text>
-              <Text style={styles.modalTexto}>
-                Las reservas confirmadas y pagadas no son reembolsables. Renta Móvil Location se reserva el derecho de cancelar una reserva por causas de fuerza mayor, en cuyo caso se ofrecerá una fecha alternativa al usuario.
-              </Text>
-              <Text style={styles.modalSeccionTitulo}>6. Pagos</Text>
-              <Text style={styles.modalTexto}>
-                Los pagos se procesan a través de la pasarela Wompi. Todas las transacciones quedan registradas y son auditables. Renta Móvil Location no almacena datos bancarios del usuario.
-              </Text>
+              <Text style={styles.modalSeccionTitulo}>{t('auth.registro.tc1Titulo')}</Text>
+              <Text style={styles.modalTexto}>{t('auth.registro.tc1Texto')}</Text>
+              <Text style={styles.modalSeccionTitulo}>{t('auth.registro.tc2Titulo')}</Text>
+              <Text style={styles.modalTexto}>{t('auth.registro.tc2Texto')}</Text>
+              <Text style={styles.modalSeccionTitulo}>{t('auth.registro.tc3Titulo')}</Text>
+              <Text style={styles.modalTexto}>{t('auth.registro.tc3Texto')}</Text>
+              <Text style={styles.modalSeccionTitulo}>{t('auth.registro.tc4Titulo')}</Text>
+              <Text style={styles.modalTexto}>{t('auth.registro.tc4Texto')}</Text>
+              <Text style={styles.modalSeccionTitulo}>{t('auth.registro.tc5Titulo')}</Text>
+              <Text style={styles.modalTexto}>{t('auth.registro.tc5Texto')}</Text>
+              <Text style={styles.modalSeccionTitulo}>{t('auth.registro.tc6Titulo')}</Text>
+              <Text style={styles.modalTexto}>{t('auth.registro.tc6Texto')}</Text>
             </ScrollView>
             <TouchableOpacity
               style={styles.modalBotonAceptar}
               onPress={() => setModalTerminos(false)}
             >
-              <Text style={styles.modalBotonAceptarTexto}>Entendido</Text>
+              <Text style={styles.modalBotonAceptarTexto}>{t('auth.registro.modalAceptar')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -247,3 +199,84 @@ export default function RegistroScreen() {
     </KeyboardAvoidingView>
   );
 }
+
+const newS = StyleSheet.create({
+  header: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  backTxt: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  titulo: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
+  subtitulo: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.75)',
+  },
+  sheet: {
+    flex: 1,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    overflow: 'hidden',
+  },
+  sheetContent: {
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 48,
+  },
+});
+
+const exitoS = StyleSheet.create({
+  circulo: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  check: {
+    fontSize: 42,
+    color: '#10B981',
+    fontWeight: '800',
+  },
+  titulo: {
+    fontSize: 26,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  msg: {
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  btn: {
+    backgroundColor: '#1D4ED8',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+  },
+  btnTexto: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+});

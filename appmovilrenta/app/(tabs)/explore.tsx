@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Text, StyleSheet, ScrollView } from 'react-native';
 
 // Pantalla temporal de exploración — se reemplaza en módulos siguientes
 export default function ExplorarScreen() {
