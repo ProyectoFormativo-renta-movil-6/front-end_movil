@@ -6,7 +6,7 @@ import {
   Modal,
   Platform,
   SafeAreaView,
-  StatusBar, // <-- IMPORTACIÓN AGREGADA AQUÍ PARA QUITAR EL ROJO
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -32,11 +32,12 @@ interface Props {
   setForm: (campo: keyof BusquedaForm, valor: string | boolean) => void;
   onBuscar: () => void;
   textBusqueda: string;
-  setTextBusqueda: (texto: string) => void; // Para buscar por marca/modelo
+  setTextBusqueda: (texto: string) => void;
   errorBusqueda?: string;
   disabled?: boolean;
   modalFormVisible: boolean;
   setModalFormVisible: (visible: boolean) => void;
+  onPressRestringida?: () => void; // NUEVO
 }
 
 export default function BuscadorCatalogo({
@@ -49,6 +50,7 @@ export default function BuscadorCatalogo({
   disabled = false,
   modalFormVisible,
   setModalFormVisible,
+  onPressRestringida,
 }: Props) {
   const [pickerOpen, setPickerOpen] = useState<PickerField>(null);
   const [datePickerField, setDatePickerField] = useState<DateField>(null);
@@ -91,29 +93,84 @@ export default function BuscadorCatalogo({
     }
   };
 
+  // Label del botón de fechas/lugar
+  const fechaBtnLabel = tieneBusquedaActiva
+    ? [
+        form.lugarRecogida,
+        form.lugarDevolucion,
+        formatFechaDisplay(form.fechaInicio),
+        formatFechaDisplay(form.fechaFin),
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : disabled
+      ? "Inicia sesión para elegir fechas y lugar"
+      : "Añadir fechas y lugar de recogida";
+
+  const handlePressFechas = () => {
+    if (disabled) {
+      onPressRestringida?.();
+    } else {
+      setModalFormVisible(true);
+    }
+  };
+
   return (
     <View style={styles.containerGeneral}>
-      {/* BARRA DE BÚSQUEDA REAL */}
-      <View style={[styles.barraInput, disabled && styles.barraDisabled]}>
+      {/* BARRA BÚSQUEDA TEXTO — libre para todos */}
+      <View style={styles.barraInput}>
         <Ionicons
-          name={disabled ? "lock-closed-outline" : "search-outline"}
+          name="search-outline"
           size={18}
           color="#9CA3AF"
           style={styles.searchIcon}
         />
         <TextInput
           style={styles.textInput}
-          placeholder={
-            disabled ? "Inicia sesión para buscar..." : "Buscar vehículo..."
-          }
+          placeholder="Buscar por marca o modelo..."
           placeholderTextColor="#9CA3AF"
           value={textBusqueda}
           onChangeText={setTextBusqueda}
-          editable={!disabled}
         />
       </View>
 
-      {/* MODAL DE DISPONIBILIDAD DE FECHAS Y LUGARES */}
+      {/* BOTÓN FECHAS Y LUGAR — restringido para invitados */}
+      <TouchableOpacity
+        style={[
+          styles.fechasBarraBtn,
+          disabled && styles.fechasBarraBtnDisabled,
+          tieneBusquedaActiva && styles.fechasBarraBtnActiva,
+        ]}
+        activeOpacity={0.7}
+        onPress={handlePressFechas}
+      >
+        <Ionicons
+          name={
+            disabled
+              ? "lock-closed-outline"
+              : tieneBusquedaActiva
+                ? "calendar"
+                : "calendar-outline"
+          }
+          size={16}
+          color={
+            disabled ? "#9CA3AF" : tieneBusquedaActiva ? "#2f4ea2" : "#9CA3AF"
+          }
+          style={{ marginRight: 8 }}
+        />
+        <Text
+          style={[
+            styles.fechasBarraBtnText,
+            tieneBusquedaActiva && styles.fechasBarraBtnTextActivo,
+          ]}
+          numberOfLines={1}
+        >
+          {fechaBtnLabel}
+        </Text>
+        <Ionicons name="chevron-forward" size={14} color="#C4C9D4" />
+      </TouchableOpacity>
+
+      {/* MODAL DE DISPONIBILIDAD */}
       <Modal
         visible={modalFormVisible}
         animationType="slide"
@@ -219,7 +276,6 @@ export default function BuscadorCatalogo({
               </View>
             </View>
 
-            {/* Botón de envío */}
             <TouchableOpacity
               style={styles.buscarBtnGrande}
               onPress={() => {
@@ -235,7 +291,7 @@ export default function BuscadorCatalogo({
           </View>
         </SafeAreaView>
 
-        {/* Picker de locaciones interno */}
+        {/* Picker de locaciones */}
         <Modal visible={!!pickerOpen} animationType="fade" transparent>
           <View style={styles.modalOverlayInterno}>
             <View style={styles.modalInternoContenedor}>
@@ -283,7 +339,6 @@ export default function BuscadorCatalogo({
           </View>
         </Modal>
 
-        {/* Android DatePicker */}
         {Platform.OS === "android" && !!datePickerField && (
           <DateTimePicker
             value={tempDate}
@@ -303,6 +358,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 16,
     paddingVertical: 10,
+    gap: 8,
   },
   barraInput: {
     flexDirection: "row",
@@ -314,9 +370,6 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: 12,
   },
-  barraDisabled: {
-    backgroundColor: "#F3F4F6",
-  },
   searchIcon: {
     marginRight: 8,
   },
@@ -325,6 +378,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#1F2937",
     height: "100%",
+  },
+  // NUEVO: botón de fechas/lugar
+  fechasBarraBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    height: 44,
+    paddingHorizontal: 12,
+  },
+  fechasBarraBtnDisabled: {
+    backgroundColor: "#F3F4F6",
+  },
+  fechasBarraBtnActiva: {
+    borderColor: "#BFDBFE",
+    backgroundColor: "#EFF6FF",
+  },
+  fechasBarraBtnText: {
+    flex: 1,
+    fontSize: 13.5,
+    color: "#9CA3AF",
+    fontWeight: "500",
+  },
+  fechasBarraBtnTextActivo: {
+    color: "#2f4ea2",
+    fontWeight: "600",
   },
   placeholder: { color: "#9CA3AF" },
   modalFormContainer: {

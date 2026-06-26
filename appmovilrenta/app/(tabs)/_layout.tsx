@@ -1,5 +1,3 @@
-// app/(tabs)/_layout.tsx
-
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
@@ -54,7 +52,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="catalogo"
         options={{
           title: "Inicio",
           tabBarIcon: ({ focused }) => <TabIcon name="car" focused={focused} />,
@@ -89,7 +87,7 @@ export default function TabLayout() {
       />
 
       {/* Pantallas sin tab */}
-      <Tabs.Screen name="catalogo" options={{ href: null }} />
+      <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen name="busqueda" options={{ href: null }} />
       <Tabs.Screen name="explore" options={{ href: null }} />
       <Tabs.Screen name="mis-reservas" options={{ href: null }} />

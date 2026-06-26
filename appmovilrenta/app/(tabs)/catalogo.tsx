@@ -16,9 +16,8 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -28,14 +27,42 @@ const ORDEN_OPCIONES = [
   { valor: "calificacion", label: "Mejor calificación" },
 ];
 
+const ALERT_CONTENT = {
+  busqueda: {
+    icono: "calendar-outline",
+    color: "#1E40AF",
+    bgColor: "#EFF6FF",
+    titulo: "Elegi fechas y lugar",
+    mensaje:
+      "Inicia sesion para buscar por fecha de recogida, devolucion y sucursal.",
+  },
+  reservar: {
+    icono: "car-sport-outline",
+    color: "#1E40AF",
+    bgColor: "#EFF6FF",
+    titulo: "Reserva este vehiculo",
+    mensaje: "Necesitas una cuenta activa para realizar reservas en Drivique.",
+  },
+  favorito: {
+    icono: "heart-outline",
+    color: "#1E40AF",
+    bgColor: "#EFF6FF",
+    titulo: "Guarda en favoritos",
+    mensaje: "Inicia sesion para guardar tus vehiculos favoritos.",
+  },
+};
+
+type AlertTipo = keyof typeof ALERT_CONTENT;
+
+const ORDEN_OPCIONES_LIST = ORDEN_OPCIONES;
+
 export default function Catalogo() {
-  const insets = useSafeAreaInsets(); // FIX: Soluciona el recorte en Android
+  const insets = useSafeAreaInsets();
   const usuario = useAuthStore((state) => state.usuario);
   const [textBusqueda, setTextBusqueda] = useState("");
   const [modalFormVisible, setModalFormVisible] = useState(false);
-
-  // Estado para controlar el modal estilo SweetAlert
   const [sweetAlertVisible, setSweetAlertVisible] = useState(false);
+  const [alertTipo, setAlertTipo] = useState("busqueda" as AlertTipo);
 
   const {
     cargando,
@@ -43,10 +70,6 @@ export default function Catalogo() {
     filtros,
     setFiltro,
     vehiculosPaginados,
-    totalPaginas,
-    paginaActual,
-    paginaSiguiente,
-    paginaAnterior,
     limpiar,
     busquedaForm,
     setForm,
@@ -72,23 +95,21 @@ export default function Catalogo() {
     !!filtros.precioMin ||
     !!filtros.precioMax;
 
-  // Filtrado en tiempo real
   const vehiculosAMostrar = vehiculosPaginados.filter((vehiculo: any) => {
-    const nombreVehiculo = (vehiculo.nombre || "").toLowerCase();
-    const marcaVehiculo = (vehiculo.marca || "").toLowerCase();
-    const modeloVehiculo = (vehiculo.modelo || "").toLowerCase();
     const busqueda = textBusqueda.toLowerCase();
-
     return (
-      nombreVehiculo.includes(busqueda) ||
-      marcaVehiculo.includes(busqueda) ||
-      modeloVehiculo.includes(busqueda)
+      (vehiculo.nombre || "").toLowerCase().includes(busqueda) ||
+      (vehiculo.marca || "").toLowerCase().includes(busqueda) ||
+      (vehiculo.modelo || "").toLowerCase().includes(busqueda)
     );
   });
 
-  const abrirSweetAlert = () => {
+  const abrirSweetAlert = (tipo: AlertTipo) => {
+    setAlertTipo(tipo);
     setSweetAlertVisible(true);
   };
+
+  const alertInfo = ALERT_CONTENT[alertTipo];
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -98,12 +119,11 @@ export default function Catalogo() {
         translucent={true}
       />
 
-      {/* HEADER CORREGIDO */}
+      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Drivique</Text>
         </View>
-
         {!usuario && (
           <View style={styles.headerBtns}>
             <TouchableOpacity
@@ -122,56 +142,19 @@ export default function Catalogo() {
         )}
       </View>
 
-      {/* RENDERIZADO DE BUSCADORES */}
-      {!usuario ? (
-        <View style={styles.seccionBuscadoresInvitado}>
-          {/* 1. Barra Falsa que simula SweetAlert al pulsar */}
-          <TouchableOpacity
-            style={styles.barraBloqueada}
-            activeOpacity={0.7}
-            onPress={abrirSweetAlert}
-          >
-            <Ionicons
-              name="lock-closed-outline"
-              size={18}
-              color="#9CA3AF"
-              style={{ marginRight: 10 }}
-            />
-            <Text style={styles.textBloqueado} numberOfLines={1}>
-              Inicia sesión para elegir fechas y lugar de reserva
-            </Text>
-          </TouchableOpacity>
-
-          {/* 2. Filtro de Texto Libre */}
-          <View style={styles.barraInputInvitado}>
-            <Ionicons
-              name="search-outline"
-              size={18}
-              color="#9CA3AF"
-              style={{ marginRight: 10 }}
-            />
-            <TextInput
-              style={styles.textInputInvitado}
-              placeholder="Buscar vehículo por marca o modelo..."
-              placeholderTextColor="#9CA3AF"
-              value={textBusqueda}
-              onChangeText={setTextBusqueda}
-            />
-          </View>
-        </View>
-      ) : (
-        <BuscadorCatalogo
-          form={busquedaForm}
-          setForm={setForm}
-          textBusqueda={textBusqueda}
-          setTextBusqueda={setTextBusqueda}
-          onBuscar={handleBuscar}
-          errorBusqueda={errorBusqueda}
-          disabled={false}
-          modalFormVisible={modalFormVisible}
-          setModalFormVisible={setModalFormVisible}
-        />
-      )}
+      {/* BUSCADOR UNIFICADO */}
+      <BuscadorCatalogo
+        form={busquedaForm}
+        setForm={setForm}
+        textBusqueda={textBusqueda}
+        setTextBusqueda={setTextBusqueda}
+        onBuscar={handleBuscar}
+        errorBusqueda={errorBusqueda}
+        disabled={!usuario}
+        onPressRestringida={() => abrirSweetAlert("busqueda")}
+        modalFormVisible={modalFormVisible}
+        setModalFormVisible={setModalFormVisible}
+      />
 
       {/* BARRA DE CONTROLES */}
       <View style={styles.controlsBar}>
@@ -198,7 +181,7 @@ export default function Catalogo() {
 
         <View style={styles.controlsRight}>
           <Text style={styles.contadorText}>
-            {vehiculosAMostrar.length} vehículos
+            {vehiculosAMostrar.length} vehiculos
           </Text>
           <TouchableOpacity
             style={styles.ordenBtn}
@@ -252,15 +235,13 @@ export default function Catalogo() {
         <FlatList
           data={vehiculosAMostrar}
           keyExtractor={(item) => item.id.toString()}
+          extraData={vehiculosAMostrar}
           renderItem={({ item }) => (
             <VehiculoCard
-              vehiculo={item}
+              vehiculo={item as any}
               invitado={!usuario}
               esFavorito={false}
-              {...({
-                onReservar: abrirSweetAlert,
-                onAccionRestringida: abrirSweetAlert,
-              } as any)}
+              onAccionRestringida={!usuario ? abrirSweetAlert : undefined}
             />
           )}
           contentContainerStyle={styles.lista}
@@ -277,7 +258,7 @@ export default function Catalogo() {
         limpiar={limpiar}
       />
 
-      {/* MODAL ESTILO SWEET ALERT REQUERIDO */}
+      {/* SWEET ALERT */}
       <Modal
         visible={sweetAlertVisible}
         transparent={true}
@@ -286,19 +267,21 @@ export default function Catalogo() {
       >
         <View style={styles.alertOverlay}>
           <View style={styles.alertBox}>
-            <View style={styles.alertIconContainer}>
+            <View
+              style={[
+                styles.alertIconContainer,
+                { backgroundColor: alertInfo.bgColor },
+              ]}
+            >
               <Ionicons
-                name="information-circle-outline"
+                name={alertInfo.icono as any}
                 size={44}
-                color="#3B82F6"
+                color={alertInfo.color}
               />
             </View>
 
-            <Text style={styles.alertTitle}>Función Requerida</Text>
-            <Text style={styles.alertMessage}>
-              Para buscar disponibilidad por fechas, elegir lugar de retiro y
-              gestionar tus reservas, necesitas una cuenta activa.
-            </Text>
+            <Text style={styles.alertTitle}>{alertInfo.titulo}</Text>
+            <Text style={styles.alertMessage}>{alertInfo.mensaje}</Text>
 
             <View style={styles.alertButtonsContainer}>
               <TouchableOpacity
@@ -309,13 +292,16 @@ export default function Catalogo() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.alertConfirmBtn}
+                style={[
+                  styles.alertConfirmBtn,
+                  { backgroundColor: alertInfo.color },
+                ]}
                 onPress={() => {
                   setSweetAlertVisible(false);
-                  router.push("/(auth)/registro");
+                  router.push("/(auth)/login");
                 }}
               >
-                <Text style={styles.alertConfirmBtnText}>Registrarse</Text>
+                <Text style={styles.alertConfirmBtnText}>Iniciar sesion</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -367,46 +353,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E40AF",
   },
   registerBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
-
-  seccionBuscadoresInvitado: {
-    backgroundColor: "#fff",
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    gap: 10,
-  },
-  barraBloqueada: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F3F4F6",
-    borderRadius: 10,
-    height: 46,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  textBloqueado: {
-    flex: 1,
-    fontSize: 13.5,
-    color: "#6B7280",
-    fontWeight: "500",
-  },
-  barraInputInvitado: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-    height: 46,
-    paddingHorizontal: 14,
-  },
-  textInputInvitado: {
-    flex: 1,
-    fontSize: 14,
-    color: "#1F2937",
-    height: "100%",
-  },
-
   controlsBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -480,8 +426,6 @@ const styles = StyleSheet.create({
     color: "#EF4444",
     textAlign: "center",
   },
-
-  // ESTILOS SWEET ALERT CUSTOM
   alertOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -506,7 +450,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -534,20 +477,21 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 42,
     borderRadius: 8,
-    backgroundColor: "#F3F4F6",
+    borderWidth: 1.5,
+    borderColor: "#1E40AF",
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
   },
   alertCancelBtnText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#4B5563",
+    color: "#1E40AF",
   },
   alertConfirmBtn: {
     flex: 1,
     height: 42,
     borderRadius: 8,
-    backgroundColor: "#1E40AF",
     justifyContent: "center",
     alignItems: "center",
   },
