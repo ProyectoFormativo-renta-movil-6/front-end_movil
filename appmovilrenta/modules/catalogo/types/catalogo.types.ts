@@ -1,24 +1,55 @@
 // modules/catalogo/types/catalogo.types.ts
 
-export interface Vehiculo {
-  id: string;
-  nombre: string;
-  marca: string;
-  modelo: string;
-  anio: number;
-  categoria: "Sedan" | "SUV" | "Económico" | "Deportivo" | "Van" | "Premium";
+export interface Tarifa {
+  km?: number;
   precio: number;
-  transmision: "Automática" | "Manual";
-  combustible: "Gasolina" | "Diesel" | "Híbrido" | "Eléctrico";
-  sucursal: string;
-  disponible: boolean;
-  imagen: string;
-  descripcion?: string;
-  pasajeros?: number;
-  puertas?: number;
+  excedente?: number;
 }
 
-export interface FiltrosCatalogo {
+export interface Seguro {
+  nombre: string;
+  precio: number;
+}
+
+export interface Vehiculo {
+  id: number;
+  nombre: string;
+  // 👇 AQUÍ ESTÁ EL CAMBIO: Añadidos para solucionar el filtrado y quitar los "any"
+  marca: string; // O 'marca?: string;' si es opcional en tu base de datos
+  modelo: string; // O 'modelo?: string;' si es opcional en tu base de datos
+  categoria: string;
+  transmision: string;
+  combustible: string;
+  precio: number;
+  calificacion: number;
+  disponible: boolean;
+  destacado?: boolean;
+  puertas?: number;
+  pasajeros?: number;
+  maletero?: number;
+  cilindraje?: string;
+  color?: string;
+  año?: number;
+  placa?: string;
+  sucursal?: string;
+  // Características booleanas
+  aireAcondicionado?: boolean;
+  vidriosElectricos?: boolean;
+  cierreCentralizado?: boolean;
+  bluetooth?: boolean;
+  camaraReversa?: boolean;
+  sensoresParqueo?: boolean;
+  tarifas?: {
+    kmLimitado?: Tarifa;
+    kmIlimitado?: Tarifa;
+  };
+  seguros?: Seguro[];
+  imagenes?: string[];
+  imagen?: string;
+  foto?: string;
+}
+
+export interface FiltrosCatalogoState {
   categoria: string;
   precioMin: string;
   precioMax: string;
@@ -27,76 +58,12 @@ export interface FiltrosCatalogo {
   sucursal: string;
   orden: string;
   busqueda: string;
-  soloDisponibles: boolean;
 }
 
-export interface BusquedaFechas {
+export interface BusquedaForm {
   lugarRecogida: string;
   lugarDevolucion: string;
   fechaInicio: string;
   fechaFin: string;
+  mismoLugar: boolean;
 }
-
-export interface UseCatalogoReturn {
-  vehiculos: Vehiculo[];
-  vehiculosFiltrados: Vehiculo[];
-  vehiculosPaginados: Vehiculo[];
-  filtros: FiltrosCatalogo;
-  busquedaFechas: BusquedaFechas;
-  paginaActual: number;
-  totalPaginas: number;
-  cargando: boolean;
-  error: string | null;
-  setFiltro: (key: keyof FiltrosCatalogo, value: string | boolean) => void;
-  setBusquedaFechas: (key: keyof BusquedaFechas, value: string) => void;
-  resetFiltros: () => void;
-  irPagina: (pagina: number) => void;
-  paginaSiguiente: () => void;
-  paginaAnterior: () => void;
-}
-
-export const CATEGORIAS = [
-  "Todos",
-  "Sedan",
-  "SUV",
-  "Económico",
-  "Deportivo",
-  "Van",
-  "Premium",
-];
-export const TRANSMISIONES = ["Todas", "Automática", "Manual"];
-export const COMBUSTIBLES = [
-  "Todos",
-  "Gasolina",
-  "Diesel",
-  "Híbrido",
-  "Eléctrico",
-];
-export const SUCURSALES = [
-  "Todas",
-  "Localiza (El Dorado)",
-  "Tu Roll (El Poblado)",
-  "Europcar (El Dorado)",
-  "Enterprise (El Dorado)",
-  "Sixt (JMC)",
-  "Alamo (El Dorado)",
-];
-
-export const FILTROS_BASE: FiltrosCatalogo = {
-  categoria: "Todos",
-  precioMin: "",
-  precioMax: "",
-  transmision: "Todas",
-  combustible: "Todos",
-  sucursal: "Todas",
-  orden: "precio_asc",
-  busqueda: "",
-  soloDisponibles: false,
-};
-
-export const BUSQUEDA_FECHAS_BASE: BusquedaFechas = {
-  lugarRecogida: "",
-  lugarDevolucion: "",
-  fechaInicio: "",
-  fechaFin: "",
-};

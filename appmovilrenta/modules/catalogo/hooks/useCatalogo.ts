@@ -1,187 +1,154 @@
-// modules/catalogo/hooks/useCatalogo.ts
-
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { catalogoService } from "../services/catalogoService";
+import { router } from "expo-router";
+import { useMemo, useState } from "react";
+import { Alert } from "react-native";
+import { FILTROS_BASE, VEHICULOS_MOCK } from "../constants/catalogo.constants";
 import {
-    BUSQUEDA_FECHAS_BASE,
-    BusquedaFechas,
-    FILTROS_BASE,
-    FiltrosCatalogo,
-    UseCatalogoReturn,
-    Vehiculo,
+  BusquedaForm,
+  FiltrosCatalogoState,
+  Vehiculo,
 } from "../types/catalogo.types";
 
-const VEHICULOS_POR_PAGINA = 6;
+// Tipo extendido local para que useCatalogo reconozca las propiedades marca y modelo de forma opcional si tu interfaz base no las tiene todavía.
+export interface VehiculoConDetalles extends Vehiculo {
+  marca?: string;
+  modelo?: string;
+}
 
-export function useCatalogo(): UseCatalogoReturn {
-  const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
-  const [filtros, setFiltros] = useState<FiltrosCatalogo>(FILTROS_BASE);
-  const [busquedaFechas, setBusquedaFechasState] =
-    useState<BusquedaFechas>(BUSQUEDA_FECHAS_BASE);
-  const [paginaActual, setPaginaActual] = useState(1);
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function useCatalogo() {
+  const [vehiculos] = useState<VehiculoConDetalles[]>(VEHICULOS_MOCK);
+  const [cargando] = useState(false);
+  const [error] = useState<string | null>(null);
 
-  // Carga inicial de vehículos
-  useEffect(() => {
-    const cargar = async () => {
-      setCargando(true);
-      setError(null);
-      try {
-        const data = await catalogoService.getVehiculos();
-        setVehiculos(data);
-      } catch (err) {
-        setError("Error al cargar el catálogo. Intenta de nuevo.");
-      } finally {
-        setCargando(false);
-      }
-    };
-    cargar();
-  }, []);
+  const [filtros, setFiltros] = useState<FiltrosCatalogoState>(FILTROS_BASE);
+  const [busquedaForm, setBusquedaForm] = useState<BusquedaForm>({
+    lugarRecogida: "",
+    lugarDevolucion: "",
+    fechaInicio: "",
+    fechaFin: "",
+    mismoLugar: true,
+  });
+  const [busquedaRealizada, setBusquedaRealizada] = useState(false);
+  const [errorBusqueda, setErrorBusqueda] = useState("");
+  const [pagina, setPagina] = useState(1);
 
-  // Resetea paginación cuando cambian los filtros
-  const setFiltro = useCallback(
-    (key: keyof FiltrosCatalogo, value: string | boolean) => {
-      setFiltros((prev) => ({ ...prev, [key]: value }));
-      setPaginaActual(1);
-    },
-    [],
-  );
+  const setFiltro = (campo: keyof FiltrosCatalogoState, valor: string) => {
+    setFiltros((prev) => ({ ...prev, [campo]: valor }));
+    setPagina(1);
+  };
 
-  const setBusquedaFechas = useCallback(
-    (key: keyof BusquedaFechas, value: string) => {
-      setBusquedaFechasState((prev) => ({ ...prev, [key]: value }));
-    },
-    [],
-  );
+  const setForm = (campo: keyof BusquedaForm, valor: string | boolean) => {
+    setBusquedaForm((prev) => ({ ...prev, [campo]: valor }));
+    setErrorBusqueda("");
+  };
 
-  const resetFiltros = useCallback(() => {
+  const handleBuscarInvitado = () => {
+    Alert.alert(
+      "Modo invitado",
+      "Inicia sesión o regístrate para guardar y realizar búsquedas avanzadas.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Ir a registrarse",
+          onPress: () => router.push("/(auth)/registro"),
+        },
+      ],
+    );
+  };
+
+  const handleBuscar = () => {
+    if (!busquedaForm.lugarRecogida || !busquedaForm.lugarDevolucion) {
+      setErrorBusqueda("Selecciona los puntos de recogida y devolución");
+      return;
+    }
+    if (!busquedaForm.fechaInicio || !busquedaForm.fechaFin) {
+      setErrorBusqueda("Selecciona las fechas de recogida y devolución");
+      return;
+    }
+    setErrorBusqueda("");
+    router.push({
+      pathname: "/(tabs)/catalogo",
+      params: {
+        sucursal: busquedaForm.lugarRecogida,
+        fechaInicio: busquedaForm.fechaInicio,
+        fechaFin: busquedaForm.fechaFin,
+      },
+    });
+  };
+
+  const limpiar = () => {
     setFiltros(FILTROS_BASE);
-    setBusquedaFechasState(BUSQUEDA_FECHAS_BASE);
-    setPaginaActual(1);
-  }, []);
+    setBusquedaForm({
+      lugarRecogida: "",
+      lugarDevolucion: "",
+      fechaInicio: "",
+      fechaFin: "",
+      mismoLugar: true,
+    });
+    setBusquedaRealizada(false);
+    setErrorBusqueda("");
+    setPagina(1);
+  };
 
-  // Aplica todos los filtros
-  const vehiculosFiltrados = useMemo(() => {
-    let resultado = [...vehiculos];
+  const resultado = useMemo(() => {
+    let arr = [...vehiculos];
 
-    // Filtro por búsqueda de texto
     if (filtros.busqueda.trim()) {
       const busq = filtros.busqueda.toLowerCase();
-      resultado = resultado.filter(
-        (v) =>
-          v.nombre.toLowerCase().includes(busq) ||
-          v.marca.toLowerCase().includes(busq) ||
-          v.modelo.toLowerCase().includes(busq),
-      );
+      arr = arr.filter((v) => v.nombre.toLowerCase().includes(busq));
     }
 
-    // Filtro por categoría
-    if (filtros.categoria !== "Todos") {
-      resultado = resultado.filter((v) => v.categoria === filtros.categoria);
-    }
+    if (filtros.categoria !== "Todos")
+      arr = arr.filter((v) => v.categoria === filtros.categoria);
+    if (filtros.transmision !== "Todas")
+      arr = arr.filter((v) => v.transmision === filtros.transmision);
+    if (filtros.combustible !== "Todos")
+      arr = arr.filter((v) => v.combustible === filtros.combustible);
+    if (filtros.sucursal !== "Todas las sucursales")
+      arr = arr.filter((v) => v.sucursal === filtros.sucursal);
 
-    // Filtro por transmisión
-    if (filtros.transmision !== "Todas") {
-      resultado = resultado.filter(
-        (v) => v.transmision === filtros.transmision,
-      );
-    }
+    const min = filtros.precioMin ? Number(filtros.precioMin) : null;
+    const max = filtros.precioMax ? Number(filtros.precioMax) : null;
+    if (min !== null) arr = arr.filter((v) => v.precio >= min);
+    if (max !== null) arr = arr.filter((v) => v.precio <= max);
 
-    // Filtro por combustible
-    if (filtros.combustible !== "Todos") {
-      resultado = resultado.filter(
-        (v) => v.combustible === filtros.combustible,
-      );
-    }
+    if (filtros.orden === "precio_asc") arr.sort((a, b) => a.precio - b.precio);
+    if (filtros.orden === "precio_desc")
+      arr.sort((a, b) => b.precio - a.precio);
+    if (filtros.orden === "calificacion")
+      arr.sort((a, b) => (b.calificacion ?? 0) - (a.calificacion ?? 0));
 
-    // Filtro por sucursal
-    if (filtros.sucursal !== "Todas") {
-      resultado = resultado.filter((v) => v.sucursal === filtros.sucursal);
-    }
-
-    // Filtro por precio mínimo
-    if (filtros.precioMin !== "") {
-      const min = parseFloat(filtros.precioMin);
-      if (!isNaN(min)) {
-        resultado = resultado.filter((v) => v.precio >= min);
-      }
-    }
-
-    // Filtro por precio máximo
-    if (filtros.precioMax !== "") {
-      const max = parseFloat(filtros.precioMax);
-      if (!isNaN(max)) {
-        resultado = resultado.filter((v) => v.precio <= max);
-      }
-    }
-
-    // Filtro solo disponibles
-    if (filtros.soloDisponibles) {
-      resultado = resultado.filter((v) => v.disponible);
-    }
-
-    // Ordenamiento
-    switch (filtros.orden) {
-      case "precio_asc":
-        resultado.sort((a, b) => a.precio - b.precio);
-        break;
-      case "precio_desc":
-        resultado.sort((a, b) => b.precio - a.precio);
-        break;
-      case "nombre_asc":
-        resultado.sort((a, b) => a.nombre.localeCompare(b.nombre));
-        break;
-      case "nombre_desc":
-        resultado.sort((a, b) => b.nombre.localeCompare(a.nombre));
-        break;
-    }
-
-    return resultado;
+    return arr;
   }, [vehiculos, filtros]);
 
-  // Paginación
-  const totalPaginas = Math.max(
-    1,
-    Math.ceil(vehiculosFiltrados.length / VEHICULOS_POR_PAGINA),
-  );
+  const POR_PAGINA = 6;
+  const totalPaginas = Math.max(1, Math.ceil(resultado.length / POR_PAGINA));
 
-  const vehiculosPaginados = useMemo(() => {
-    const inicio = (paginaActual - 1) * VEHICULOS_POR_PAGINA;
-    return vehiculosFiltrados.slice(inicio, inicio + VEHICULOS_POR_PAGINA);
-  }, [vehiculosFiltrados, paginaActual]);
-
-  const irPagina = useCallback(
-    (pagina: number) => {
-      const paginaValida = Math.max(1, Math.min(pagina, totalPaginas));
-      setPaginaActual(paginaValida);
-    },
-    [totalPaginas],
-  );
-
-  const paginaSiguiente = useCallback(() => {
-    if (paginaActual < totalPaginas) setPaginaActual((p) => p + 1);
-  }, [paginaActual, totalPaginas]);
-
-  const paginaAnterior = useCallback(() => {
-    if (paginaActual > 1) setPaginaActual((p) => p - 1);
-  }, [paginaActual]);
+  const vehiculosPagina = useMemo(() => {
+    const inicio = (pagina - 1) * POR_PAGINA;
+    return resultado.slice(inicio, inicio + POR_PAGINA);
+  }, [resultado, pagina]);
 
   return {
     vehiculos,
-    vehiculosFiltrados,
-    vehiculosPaginados,
-    filtros,
-    busquedaFechas,
-    paginaActual,
-    totalPaginas,
     cargando,
     error,
+    filtros,
     setFiltro,
-    setBusquedaFechas,
-    resetFiltros,
-    irPagina,
-    paginaSiguiente,
-    paginaAnterior,
+    busquedaForm,
+    setForm,
+    busquedaRealizada,
+    errorBusqueda,
+    limpiar,
+    handleBuscarInvitado,
+    handleBuscar,
+    pagina,
+    setPagina,
+    totalPaginas,
+    vehiculosFiltrados: resultado,
+    vehiculosPaginados: vehiculosPagina,
+    resetFiltros: limpiar,
+    paginaActual: pagina,
+    paginaSiguiente: () => setPagina((p) => Math.min(p + 1, totalPaginas)),
+    paginaAnterior: () => setPagina((p) => Math.max(p - 1, 1)),
   };
 }

@@ -1,67 +1,67 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import React from "react";
+import { Platform, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-function TabIcon({ name, focused }: { name: React.ComponentProps<typeof Ionicons>['name']; focused: boolean }) {
+type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
+
+function TabIcon({ name, focused }: { name: IoniconName; focused: boolean }) {
   return (
     <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
       <Ionicons
-        name={focused ? name : `${name}-outline` as React.ComponentProps<typeof Ionicons>['name']}
+        name={focused ? name : (`${name}-outline` as IoniconName)}
         size={22}
-        color={focused ? '#1D4ED8' : '#9CA3AF'}
+        color={focused ? "#2f4ea2" : "#9CA3AF"}
       />
     </View>
   );
 }
 
 export default function TabLayout() {
-  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  const tabBarHeight =
+    Platform.OS === "android" ? 58 + insets.bottom : 60 + insets.bottom;
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#1D4ED8',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: "#2f4ea2",
+        tabBarInactiveTintColor: "#9CA3AF",
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#E5E7EB',
+          backgroundColor: "#FFFFFF",
+          borderTopColor: "#E5E7EB",
           borderTopWidth: 1,
-          height: Platform.OS === 'android' ? 65 : 80,
-          paddingBottom: Platform.OS === 'android' ? 8 : 20,
+          height: tabBarHeight,
+          paddingBottom:
+            Platform.OS === "android" ? insets.bottom + 4 : insets.bottom + 8,
           paddingTop: 6,
-          elevation: 8,
+          elevation: 12,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
+          fontWeight: "600",
           marginTop: 2,
         },
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="catalogo"
         options={{
-          title: t('tabs.inicio'),
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name="car" focused={focused} />
-          ),
+          title: "Inicio",
+          tabBarIcon: ({ focused }) => <TabIcon name="car" focused={focused} />,
         }}
       />
       <Tabs.Screen
-        name="notificaciones"
+        name="reservar"
         options={{
-          title: t('tabs.notificaciones'),
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name="notifications" focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="mis-reservas"
-        options={{
-          title: t('tabs.misReservas'),
+          title: "Reservar",
           tabBarIcon: ({ focused }) => (
             <TabIcon name="calendar" focused={focused} />
           ),
@@ -70,17 +70,28 @@ export default function TabLayout() {
       <Tabs.Screen
         name="perfil"
         options={{
-          title: t('tabs.perfil'),
+          title: "Perfil",
           tabBarIcon: ({ focused }) => (
             <TabIcon name="person" focused={focused} />
           ),
         }}
       />
-      {/* Ocultar explore del template */}
       <Tabs.Screen
-        name="explore"
-        options={{ href: null }}
+        name="buscar"
+        options={{
+          title: "Explorar",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="compass" focused={focused} />
+          ),
+        }}
       />
+
+      {/* Pantallas sin tab */}
+      <Tabs.Screen name="index" options={{ href: null }} />
+      <Tabs.Screen name="busqueda" options={{ href: null }} />
+      <Tabs.Screen name="explore" options={{ href: null }} />
+      <Tabs.Screen name="mis-reservas" options={{ href: null }} />
+      <Tabs.Screen name="notificaciones" options={{ href: null }} />
     </Tabs>
   );
 }
@@ -90,13 +101,10 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconWrapActive: {
-    backgroundColor: '#EEF2FF',
-  },
-  iconEmoji: {
-    fontSize: 22,
+    backgroundColor: "#EEF2FF",
   },
 });

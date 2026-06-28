@@ -1,3 +1,5 @@
+// app/(auth)/login.tsx
+
 import { InputField } from "@/components/ui/InputField";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
@@ -31,18 +33,18 @@ export default function LoginScreen() {
 
   function handleLogin() {
     iniciarSesion(() => {
-      // Marca al usuario como autenticado (invitado = false en el catálogo)
       setUsuario(
         { id: "1", correo: form.correo, rol: "cliente" },
         "token-demo",
       );
       setLoginExitoso(true);
-      setTimeout(() => router.replace("/(tabs)"), 1500);
+      setTimeout(() => router.replace("/(tabs)/catalogo"), 1500);
     });
   }
 
+  // CORREGIDO: Redirige explícitamente a la pestaña del catálogo, no al index general de pestañas
   function handleInvitado() {
-    router.replace("/(tabs)");
+    router.replace("/(tabs)/catalogo");
   }
 
   return (
@@ -55,7 +57,7 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Encabezado con logo ────────────────────────────── */}
+        {/* Encabezado */}
         <View style={styles.encabezado}>
           <View style={[styles.logoWrapper, { backgroundColor: c.primaryBg }]}>
             <Image
@@ -71,7 +73,7 @@ export default function LoginScreen() {
           </Text>
         </View>
 
-        {/* ── Banner éxito ───────────────────────────────────── */}
+        {/* Banner éxito */}
         {loginExitoso ? (
           <View style={loginLocalS.bannerExito}>
             <Text style={loginLocalS.bannerExitoTexto}>
@@ -80,14 +82,14 @@ export default function LoginScreen() {
           </View>
         ) : null}
 
-        {/* ── Banner error global (bloqueo / credenciales) ───── */}
+        {/* Banner error global */}
         {!loginExitoso && errorGlobal ? (
           <View style={styles.bannerError}>
             <Text style={styles.bannerErrorTexto}>⚠️ {errorGlobal}</Text>
           </View>
         ) : null}
 
-        {/* ── Formulario ─────────────────────────────────────── */}
+        {/* Formulario */}
         <View style={styles.formulario}>
           <InputField
             label={`${t("auth.login.correo")} *`}
@@ -113,7 +115,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ── Acciones ───────────────────────────────────────── */}
+        {/* Acciones */}
         <View style={styles.acciones}>
           <PrimaryButton
             titulo={
