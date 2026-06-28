@@ -1,10 +1,9 @@
-import { Redirect } from "expo-router";
 import { useOnboarding } from "@/modules/onboarding/hooks/use-onboarding";
+import { Redirect } from "expo-router";
 
 export default function Index() {
   const { hasCompletedOnboarding, _hasHydrated } = useOnboarding();
 
-  // Espera que Zustand termine de leer AsyncStorage antes de redirigir
   if (!_hasHydrated) return null;
 
   if (!hasCompletedOnboarding) {

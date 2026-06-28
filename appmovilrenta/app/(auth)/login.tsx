@@ -1,11 +1,16 @@
+// app/(auth)/login.tsx
+
 import { InputField } from "@/components/ui/InputField";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { SocialAuthButtons } from "@/modules/auth/components/SocialAuthButtons";
 import { useLogin } from "@/modules/auth/hooks/useAuth";
+import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useAuthStore } from "@/store/authStore";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import {
   Image,
   KeyboardAvoidingView,
@@ -16,27 +21,30 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SocialAuthButtons } from "@/modules/auth/components/SocialAuthButtons";
-import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
 
 export default function LoginScreen() {
   const { t } = useTranslation();
   const c = useTemaColores();
   const { form, errores, cargando, bloqueado, actualizarCampo, iniciarSesion } =
     useLogin();
+  const setUsuario = useAuthStore((s) => s.setUsuario);
   const errorGlobal = errores.find((e) => !e.campo)?.mensaje;
   const [loginExitoso, setLoginExitoso] = useState(false);
 
   function handleLogin() {
     iniciarSesion(() => {
+      setUsuario(
+        { id: "1", correo: form.correo, rol: "cliente" },
+        "token-demo",
+      );
       setLoginExitoso(true);
-      setTimeout(() => router.replace("/(tabs)"), 1500);
+      setTimeout(() => router.replace("/(tabs)/catalogo"), 1500);
     });
   }
 
+  // CORREGIDO: Redirige explícitamente a la pestaña del catálogo, no al index general de pestañas
   function handleInvitado() {
-    // Invitado → va al catálogo con funcionalidades limitadas
-    router.push("/(auth)/invitado");
+    router.replace("/(tabs)/catalogo");
   }
 
   return (
@@ -49,7 +57,7 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Encabezado con logo ────────────────────────────── */}
+        {/* Encabezado */}
         <View style={styles.encabezado}>
           <View style={[styles.logoWrapper, { backgroundColor: c.primaryBg }]}>
             <Image
@@ -57,25 +65,31 @@ export default function LoginScreen() {
               style={styles.logo}
             />
           </View>
-          <Text style={[styles.titulo, { color: c.textPrimary }]}>{t("auth.login.bienvenido")}</Text>
-          <Text style={[styles.subtitulo, { color: c.textSecondary }]}>{t("auth.login.subtitulo")}</Text>
+          <Text style={[styles.titulo, { color: c.textPrimary }]}>
+            {t("auth.login.bienvenido")}
+          </Text>
+          <Text style={[styles.subtitulo, { color: c.textSecondary }]}>
+            {t("auth.login.subtitulo")}
+          </Text>
         </View>
 
-        {/* ── Banner éxito ───────────────────────────────────── */}
+        {/* Banner éxito */}
         {loginExitoso ? (
           <View style={loginLocalS.bannerExito}>
-            <Text style={loginLocalS.bannerExitoTexto}>✓ {t("auth.login.exitoMsg")}</Text>
+            <Text style={loginLocalS.bannerExitoTexto}>
+              ✓ {t("auth.login.exitoMsg")}
+            </Text>
           </View>
         ) : null}
 
-        {/* ── Banner error global (bloqueo / credenciales) ───── */}
+        {/* Banner error global */}
         {!loginExitoso && errorGlobal ? (
           <View style={styles.bannerError}>
             <Text style={styles.bannerErrorTexto}>⚠️ {errorGlobal}</Text>
           </View>
         ) : null}
 
-        {/* ── Formulario ─────────────────────────────────────── */}
+        {/* Formulario */}
         <View style={styles.formulario}>
           <InputField
             label={`${t("auth.login.correo")} *`}
@@ -101,10 +115,14 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ── Acciones ───────────────────────────────────────── */}
+        {/* Acciones */}
         <View style={styles.acciones}>
           <PrimaryButton
-            titulo={bloqueado ? t("auth.login.bloqueado") : t("auth.login.iniciarSesion")}
+            titulo={
+              bloqueado
+                ? t("auth.login.bloqueado")
+                : t("auth.login.iniciarSesion")
+            }
             onPress={handleLogin}
             cargando={cargando}
             deshabilitado={bloqueado}
@@ -122,9 +140,15 @@ export default function LoginScreen() {
           />
 
           <View style={styles.separador}>
-            <View style={[styles.lineaSeparador, { backgroundColor: c.border }]} />
-            <Text style={[styles.textoSeparador, { color: c.textMuted }]}>{t("auth.login.separador")}</Text>
-            <View style={[styles.lineaSeparador, { backgroundColor: c.border }]} />
+            <View
+              style={[styles.lineaSeparador, { backgroundColor: c.border }]}
+            />
+            <Text style={[styles.textoSeparador, { color: c.textMuted }]}>
+              {t("auth.login.separador")}
+            </Text>
+            <View
+              style={[styles.lineaSeparador, { backgroundColor: c.border }]}
+            />
           </View>
 
           <PrimaryButton
@@ -137,7 +161,6 @@ export default function LoginScreen() {
             variante="texto"
             onPress={handleInvitado}
           />
-
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
