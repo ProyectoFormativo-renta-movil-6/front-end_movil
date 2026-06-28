@@ -1,0 +1,131 @@
+import { StyleSheet } from "react-native";
+
+export const screen5Styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 28,
+    alignItems: "center",
+  },
+  logoWrap: {
+    marginBottom: 12,
+  },
+  logo: {
+    width: 150,
+    height: 72,
+  },
+  successWrap: {
+    alignItems: "center",
+    marginBottom: 20,
+    position: "relative",
+  },
+  successOuter: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#1D4ED8",
+  },
+  successInner: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    backgroundColor: "#DBEAFE",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successCheck: {
+    fontSize: 36,
+    color: "#1D4ED8",
+    fontWeight: "800",
+  },
+  ring1: {
+    position: "absolute",
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    borderWidth: 1,
+    borderColor: "#93C5FD",
+    opacity: 0.5,
+  },
+  ring2: {
+    position: "absolute",
+    width: 152,
+    height: 152,
+    borderRadius: 76,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    opacity: 0.3,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#111827",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 20,
+    paddingHorizontal: 8,
+  },
+  benefitsCard: {
+    width: "100%",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    gap: 12,
+    marginBottom: 20,
+  },
+  benefitRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  benefitIcon: {
+    fontSize: 20,
+    width: 28,
+  },
+  benefitText: {
+    fontSize: 14,
+    color: "#374151",
+    flex: 1,
+  },
+  ctaWrap: {
+    width: "100%",
+    gap: 4,
+  },
+  ctaBtnPrimary: {
+    width: "100%",
+    backgroundColor: "#1D4ED8",
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  ctaBtnPrimaryText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
+  },
+  ctaBtnText: {
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  ctaBtnTextNormal: {
+    fontSize: 13,
+    color: "#9CA3AF",
+  },
+  ctaBtnTextLink: {
+    color: "#1D4ED8",
+    fontWeight: "600",
+  },
+});
