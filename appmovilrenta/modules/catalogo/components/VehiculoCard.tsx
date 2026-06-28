@@ -22,6 +22,7 @@ interface Props {
   invitado?: boolean;
   esFavorito?: boolean;
   onAccionRestringida?: (accion: "reservar" | "favorito") => void;
+  onToggleFavorito?: (id: number) => void;
 }
 
 function getSafeImages(vehiculo: Vehiculo): string[] {
@@ -52,6 +53,7 @@ function VehiculoCard({
   invitado = true,
   esFavorito = false,
   onAccionRestringida,
+  onToggleFavorito,
 }: Props) {
   const [fotoActiva, setFotoActiva] = useState(0);
   const [verDetalles, setVerDetalles] = useState(false);
@@ -60,7 +62,10 @@ function VehiculoCard({
   const imagenes = getSafeImages(vehiculo);
   const estadoDisponible = vehiculo.disponible !== false;
   const rating = Number(vehiculo.calificacion ?? 0);
-  const estrellas = Array.from({ length: 5 }, (_, i) => i < Math.round(rating));
+  const estrellas = Array.from(
+    { length: 5 },
+    (_, i) => i < Math.round(rating)
+  );
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const x = e.nativeEvent.contentOffset.x;
@@ -78,12 +83,15 @@ function VehiculoCard({
   };
 
   const handleFavorito = () => {
-    if (invitado) onAccionRestringida?.("favorito");
+    if (invitado) {
+      onAccionRestringida?.("favorito");
+      return;
+    }
+    onToggleFavorito?.(vehiculo.id);
   };
 
   return (
     <View style={styles.card}>
-      {/* IMAGEN */}
       <View
         style={styles.imagenContainer}
         onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
@@ -143,7 +151,7 @@ function VehiculoCard({
           <Ionicons
             name={esFavorito ? "heart" : "heart-outline"}
             size={18}
-            color={esFavorito ? "#ef4444" : "#6B7280"}
+            color={esFavorito ? COLORES.accentText : "#6B7280"}
           />
         </TouchableOpacity>
 
@@ -159,7 +167,6 @@ function VehiculoCard({
         )}
       </View>
 
-      {/* CONTENIDO */}
       <View style={styles.contenido}>
         {!verDetalles && (
           <View>
@@ -306,7 +313,12 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#e5e7eb" },
   dotActivo: { width: 16, backgroundColor: "#3b82f6" },
   contenido: { padding: 16 },
-  tagsRow: { flexDirection: "row", gap: 8, flexWrap: "wrap", marginBottom: 8 },
+  tagsRow: {
+    flexDirection: "row",
+    gap: 8,
+    flexWrap: "wrap",
+    marginBottom: 8,
+  },
   tagCategoria: {
     backgroundColor: "#eff6ff",
     paddingHorizontal: 10,

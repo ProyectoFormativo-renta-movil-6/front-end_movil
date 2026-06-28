@@ -1,22 +1,23 @@
 // modules/catalogo/components/FiltrosCatalogo.tsx
 
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import {
-    CATEGORIAS,
-    COLORES,
-    COMBUSTIBLES,
-    SUCURSALES,
-    TRANSMISIONES,
+  CATEGORIAS,
+  COLORES,
+  COMBUSTIBLES,
+  SUCURSALES,
+  TRANSMISIONES,
 } from "../constants/catalogo.constants";
 import { FiltrosCatalogoState } from "../types/catalogo.types";
 
@@ -26,6 +27,10 @@ interface Props {
   filtros: FiltrosCatalogoState;
   setFiltro: (campo: keyof FiltrosCatalogoState, valor: string) => void;
   limpiar: () => void;
+  usuario: boolean;
+  soloFavoritos: boolean;
+  onToggleSoloFavoritos: () => void;
+  totalFavoritos: number;
 }
 
 function Chip({
@@ -70,6 +75,10 @@ export default function FiltrosCatalogo({
   filtros,
   setFiltro,
   limpiar,
+  usuario,
+  soloFavoritos,
+  onToggleSoloFavoritos,
+  totalFavoritos,
 }: Props) {
   const [sucursalOpen, setSucursalOpen] = useState(false);
 
@@ -106,11 +115,7 @@ export default function FiltrosCatalogo({
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Filtros</Text>
-          <TouchableOpacity
-            onPress={() => {
-              limpiar();
-            }}
-          >
+          <TouchableOpacity onPress={limpiar}>
             <Text style={styles.limpiarBtn}>Limpiar filtros</Text>
           </TouchableOpacity>
         </View>
@@ -120,6 +125,51 @@ export default function FiltrosCatalogo({
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* ── MIS FAVORITOS (solo si hay sesión) ── */}
+          {usuario && (
+            <Seccion label="FAVORITOS">
+              <TouchableOpacity
+                style={[
+                  styles.favoritoBtn,
+                  soloFavoritos && styles.favoritoBtnActivo,
+                ]}
+                onPress={onToggleSoloFavoritos}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="heart"
+                  size={15}
+                  color={soloFavoritos ? "#fff" : COLORES.accentText}
+                />
+                <Text
+                  style={[
+                    styles.favoritoBtnText,
+                    soloFavoritos && styles.favoritoBtnTextActivo,
+                  ]}
+                >
+                  Mis Favoritos
+                </Text>
+                {totalFavoritos > 0 && (
+                  <View
+                    style={[
+                      styles.badge,
+                      soloFavoritos && styles.badgeActivo,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.badgeText,
+                        soloFavoritos && styles.badgeTextActivo,
+                      ]}
+                    >
+                      {totalFavoritos}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </Seccion>
+          )}
+
           {/* CATEGORÍA */}
           <Seccion label="CATEGORÍA">
             <View style={styles.chipsRow}>
@@ -265,9 +315,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORES.accentText,
   },
-  scroll: {
-    flex: 1,
-  },
+  scroll: { flex: 1 },
   scrollContent: {
     padding: 20,
     paddingBottom: 8,
@@ -298,17 +346,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORES.chipBg,
     marginBottom: 4,
   },
-  chipActivo: {
-    backgroundColor: COLORES.chipActiveBg,
-  },
+  chipActivo: { backgroundColor: COLORES.chipActiveBg },
   chipText: {
     fontSize: 13,
     fontWeight: "600",
     color: COLORES.chipText,
   },
-  chipTextoActivo: {
-    color: COLORES.chipActiveText,
-  },
+  chipTextoActivo: { color: COLORES.chipActiveText },
   selectorBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -344,9 +388,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORES.panelBorder,
   },
-  dropdownItemActivo: {
-    backgroundColor: COLORES.accentBgSoft,
-  },
+  dropdownItemActivo: { backgroundColor: COLORES.accentBgSoft },
   dropdownItemText: {
     fontSize: 13,
     color: COLORES.inputText,
@@ -387,4 +429,39 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "800",
   },
+  // --- ESTILOS FAVORITOS ---
+  favoritoBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    alignSelf: "flex-start",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: COLORES.accentBgSoft,
+    borderWidth: 1.5,
+    borderColor: COLORES.accentBorder,
+  },
+  favoritoBtnActivo: {
+    backgroundColor: COLORES.chipActiveBg,
+    borderColor: COLORES.chipActiveBg,
+  },
+  favoritoBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORES.accentText,
+  },
+  favoritoBtnTextActivo: { color: "#fff" },
+  badge: {
+    backgroundColor: COLORES.accentText,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 5,
+  },
+  badgeActivo: { backgroundColor: "rgba(255,255,255,0.3)" },
+  badgeText: { fontSize: 11, fontWeight: "800", color: "#fff" },
+  badgeTextActivo: { color: "#fff" },
 });

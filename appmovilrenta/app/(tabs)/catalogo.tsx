@@ -5,10 +5,11 @@ import FiltrosCatalogo from "@/modules/catalogo/components/FiltrosCatalogo";
 import VehiculoCard from "@/modules/catalogo/components/VehiculoCard";
 import { COLORES } from "@/modules/catalogo/constants/catalogo.constants";
 import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
+import { useFavoritos } from "@/modules/catalogo/hooks/useFavoritos"; // ---
 import { useAuthStore } from "@/store/authStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -24,7 +25,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const ORDEN_OPCIONES = [
   { valor: "precio_asc", label: "Precio: menor a mayor" },
   { valor: "precio_desc", label: "Precio: mayor a menor" },
-  { valor: "calificacion", label: "Mejor calificación" },
+  { valor: "calificacion", label: "Mejor calificacion" },
 ];
 
 const ALERT_CONTENT = {
@@ -54,7 +55,74 @@ const ALERT_CONTENT = {
 
 type AlertTipo = keyof typeof ALERT_CONTENT;
 
-const ORDEN_OPCIONES_LIST = ORDEN_OPCIONES;
+function ListFooter({
+  paginaActual,
+  totalPaginas,
+  onAnterior,
+  onSiguiente,
+}: {
+  paginaActual: number;
+  totalPaginas: number;
+  onAnterior: () => void;
+  onSiguiente: () => void;
+}) {
+  if (totalPaginas <= 1) return null;
+  return (
+    <View style={styles.paginacionContainer}>
+      <TouchableOpacity
+        style={[
+          styles.paginaBtn,
+          paginaActual === 1 && styles.paginaBtnDisabled,
+        ]}
+        onPress={onAnterior}
+        disabled={paginaActual === 1}
+        activeOpacity={0.7}
+      >
+        <Ionicons
+          name="arrow-back"
+          size={16}
+          color={paginaActual === 1 ? "#CBD5E1" : "#1E40AF"}
+        />
+        <Text
+          style={[
+            styles.paginaBtnText,
+            paginaActual === 1 && styles.paginaBtnTextDisabled,
+          ]}
+        >
+          Anterior
+        </Text>
+      </TouchableOpacity>
+
+      <Text style={styles.paginaInfoTexto}>
+        {paginaActual} / {totalPaginas}
+      </Text>
+
+      <TouchableOpacity
+        style={[
+          styles.paginaBtn,
+          paginaActual === totalPaginas && styles.paginaBtnDisabled,
+        ]}
+        onPress={onSiguiente}
+        disabled={paginaActual === totalPaginas}
+        activeOpacity={0.7}
+      >
+        <Text
+          style={[
+            styles.paginaBtnText,
+            paginaActual === totalPaginas && styles.paginaBtnTextDisabled,
+          ]}
+        >
+          Siguiente
+        </Text>
+        <Ionicons
+          name="arrow-forward"
+          size={16}
+          color={paginaActual === totalPaginas ? "#CBD5E1" : "#1E40AF"}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function Catalogo() {
   const insets = useSafeAreaInsets();
@@ -64,17 +132,27 @@ export default function Catalogo() {
   const [sweetAlertVisible, setSweetAlertVisible] = useState(false);
   const [alertTipo, setAlertTipo] = useState("busqueda" as AlertTipo);
 
+  // --- FAVORITOS ---
+  const usuarioId = usuario ? String(usuario.id ?? usuario.correo ?? "user") : null;
+  const { favoritos, toggleFavorito, esFavorito } = useFavoritos(usuarioId);
+  const [soloFavoritos, setSoloFavoritos] = useState(false);
+
   const {
     cargando,
     error,
     filtros,
     setFiltro,
     vehiculosPaginados,
+    vehiculosFiltrados,
     limpiar,
     busquedaForm,
     setForm,
     handleBuscar,
     errorBusqueda,
+    paginaActual,
+    totalPaginas,
+    paginaSiguiente,
+    paginaAnterior,
   } = useCatalogo();
 
   const { sucursal } = useLocalSearchParams<{ sucursal?: string }>();
@@ -86,6 +164,12 @@ export default function Catalogo() {
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [ordenVisible, setOrdenVisible] = useState(false);
 
+  const flatListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [paginaActual]);
+
   const ordenLabel =
     ORDEN_OPCIONES.find((o) => o.valor === filtros.orden)?.label ??
     "Ordenar por";
@@ -93,20 +177,30 @@ export default function Catalogo() {
   const filtrosActivos =
     filtros.sucursal !== "Todas las sucursales" ||
     !!filtros.precioMin ||
-    !!filtros.precioMax;
+    !!filtros.precioMax ||
+    soloFavoritos; // --- incluir favoritos en el indicador activo
 
+  // --- Filtrar por búsqueda de texto Y por soloFavoritos ---
   const vehiculosAMostrar = vehiculosPaginados.filter((vehiculo: any) => {
     const busqueda = textBusqueda.toLowerCase();
-    return (
+    const coincideTexto =
       (vehiculo.nombre || "").toLowerCase().includes(busqueda) ||
       (vehiculo.marca || "").toLowerCase().includes(busqueda) ||
-      (vehiculo.modelo || "").toLowerCase().includes(busqueda)
-    );
+      (vehiculo.modelo || "").toLowerCase().includes(busqueda);
+    const coincideFavorito = soloFavoritos
+      ? esFavorito(vehiculo.id)
+      : true;
+    return coincideTexto && coincideFavorito;
   });
 
   const abrirSweetAlert = (tipo: AlertTipo) => {
     setAlertTipo(tipo);
     setSweetAlertVisible(true);
+  };
+
+  // --- Toggle soloFavoritos: si se activa, desactiva al volver a presionar ---
+  const handleToggleSoloFavoritos = () => {
+    setSoloFavoritos((prev) => !prev);
   };
 
   const alertInfo = ALERT_CONTENT[alertTipo];
@@ -142,7 +236,7 @@ export default function Catalogo() {
         )}
       </View>
 
-      {/* BUSCADOR UNIFICADO */}
+      {/* BUSCADOR */}
       <BuscadorCatalogo
         form={busquedaForm}
         setForm={setForm}
@@ -233,19 +327,39 @@ export default function Catalogo() {
         </View>
       ) : (
         <FlatList
+          ref={flatListRef}
           data={vehiculosAMostrar}
           keyExtractor={(item) => item.id.toString()}
-          extraData={vehiculosAMostrar}
+          extraData={[paginaActual, favoritos, soloFavoritos]}
           renderItem={({ item }) => (
             <VehiculoCard
               vehiculo={item as any}
               invitado={!usuario}
-              esFavorito={false}
+              esFavorito={esFavorito(item.id)}
               onAccionRestringida={!usuario ? abrirSweetAlert : undefined}
+              onToggleFavorito={usuario ? toggleFavorito : undefined}
             />
           )}
           contentContainerStyle={styles.lista}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            soloFavoritos ? (
+              <View style={styles.estadoCentro}>
+                <Ionicons name="heart-outline" size={48} color="#CBD5E1" />
+                <Text style={styles.emptyText}>
+                  Aún no tienes favoritos guardados
+                </Text>
+              </View>
+            ) : null
+          }
+          ListFooterComponent={() => (
+            <ListFooter
+              paginaActual={paginaActual}
+              totalPaginas={totalPaginas}
+              onAnterior={paginaAnterior}
+              onSiguiente={paginaSiguiente}
+            />
+          )}
         />
       )}
 
@@ -255,7 +369,14 @@ export default function Catalogo() {
         onClose={() => setFiltrosVisible(false)}
         filtros={filtros}
         setFiltro={setFiltro}
-        limpiar={limpiar}
+        limpiar={() => {
+          limpiar();
+          setSoloFavoritos(false); // --- limpiar también el filtro de favoritos
+        }}
+        usuario={!!usuario}
+        soloFavoritos={soloFavoritos}
+        onToggleSoloFavoritos={handleToggleSoloFavoritos}
+        totalFavoritos={favoritos.length}
       />
 
       {/* SWEET ALERT */}
@@ -312,10 +433,7 @@ export default function Catalogo() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
+  container: { flex: 1, backgroundColor: "#F8FAFC" },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -341,11 +459,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "#1E40AF",
   },
-  loginBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#1E40AF",
-  },
+  loginBtnText: { fontSize: 13, fontWeight: "700", color: "#1E40AF" },
   registerBtn: {
     paddingHorizontal: 14,
     paddingVertical: 7,
@@ -369,25 +483,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: "#F1F5F9",
   },
-  filtrosBtnActivo: {
-    backgroundColor: "#1E40AF",
-  },
-  filtrosBtnText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#475569",
-  },
+  filtrosBtnActivo: { backgroundColor: "#1E40AF" },
+  filtrosBtnText: { fontSize: 13, fontWeight: "600", color: "#475569" },
   filtrosBtnTextActivo: { color: "#fff" },
-  controlsRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  contadorText: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "600",
-  },
+  controlsRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+  contadorText: { fontSize: 13, color: "#64748B", fontWeight: "600" },
   ordenBtn: {
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -408,24 +508,41 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
     elevation: 4,
   },
-  ordenOpcion: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
+  ordenOpcion: { paddingHorizontal: 16, paddingVertical: 12 },
   ordenOpcionActiva: { backgroundColor: "#F1F5F9" },
   ordenOpcionText: { fontSize: 13, color: "#1F2937" },
   ordenOpcionTextActiva: { color: "#1E40AF", fontWeight: "700" },
   lista: { padding: 16 },
-  estadoCentro: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  errorTexto: {
+  estadoCentro: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60 },
+  errorTexto: { fontSize: 14, color: "#EF4444", textAlign: "center" },
+  emptyText: {
     fontSize: 14,
-    color: "#EF4444",
-    textAlign: "center",
+    color: "#94A3B8",
+    marginTop: 12,
+    fontWeight: "600",
   },
+  paginacionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 8,
+    marginBottom: 28,
+    paddingHorizontal: 4,
+    gap: 8,
+  },
+  paginaBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderRadius: 12,
+    backgroundColor: "#1E40AF",
+  },
+  paginaBtnDisabled: { backgroundColor: "#F1F5F9" },
+  paginaBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+  paginaBtnTextDisabled: { color: "#CBD5E1" },
+  paginaInfoTexto: { fontSize: 14, fontWeight: "700", color: "#475569" },
   alertOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -468,11 +585,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 24,
   },
-  alertButtonsContainer: {
-    flexDirection: "row",
-    width: "100%",
-    gap: 12,
-  },
+  alertButtonsContainer: { flexDirection: "row", width: "100%", gap: 12 },
   alertCancelBtn: {
     flex: 1,
     height: 42,
@@ -483,11 +596,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  alertCancelBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1E40AF",
-  },
+  alertCancelBtnText: { fontSize: 14, fontWeight: "600", color: "#1E40AF" },
   alertConfirmBtn: {
     flex: 1,
     height: 42,
@@ -495,9 +604,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  alertConfirmBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFF",
-  },
+  alertConfirmBtnText: { fontSize: 14, fontWeight: "600", color: "#FFF" },
 });
