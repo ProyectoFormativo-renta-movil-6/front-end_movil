@@ -1,3 +1,6 @@
+import ciudadesData from "../../../mocks/ciudades.json";
+import sucursalesData from "../../../mocks/sucursales.json";
+
 export const COLOR_MARCA = "#2f4ea2";
 export const COLOR_ACCENT = "#2563eb";
 
@@ -46,15 +49,59 @@ export const COMBUSTIBLES = [
   "Híbrido",
   "Eléctrico",
 ];
+
+// =========================================================
+// CIUDADES (desde mocks/ciudades.json — igual que la web)
+// =========================================================
+export interface CiudadInfo {
+  id: string;
+  nombre: string;
+  departamento: string;
+  tieneAeropuerto: boolean;
+  tieneTerminal: boolean;
+}
+
+export const CIUDADES_DATA: CiudadInfo[] = ciudadesData;
+
+// Lista plana para filtros con opción "Todas las ciudades"
+export const CIUDADES_FILTRO = [
+  "Todas las ciudades",
+  ...CIUDADES_DATA.map((c) => c.nombre),
+];
+
+// Lista plana original (se mantiene por compatibilidad con BuscadorCatalogo,
+// que no necesita la opción "Todas las ciudades")
+export const CIUDADES: string[] = CIUDADES_DATA.map((c) => c.nombre);
+
+// =========================================================
+// SUCURSALES (desde mocks/sucursales.json — igual que la web)
+// =========================================================
+export interface SucursalInfo {
+  nombre: string;
+  ciudad: string;
+}
+
+export const SUCURSALES_DATA: SucursalInfo[] = sucursalesData;
+
+// Lista plana (se mantiene por compatibilidad con FiltrosCatalogo y otros
+// componentes que ya consumen SUCURSALES como array de strings)
 export const SUCURSALES = [
   "Todas las sucursales",
-  "Localiza (El Dorado)",
-  "Tu Roll (El Poblado)",
-  "Europcar (El Dorado)",
-  "Enterprise (El Dorado)",
-  "Sixt (JMC)",
-  "Alamo (El Dorado)",
+  ...SUCURSALES_DATA.map((s) => s.nombre),
 ];
+
+// Helper para obtener las sucursales de una ciudad específica
+export function getSucursalesPorCiudad(ciudad: string): string[] {
+  return SUCURSALES_DATA.filter((s) => s.ciudad === ciudad).map(
+    (s) => s.nombre,
+  );
+}
+
+// Helper para obtener la ciudad de una sucursal específica
+export function getCiudadPorSucursal(sucursal: string): string | null {
+  const encontrada = SUCURSALES_DATA.find((s) => s.nombre === sucursal);
+  return encontrada ? encontrada.ciudad : null;
+}
 
 export const FILTROS_BASE = {
   categoria: "Todos",
@@ -62,6 +109,7 @@ export const FILTROS_BASE = {
   precioMax: "",
   transmision: "Todas",
   combustible: "Todos",
+  ciudad: "Todas las ciudades",
   sucursal: "Todas las sucursales",
   orden: "precio_asc",
   busqueda: "",
@@ -90,7 +138,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: true,
     camaraReversa: true,
     sensoresParqueo: false,
-    sucursal: "Localiza (El Dorado)",
+    sucursal: "Alamo Bogotá - Aeropuerto",
     tarifas: {
       kmLimitado: { km: 200, precio: 85000 },
       kmIlimitado: { precio: 105000 },
@@ -125,7 +173,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: true,
     camaraReversa: true,
     sensoresParqueo: true,
-    sucursal: "Tu Roll (El Poblado)",
+    sucursal: "Alamo Medellín Poblado",
     tarifas: {
       kmLimitado: { km: 250, precio: 145000 },
       kmIlimitado: { precio: 175000 },
@@ -160,7 +208,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: true,
     camaraReversa: false,
     sensoresParqueo: false,
-    sucursal: "Europcar (El Dorado)",
+    sucursal: "National Bogota El Dorado Intl. Airport",
     tarifas: {
       kmLimitado: { km: 150, precio: 60000 },
       kmIlimitado: { precio: 75000 },
@@ -195,7 +243,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: false,
     camaraReversa: false,
     sensoresParqueo: false,
-    sucursal: "Alamo (El Dorado)",
+    sucursal: "Alquiler Neiva - Centro",
     tarifas: {
       kmLimitado: { km: 150, precio: 55000 },
       kmIlimitado: { precio: 68000 },
@@ -230,7 +278,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: true,
     camaraReversa: true,
     sensoresParqueo: true,
-    sucursal: "Sixt (JMC)",
+    sucursal: "National Cali International Airport",
     tarifas: {
       kmLimitado: { km: 300, precio: 250000 },
       kmIlimitado: { precio: 300000 },
@@ -265,7 +313,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: true,
     camaraReversa: true,
     sensoresParqueo: true,
-    sucursal: "Enterprise (El Dorado)",
+    sucursal: "Alamo Cartagena - Aeropuerto",
     tarifas: {
       kmLimitado: { km: 200, precio: 180000 },
       kmIlimitado: { precio: 210000 },
@@ -300,7 +348,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: true,
     camaraReversa: true,
     sensoresParqueo: true,
-    sucursal: "Localiza (El Dorado)",
+    sucursal: "Alamo Bucaramanga - Aeropuerto",
     tarifas: {
       kmLimitado: { km: 200, precio: 160000 },
       kmIlimitado: { precio: 190000 },
@@ -335,7 +383,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: true,
     camaraReversa: true,
     sensoresParqueo: false,
-    sucursal: "Europcar (El Dorado)",
+    sucursal: "National Medellín Centro",
     tarifas: {
       kmLimitado: { km: 200, precio: 95000 },
       kmIlimitado: { precio: 115000 },
@@ -370,7 +418,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: true,
     camaraReversa: true,
     sensoresParqueo: true,
-    sucursal: "Enterprise (El Dorado)",
+    sucursal: "Alamo Pereira - Aeropuerto",
     tarifas: {
       kmLimitado: { km: 250, precio: 120000 },
       kmIlimitado: { precio: 145000 },
@@ -405,7 +453,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: true,
     camaraReversa: true,
     sensoresParqueo: true,
-    sucursal: "Tu Roll (El Poblado)",
+    sucursal: "National Cali Centro",
     tarifas: {
       kmLimitado: { km: 250, precio: 195000 },
       kmIlimitado: { precio: 225000 },
@@ -440,7 +488,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: true,
     camaraReversa: true,
     sensoresParqueo: true,
-    sucursal: "Sixt (JMC)",
+    sucursal: "Alamo Barranquilla - Aeropuerto",
     tarifas: {
       kmLimitado: { km: 300, precio: 320000 },
       kmIlimitado: { precio: 370000 },
@@ -475,7 +523,7 @@ export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
     bluetooth: false,
     camaraReversa: false,
     sensoresParqueo: false,
-    sucursal: "Alamo (El Dorado)",
+    sucursal: "Alquiler Neiva - Aeropuerto Benito Salas",
     tarifas: {
       kmLimitado: { km: 150, precio: 110000 },
       kmIlimitado: { precio: 130000 },

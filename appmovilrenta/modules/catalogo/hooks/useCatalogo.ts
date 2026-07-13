@@ -1,21 +1,19 @@
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert } from "react-native";
-import { FILTROS_BASE, VEHICULOS_MOCK } from "../constants/catalogo.constants";
+import {
+  FILTROS_BASE,
+  VEHICULOS_MOCK,
+  getCiudadPorSucursal,
+} from "../constants/catalogo.constants";
 import {
   BusquedaForm,
   FiltrosCatalogoState,
   Vehiculo,
 } from "../types/catalogo.types";
 
-// Tipo extendido local para que useCatalogo reconozca las propiedades marca y modelo de forma opcional si tu interfaz base no las tiene todavía.
-export interface VehiculoConDetalles extends Vehiculo {
-  marca?: string;
-  modelo?: string;
-}
-
 export function useCatalogo() {
-  const [vehiculos] = useState<VehiculoConDetalles[]>(VEHICULOS_MOCK);
+  const [vehiculos] = useState<Vehiculo[]>(VEHICULOS_MOCK);
   const [cargando] = useState(false);
   const [error] = useState<string | null>(null);
 
@@ -56,8 +54,9 @@ export function useCatalogo() {
   };
 
   const handleBuscar = () => {
+    // lugarRecogida = ciudad seleccionada | lugarDevolucion = sucursal seleccionada
     if (!busquedaForm.lugarRecogida || !busquedaForm.lugarDevolucion) {
-      setErrorBusqueda("Selecciona los puntos de recogida y devolución");
+      setErrorBusqueda("Selecciona la ciudad y la sucursal");
       return;
     }
     if (!busquedaForm.fechaInicio || !busquedaForm.fechaFin) {
@@ -65,10 +64,12 @@ export function useCatalogo() {
       return;
     }
     setErrorBusqueda("");
+    setBusquedaRealizada(true);
     router.push({
       pathname: "/(tabs)/catalogo",
       params: {
-        sucursal: busquedaForm.lugarRecogida,
+        ciudad: busquedaForm.lugarRecogida,
+        sucursal: busquedaForm.lugarDevolucion,
         fechaInicio: busquedaForm.fechaInicio,
         fechaFin: busquedaForm.fechaFin,
       },
@@ -103,8 +104,16 @@ export function useCatalogo() {
       arr = arr.filter((v) => v.transmision === filtros.transmision);
     if (filtros.combustible !== "Todos")
       arr = arr.filter((v) => v.combustible === filtros.combustible);
-    if (filtros.sucursal !== "Todas las sucursales")
+
+    // CIUDAD y SUCURSAL — independientes entre sí, ambas se aplican si están activas
+    if (filtros.ciudad !== "Todas las ciudades") {
+      arr = arr.filter(
+        (v) => v.sucursal && getCiudadPorSucursal(v.sucursal) === filtros.ciudad,
+      );
+    }
+    if (filtros.sucursal !== "Todas las sucursales") {
       arr = arr.filter((v) => v.sucursal === filtros.sucursal);
+    }
 
     const min = filtros.precioMin ? Number(filtros.precioMin) : null;
     const max = filtros.precioMax ? Number(filtros.precioMax) : null;

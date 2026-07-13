@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import {
   CATEGORIAS,
+  CIUDADES_FILTRO,
   COLORES,
   COMBUSTIBLES,
   SUCURSALES,
@@ -69,6 +70,8 @@ function Seccion({
   );
 }
 
+type DropdownAbierto = "ciudad" | "sucursal" | null;
+
 export default function FiltrosCatalogo({
   visible,
   onClose,
@@ -80,7 +83,7 @@ export default function FiltrosCatalogo({
   onToggleSoloFavoritos,
   totalFavoritos,
 }: Props) {
-  const [sucursalOpen, setSucursalOpen] = useState(false);
+  const [dropdownAbierto, setDropdownAbierto] = useState<DropdownAbierto>(null);
 
   const catLabels: Record<string, string> = {
     Todos: "Todas las categorías",
@@ -102,6 +105,10 @@ export default function FiltrosCatalogo({
     Diesel: "Diesel",
     Híbrido: "Híbrido",
     Eléctrico: "Eléctrico",
+  };
+
+  const toggleDropdown = (campo: "ciudad" | "sucursal") => {
+    setDropdownAbierto((prev) => (prev === campo ? null : campo));
   };
 
   return (
@@ -184,43 +191,88 @@ export default function FiltrosCatalogo({
             </View>
           </Seccion>
 
-          {/* SUCURSAL */}
+          {/* CIUDAD — independiente de sucursal */}
+          <Seccion label="CIUDAD">
+            <TouchableOpacity
+              style={styles.selectorBtn}
+              onPress={() => toggleDropdown("ciudad")}
+            >
+              <Text style={styles.selectorText}>{filtros.ciudad}</Text>
+              <Text style={styles.selectorArrow}>
+                {dropdownAbierto === "ciudad" ? "▲" : "▼"}
+              </Text>
+            </TouchableOpacity>
+            {dropdownAbierto === "ciudad" && (
+              <View style={styles.dropdownList}>
+                <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
+                  {CIUDADES_FILTRO.map((c) => (
+                    <TouchableOpacity
+                      key={c}
+                      style={[
+                        styles.dropdownItem,
+                        filtros.ciudad === c && styles.dropdownItemActivo,
+                      ]}
+                      onPress={() => {
+                        setFiltro("ciudad", c);
+                        setDropdownAbierto(null);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.dropdownItemText,
+                          filtros.ciudad === c && styles.dropdownItemTextActivo,
+                        ]}
+                      >
+                        {c}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </Seccion>
+
+          {/* SUCURSAL — independiente de ciudad */}
           <Seccion label="SUCURSAL">
             <TouchableOpacity
               style={styles.selectorBtn}
-              onPress={() => setSucursalOpen(!sucursalOpen)}
+              onPress={() => toggleDropdown("sucursal")}
             >
-              <Text style={styles.selectorText}>
-                {filtros.sucursal || "Todas las sucursales"}
+              <Text style={styles.selectorText} numberOfLines={1}>
+                {filtros.sucursal}
               </Text>
               <Text style={styles.selectorArrow}>
-                {sucursalOpen ? "▲" : "▼"}
+                {dropdownAbierto === "sucursal" ? "▲" : "▼"}
               </Text>
             </TouchableOpacity>
-            {sucursalOpen && (
+            {dropdownAbierto === "sucursal" && (
               <View style={styles.dropdownList}>
-                {SUCURSALES.map((s) => (
-                  <TouchableOpacity
-                    key={s}
-                    style={[
-                      styles.dropdownItem,
-                      filtros.sucursal === s && styles.dropdownItemActivo,
-                    ]}
-                    onPress={() => {
-                      setFiltro("sucursal", s);
-                      setSucursalOpen(false);
-                    }}
-                  >
-                    <Text
+                <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
+                  {SUCURSALES.map((s) => (
+                    <TouchableOpacity
+                      key={s}
                       style={[
-                        styles.dropdownItemText,
-                        filtros.sucursal === s && styles.dropdownItemTextActivo,
+                        styles.dropdownItem,
+                        filtros.sucursal === s && styles.dropdownItemActivo,
                       ]}
+                      onPress={() => {
+                        setFiltro("sucursal", s);
+                        setDropdownAbierto(null);
+                      }}
                     >
-                      {s}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text
+                        style={[
+                          styles.dropdownItemText,
+                          filtros.sucursal === s &&
+                            styles.dropdownItemTextActivo,
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {s}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
             )}
           </Seccion>
@@ -381,6 +433,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: COLORES.panelBg,
     overflow: "hidden",
+  },
+  dropdownScroll: {
+    maxHeight: 220,
   },
   dropdownItem: {
     paddingHorizontal: 14,

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LoginForm, RegistroForm, OlvideContrasenaForm, AuthError } from '../types/auth.types';
+import { buscarUsuarioDemo } from '../../../mocks/usuariosDemo';
 
 function validarCorreo(correo: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) && !correo.includes(' ');
@@ -8,7 +9,6 @@ function validarCorreo(correo: string): boolean {
 function validarContrasenaSegura(contrasena: string): boolean {
   return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(contrasena);
 }
-
 
 // ── useLogin (RF43) ──────────────────────────────────────────────────────────
 
@@ -47,9 +47,10 @@ export function useLogin() {
     try {
       await new Promise(r => setTimeout(r, 1000));
 
-      // Mock: simula respuesta de API — en producción se reemplaza por llamada real
-      const loginExitoso = true;
-      if (loginExitoso) {
+      // Mock: valida contra los usuarios de prueba — en producción se reemplaza por llamada real
+      const usuario = buscarUsuarioDemo(form.correo, form.contrasena);
+
+      if (usuario) {
         setIntentosFallidos(0);
         onExito();
       } else {

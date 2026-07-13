@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -13,18 +12,50 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SUCURSALES } from "../constants/catalogo.constants";
+import { Calendar, DateData } from "react-native-calendars";
+import { CIUDADES, SUCURSALES_DATA } from "../constants/catalogo.constants";
 import { BusquedaForm } from "../types/catalogo.types";
 
-const PUNTOS = SUCURSALES.filter((s) => s !== "Todas las sucursales");
-
-type PickerField = "recogida" | "devolucion" | null;
-type DateField = "fechaInicio" | "fechaFin" | null;
+type PickerField = "ciudad" | "sucursal" | null;
 
 function formatFechaDisplay(dateStr: string): string {
   if (!dateStr) return "";
   const [y, m, d] = dateStr.split("-");
   return `${d}/${m}/${y}`;
+}
+
+function getMarkedDates(inicio: string, fin: string) {
+  if (!inicio) return {};
+
+  if (!fin) {
+    return {
+      [inicio]: {
+        startingDay: true,
+        endingDay: true,
+        color: "#2f4ea2",
+        textColor: "#fff",
+      },
+    };
+  }
+
+  const marked: Record<string, any> = {};
+  let cursor = new Date(inicio + "T00:00:00");
+  const fechaFinDate = new Date(fin + "T00:00:00");
+
+  while (cursor <= fechaFinDate) {
+    const dateStr = cursor.toISOString().split("T")[0];
+    const esInicio = dateStr === inicio;
+    const esFin = dateStr === fin;
+    marked[dateStr] = {
+      color: esInicio || esFin ? "#2f4ea2" : "#BFDBFE",
+      textColor: esInicio || esFin ? "#fff" : "#1e3a8a",
+      startingDay: esInicio,
+      endingDay: esFin,
+    };
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return marked;
 }
 
 interface Props {
@@ -37,7 +68,7 @@ interface Props {
   disabled?: boolean;
   modalFormVisible: boolean;
   setModalFormVisible: (visible: boolean) => void;
-  onPressRestringida?: () => void; // NUEVO
+  onPressRestringida?: () => void;
 }
 
 export default function BuscadorCatalogo({
@@ -53,11 +84,20 @@ export default function BuscadorCatalogo({
   onPressRestringida,
 }: Props) {
   const [pickerOpen, setPickerOpen] = useState<PickerField>(null);
-  const [datePickerField, setDatePickerField] = useState<DateField>(null);
-  const [tempDate, setTempDate] = useState<Date>(new Date());
+
+  // lugarRecogida = ciudad seleccionada | lugarDevolucion = sucursal seleccionada
+  const ciudadSeleccionada = form.lugarRecogida;
+  const sucursalSeleccionada = form.lugarDevolucion;
+
+  const sucursalesDeLaCiudad = ciudadSeleccionada
+    ? SUCURSALES_DATA.filter((s) => s.ciudad === ciudadSeleccionada).map(
+        (s) => s.nombre,
+      )
+    : [];
 
   const currentSelected =
-    pickerOpen === "recogida" ? form.lugarRecogida : form.lugarDevolucion;
+    pickerOpen === "ciudad" ? ciudadSeleccionada : sucursalSeleccionada;
+
   const tieneBusquedaActiva = !!(
     form.lugarRecogida ||
     form.lugarDevolucion ||
@@ -72,28 +112,39 @@ export default function BuscadorCatalogo({
     setForm("fechaFin", "");
   };
 
-  const selectPunto = (punto: string) => {
-    if (pickerOpen === "recogida") setForm("lugarRecogida", punto);
-    else setForm("lugarDevolucion", punto);
+  const selectPunto = (valor: string) => {
+    if (pickerOpen === "ciudad") {
+      setForm("lugarRecogida", valor);
+      // Si cambia de ciudad, reseteamos la sucursal para evitar
+      // que quede seleccionada una sucursal de otra ciudad
+      setForm("lugarDevolucion", "");
+    } else {
+      setForm("lugarDevolucion", valor);
+    }
     setPickerOpen(null);
   };
 
-  const openDatePicker = (field: DateField) => {
+  const onDayPress = (day: DateData) => {
     if (disabled) return;
-    const existing = field === "fechaInicio" ? form.fechaInicio : form.fechaFin;
-    setTempDate(existing ? new Date(existing) : new Date());
-    setDatePickerField(field);
-  };
+    const dateStr = day.dateString;
 
-  const onDateChange = (_: any, selected?: Date) => {
-    if (Platform.OS === "android") setDatePickerField(null);
-    if (selected && datePickerField) {
-      const iso = selected.toISOString().split("T")[0];
-      setForm(datePickerField, iso);
+    // Si no hay fecha de inicio, o ya había un rango completo -> empezamos de nuevo
+    if (!form.fechaInicio || (form.fechaInicio && form.fechaFin)) {
+      setForm("fechaInicio", dateStr);
+      setForm("fechaFin", "");
+      return;
+    }
+
+    // Ya hay fecha de inicio, esta es la fecha final
+    if (dateStr < form.fechaInicio) {
+      // Si toca una fecha anterior a la de inicio, reiniciamos con esa como nuevo inicio
+      setForm("fechaInicio", dateStr);
+      setForm("fechaFin", "");
+    } else {
+      setForm("fechaFin", dateStr);
     }
   };
 
-  // Label del botón de fechas/lugar
   const fechaBtnLabel = tieneBusquedaActiva
     ? [
         form.lugarRecogida,
@@ -104,8 +155,8 @@ export default function BuscadorCatalogo({
         .filter(Boolean)
         .join(" · ")
     : disabled
-      ? "Inicia sesión para elegir fechas y lugar"
-      : "Añadir fechas y lugar de recogida";
+      ? "Inicia sesión para consultar disponibilidad"
+      : "Consultar disponibilidad";
 
   const handlePressFechas = () => {
     if (disabled) {
@@ -114,6 +165,13 @@ export default function BuscadorCatalogo({
       setModalFormVisible(true);
     }
   };
+
+  const abrirPickerSucursal = () => {
+    if (!ciudadSeleccionada) return; // no hace nada si no hay ciudad seleccionada
+    setPickerOpen("sucursal");
+  };
+
+  const hoyISO = new Date().toISOString().split("T")[0];
 
   return (
     <View style={styles.containerGeneral}>
@@ -181,7 +239,7 @@ export default function BuscadorCatalogo({
             <TouchableOpacity onPress={() => setModalFormVisible(false)}>
               <Ionicons name="arrow-back" size={24} color="#1f2937" />
             </TouchableOpacity>
-            <Text style={styles.modalFormTitle}>Buscar Disponibilidad</Text>
+            <Text style={styles.modalFormTitle}>Consultar Disponibilidad</Text>
             {tieneBusquedaActiva ? (
               <TouchableOpacity onPress={limpiarFormulario}>
                 <Text style={styles.txtLimpiarModal}>Limpiar</Text>
@@ -193,54 +251,64 @@ export default function BuscadorCatalogo({
 
           <View style={styles.modalFormBody}>
             <View style={styles.row}>
+              {/* CIUDAD (antes: RECOGIDA) */}
               <View style={styles.field}>
-                <Text style={styles.label}>RECOGIDA</Text>
+                <Text style={styles.label}>CIUDAD</Text>
                 <TouchableOpacity
                   style={styles.selector}
-                  onPress={() => setPickerOpen("recogida")}
+                  onPress={() => setPickerOpen("ciudad")}
                 >
                   <Ionicons name="location-outline" size={14} color="#2f4ea2" />
                   <Text
                     style={[
                       styles.selectorText,
-                      !form.lugarRecogida && styles.placeholder,
+                      !ciudadSeleccionada && styles.placeholder,
                     ]}
                     numberOfLines={1}
                   >
-                    {form.lugarRecogida || "Selecciona punto"}
+                    {ciudadSeleccionada || "Selecciona ciudad"}
                   </Text>
                   <Ionicons name="chevron-down" size={12} color="#9CA3AF" />
                 </TouchableOpacity>
               </View>
 
+              {/* SUCURSAL (antes: DEVOLUCIÓN), depende de la ciudad elegida */}
               <View style={styles.field}>
-                <Text style={styles.label}>DEVOLUCIÓN</Text>
+                <Text style={styles.label}>SUCURSAL</Text>
                 <TouchableOpacity
-                  style={styles.selector}
-                  onPress={() => setPickerOpen("devolucion")}
+                  style={[
+                    styles.selector,
+                    !ciudadSeleccionada && styles.selectorDisabled,
+                  ]}
+                  onPress={abrirPickerSucursal}
+                  disabled={!ciudadSeleccionada}
                 >
-                  <Ionicons name="location-outline" size={14} color="#2f4ea2" />
+                  <Ionicons
+                    name="business-outline"
+                    size={14}
+                    color={ciudadSeleccionada ? "#2f4ea2" : "#C4C9D4"}
+                  />
                   <Text
                     style={[
                       styles.selectorText,
-                      !form.lugarDevolucion && styles.placeholder,
+                      !sucursalSeleccionada && styles.placeholder,
                     ]}
                     numberOfLines={1}
                   >
-                    {form.lugarDevolucion || "Selecciona punto"}
+                    {!ciudadSeleccionada
+                      ? "Selecciona ciudad primero"
+                      : sucursalSeleccionada || "Selecciona sucursal"}
                   </Text>
                   <Ionicons name="chevron-down" size={12} color="#9CA3AF" />
                 </TouchableOpacity>
               </View>
             </View>
 
+            {/* FECHAS — se muestran igual que antes, pero ahora se actualizan solas al tocar el calendario de abajo */}
             <View style={styles.row}>
               <View style={styles.field}>
                 <Text style={styles.label}>FECHA RECOGIDA</Text>
-                <TouchableOpacity
-                  style={styles.dateBtn}
-                  onPress={() => openDatePicker("fechaInicio")}
-                >
+                <View style={styles.dateBtn}>
                   <Ionicons name="calendar-outline" size={14} color="#2f4ea2" />
                   <Text
                     style={[
@@ -252,15 +320,12 @@ export default function BuscadorCatalogo({
                       ? formatFechaDisplay(form.fechaInicio)
                       : "dd/mm/aaaa"}
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
 
               <View style={styles.field}>
                 <Text style={styles.label}>FECHA DEVOLUCIÓN</Text>
-                <TouchableOpacity
-                  style={styles.dateBtn}
-                  onPress={() => openDatePicker("fechaFin")}
-                >
+                <View style={styles.dateBtn}>
                   <Ionicons name="calendar-outline" size={14} color="#2f4ea2" />
                   <Text
                     style={[
@@ -272,8 +337,37 @@ export default function BuscadorCatalogo({
                       ? formatFechaDisplay(form.fechaFin)
                       : "dd/mm/aaaa"}
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
+            </View>
+
+            {/* CALENDARIO DE RANGO */}
+            <View style={styles.calendarioContainer}>
+              <Calendar
+                minDate={hoyISO}
+                onDayPress={onDayPress}
+                markingType="period"
+                markedDates={getMarkedDates(form.fechaInicio, form.fechaFin)}
+                firstDay={1}
+                enableSwipeMonths
+                theme={{
+                  backgroundColor: "#ffffff",
+                  calendarBackground: "#ffffff",
+                  todayTextColor: "#2f4ea2",
+                  todayBackgroundColor: "#EFF6FF",
+                  arrowColor: "#2f4ea2",
+                  monthTextColor: "#111827",
+                  textMonthFontWeight: "700",
+                  textMonthFontSize: 15,
+                  textSectionTitleColor: "#6B7280",
+                  textDayHeaderFontWeight: "600",
+                  textDayHeaderFontSize: 11,
+                  dayTextColor: "#1F2937",
+                  textDisabledColor: "#D1D5DB",
+                  textDayFontSize: 13,
+                  textDayFontWeight: "500",
+                }}
+              />
             </View>
 
             <TouchableOpacity
@@ -284,22 +378,20 @@ export default function BuscadorCatalogo({
               }}
             >
               <Ionicons name="search" size={18} color="#fff" />
-              <Text style={styles.buscarBtnGrandeTexto}>
-                Buscar disponibilidad
-              </Text>
+              <Text style={styles.buscarBtnGrandeTexto}>Buscar</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
 
-        {/* Picker de locaciones */}
+        {/* Picker de ciudad / sucursal */}
         <Modal visible={!!pickerOpen} animationType="fade" transparent>
           <View style={styles.modalOverlayInterno}>
             <View style={styles.modalInternoContenedor}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
-                  {pickerOpen === "recogida"
-                    ? "Lugar de recogida"
-                    : "Lugar de devolución"}
+                  {pickerOpen === "ciudad"
+                    ? "Selecciona ciudad"
+                    : "Selecciona sucursal"}
                 </Text>
                 <TouchableOpacity
                   style={styles.modalCloseBtn}
@@ -309,7 +401,7 @@ export default function BuscadorCatalogo({
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={PUNTOS}
+                data={pickerOpen === "ciudad" ? CIUDADES : sucursalesDeLaCiudad}
                 keyExtractor={(item) => item}
                 renderItem={({ item }) => (
                   <TouchableOpacity
@@ -320,7 +412,11 @@ export default function BuscadorCatalogo({
                     onPress={() => selectPunto(item)}
                   >
                     <Ionicons
-                      name="location-outline"
+                      name={
+                        pickerOpen === "ciudad"
+                          ? "location-outline"
+                          : "business-outline"
+                      }
                       size={16}
                       color={currentSelected === item ? "#2f4ea2" : "#9CA3AF"}
                     />
@@ -338,16 +434,6 @@ export default function BuscadorCatalogo({
             </View>
           </View>
         </Modal>
-
-        {Platform.OS === "android" && !!datePickerField && (
-          <DateTimePicker
-            value={tempDate}
-            mode="date"
-            display="default"
-            minimumDate={new Date()}
-            onChange={onDateChange}
-          />
-        )}
       </Modal>
     </View>
   );
@@ -379,7 +465,6 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     height: "100%",
   },
-  // NUEVO: botón de fechas/lugar
   fechasBarraBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -445,6 +530,10 @@ const styles = StyleSheet.create({
     height: 44,
     backgroundColor: "#F9FAFB",
   },
+  selectorDisabled: {
+    backgroundColor: "#F3F4F6",
+    opacity: 0.6,
+  },
   selectorText: { fontSize: 13, color: "#374151", flex: 1 },
   dateBtn: {
     flexDirection: "row",
@@ -458,6 +547,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   dateBtnText: { flex: 1, fontSize: 13, color: "#374151" },
+  calendarioContainer: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+  },
   buscarBtnGrande: {
     flexDirection: "row",
     alignItems: "center",
@@ -466,7 +562,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2f4ea2",
     borderRadius: 12,
     height: 48,
-    marginTop: 10,
+    marginTop: 4,
   },
   buscarBtnGrandeTexto: { color: "#fff", fontSize: 14, fontWeight: "700" },
   modalOverlayInterno: {

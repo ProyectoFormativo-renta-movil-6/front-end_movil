@@ -14,9 +14,8 @@ export interface Seguro {
 export interface Vehiculo {
   id: number;
   nombre: string;
-  // 👇 AQUÍ ESTÁ EL CAMBIO: Añadidos para solucionar el filtrado y quitar los "any"
-  marca: string; // O 'marca?: string;' si es opcional en tu base de datos
-  modelo: string; // O 'modelo?: string;' si es opcional en tu base de datos
+  marca: string;
+  modelo: string;
   categoria: string;
   transmision: string;
   combustible: string;
@@ -32,7 +31,6 @@ export interface Vehiculo {
   año?: number;
   placa?: string;
   sucursal?: string;
-  // Características booleanas
   aireAcondicionado?: boolean;
   vidriosElectricos?: boolean;
   cierreCentralizado?: boolean;
@@ -55,6 +53,7 @@ export interface FiltrosCatalogoState {
   precioMax: string;
   transmision: string;
   combustible: string;
+  ciudad: string;
   sucursal: string;
   orden: string;
   busqueda: string;
