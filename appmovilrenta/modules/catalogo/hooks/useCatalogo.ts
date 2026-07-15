@@ -12,6 +12,25 @@ import {
   Vehiculo,
 } from "../types/catalogo.types";
 
+// Verifica si un vehículo está libre en el rango de fechas dado,
+// comparando contra sus fechas ocupadas (mock/backend)
+function estaDisponibleEnRango(
+  vehiculo: Vehiculo,
+  fechaInicio: string,
+  fechaFin: string,
+): boolean {
+  const ocupados = vehiculo.disponibilidad?.ocupados ?? [];
+  if (ocupados.length === 0) return true;
+
+  const inicio = new Date(fechaInicio + "T00:00:00");
+  const fin = new Date(fechaFin + "T00:00:00");
+
+  return !ocupados.some((fechaStr) => {
+    const fecha = new Date(fechaStr + "T00:00:00");
+    return fecha >= inicio && fecha < fin;
+  });
+}
+
 export function useCatalogo() {
   const [vehiculos] = useState<Vehiculo[]>(VEHICULOS_MOCK);
   const [cargando] = useState(false);
@@ -63,8 +82,13 @@ export function useCatalogo() {
       setErrorBusqueda("Selecciona las fechas de recogida y devolución");
       return;
     }
+    if (busquedaForm.fechaFin <= busquedaForm.fechaInicio) {
+      setErrorBusqueda("La fecha de devolución debe ser posterior a la de recogida");
+      return;
+    }
     setErrorBusqueda("");
     setBusquedaRealizada(true);
+    setPagina(1);
     router.push({
       pathname: "/(tabs)/catalogo",
       params: {
@@ -120,6 +144,13 @@ export function useCatalogo() {
     if (min !== null) arr = arr.filter((v) => v.precio >= min);
     if (max !== null) arr = arr.filter((v) => v.precio <= max);
 
+    // DISPONIBILIDAD POR FECHAS — solo si el usuario ya buscó con fechas concretas
+    if (busquedaRealizada && busquedaForm.fechaInicio && busquedaForm.fechaFin) {
+      arr = arr.filter((v) =>
+        estaDisponibleEnRango(v, busquedaForm.fechaInicio, busquedaForm.fechaFin),
+      );
+    }
+
     if (filtros.orden === "precio_asc") arr.sort((a, b) => a.precio - b.precio);
     if (filtros.orden === "precio_desc")
       arr.sort((a, b) => b.precio - a.precio);
@@ -127,7 +158,7 @@ export function useCatalogo() {
       arr.sort((a, b) => (b.calificacion ?? 0) - (a.calificacion ?? 0));
 
     return arr;
-  }, [vehiculos, filtros]);
+  }, [vehiculos, filtros, busquedaRealizada, busquedaForm.fechaInicio, busquedaForm.fechaFin]);
 
   const POR_PAGINA = 6;
   const totalPaginas = Math.max(1, Math.ceil(resultado.length / POR_PAGINA));

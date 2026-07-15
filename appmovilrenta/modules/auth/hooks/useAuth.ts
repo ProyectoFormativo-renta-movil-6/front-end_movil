@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LoginForm, RegistroForm, OlvideContrasenaForm, AuthError } from '../types/auth.types';
-import { buscarUsuarioDemo } from '../../../mocks/usuariosDemo';
+import { buscarUsuarioDemo, UsuarioDemo } from '../../../mocks/usuariosDemo';
 
 function validarCorreo(correo: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) && !correo.includes(' ');
@@ -36,7 +36,7 @@ export function useLogin() {
     return e.length === 0;
   }
 
-  async function iniciarSesion(onExito: () => void) {
+  async function iniciarSesion(onExito: (usuario: UsuarioDemo) => void) {
     if (bloqueado) {
       setErrores([{ mensaje: 'Cuenta bloqueada tras 3 intentos fallidos. Intenta más tarde.' }]);
       return;
@@ -52,7 +52,7 @@ export function useLogin() {
 
       if (usuario) {
         setIntentosFallidos(0);
-        onExito();
+        onExito(usuario);
       } else {
         const intentos = intentosFallidos + 1;
         setIntentosFallidos(intentos);

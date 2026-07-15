@@ -235,11 +235,6 @@ function VehiculoCard({
           <Text style={styles.detallesBtnText}>
             {verDetalles ? "Ocultar detalles" : "Ver detalles"}
           </Text>
-          <Ionicons
-            name={verDetalles ? "chevron-up" : "chevron-down"}
-            size={14}
-            color="#2563eb"
-          />
         </TouchableOpacity>
 
         {verDetalles && <VehiculoDetalles vehiculo={vehiculo} />}

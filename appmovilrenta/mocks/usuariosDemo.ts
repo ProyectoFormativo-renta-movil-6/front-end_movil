@@ -5,6 +5,8 @@ export interface UsuarioDemo {
   correo: string;
   contrasena: string;
   id: string;
+  nombres: string;
+  apellidos: string;
   rol: string;
 }
 
@@ -13,6 +15,8 @@ export const USUARIOS_DEMO: UsuarioDemo[] = [
     correo: "cliente@drivique.com",
     contrasena: "Cliente123*",
     id: "1",
+    nombres: "Cliente",
+    apellidos: "Demo",
     rol: "cliente",
   },
 ];

@@ -1,11 +1,12 @@
 // app/(tabs)/catalogo.tsx
 
+import { AlertModal } from "@/components/ui/AlertModal";
 import BuscadorCatalogo from "@/modules/catalogo/components/BuscadorCatalogo";
 import FiltrosCatalogo from "@/modules/catalogo/components/FiltrosCatalogo";
 import VehiculoCard from "@/modules/catalogo/components/VehiculoCard";
 import { COLORES } from "@/modules/catalogo/constants/catalogo.constants";
 import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
-import { useFavoritos } from "@/modules/catalogo/hooks/useFavoritos"; // ---
+import { useFavoritos } from "@/modules/catalogo/hooks/useFavoritos";
 import { useAuthStore } from "@/store/authStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -13,7 +14,6 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Modal,
   StatusBar,
   StyleSheet,
   Text,
@@ -30,30 +30,36 @@ const ORDEN_OPCIONES = [
 
 const ALERT_CONTENT = {
   busqueda: {
-    icono: "calendar-outline",
-    color: "#1E40AF",
-    bgColor: "#EFF6FF",
+    icono: "calendar-outline" as const,
     titulo: "Elegi fechas y lugar",
     mensaje:
       "Inicia sesion para buscar por fecha de recogida, devolucion y sucursal.",
   },
   reservar: {
-    icono: "car-sport-outline",
-    color: "#1E40AF",
-    bgColor: "#EFF6FF",
+    icono: "car-sport-outline" as const,
     titulo: "Reserva este vehiculo",
     mensaje: "Necesitas una cuenta activa para realizar reservas en Drivique.",
   },
   favorito: {
-    icono: "heart-outline",
-    color: "#1E40AF",
-    bgColor: "#EFF6FF",
+    icono: "heart-outline" as const,
     titulo: "Guarda en favoritos",
     mensaje: "Inicia sesion para guardar tus vehiculos favoritos.",
   },
 };
 
 type AlertTipo = keyof typeof ALERT_CONTENT;
+
+// Fallback: si el usuario no tiene "nombres" cargado, se deriva del correo (antes de la @)
+function nombreDesdeCorreo(correo?: string): string {
+  if (!correo) return "Usuario";
+  const parteLocal = correo.split("@")[0] ?? "";
+  const limpio = parteLocal.replace(/[._-]+/g, " ").trim();
+  if (!limpio) return "Usuario";
+  return limpio
+    .split(" ")
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
+}
 
 function ListFooter({
   paginaActual,
@@ -178,9 +184,8 @@ export default function Catalogo() {
     filtros.sucursal !== "Todas las sucursales" ||
     !!filtros.precioMin ||
     !!filtros.precioMax ||
-    soloFavoritos; // --- incluir favoritos en el indicador activo
+    soloFavoritos;
 
-  // --- Filtrar por búsqueda de texto Y por soloFavoritos ---
   const vehiculosAMostrar = vehiculosPaginados.filter((vehiculo: any) => {
     const busqueda = textBusqueda.toLowerCase();
     const coincideTexto =
@@ -198,12 +203,16 @@ export default function Catalogo() {
     setSweetAlertVisible(true);
   };
 
-  // --- Toggle soloFavoritos: si se activa, desactiva al volver a presionar ---
   const handleToggleSoloFavoritos = () => {
     setSoloFavoritos((prev) => !prev);
   };
 
   const alertInfo = ALERT_CONTENT[alertTipo];
+
+  const nombreUsuario = usuario
+    ? (usuario.nombres?.trim() || nombreDesdeCorreo(usuario.correo))
+    : "";
+  const inicialUsuario = nombreUsuario.charAt(0).toUpperCase();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -218,7 +227,16 @@ export default function Catalogo() {
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Drivique</Text>
         </View>
-        {!usuario && (
+        {usuario ? (
+          <View style={styles.headerUsuario}>
+            <Text style={styles.headerUsuarioTexto} numberOfLines={1}>
+              Bienvenido, {nombreUsuario}
+            </Text>
+            <View style={styles.headerAvatar}>
+              <Text style={styles.headerAvatarTexto}>{inicialUsuario}</Text>
+            </View>
+          </View>
+        ) : (
           <View style={styles.headerBtns}>
             <TouchableOpacity
               style={styles.loginBtn}
@@ -371,7 +389,7 @@ export default function Catalogo() {
         setFiltro={setFiltro}
         limpiar={() => {
           limpiar();
-          setSoloFavoritos(false); // --- limpiar también el filtro de favoritos
+          setSoloFavoritos(false);
         }}
         usuario={!!usuario}
         soloFavoritos={soloFavoritos}
@@ -379,55 +397,29 @@ export default function Catalogo() {
         totalFavoritos={favoritos.length}
       />
 
-      {/* SWEET ALERT */}
-      <Modal
+      {/* ── ALERTA (mismo componente y diseño reutilizable AlertModal) ── */}
+      <AlertModal
         visible={sweetAlertVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setSweetAlertVisible(false)}
-      >
-        <View style={styles.alertOverlay}>
-          <View style={styles.alertBox}>
-            <View
-              style={[
-                styles.alertIconContainer,
-                { backgroundColor: alertInfo.bgColor },
-              ]}
-            >
-              <Ionicons
-                name={alertInfo.icono as any}
-                size={44}
-                color={alertInfo.color}
-              />
-            </View>
-
-            <Text style={styles.alertTitle}>{alertInfo.titulo}</Text>
-            <Text style={styles.alertMessage}>{alertInfo.mensaje}</Text>
-
-            <View style={styles.alertButtonsContainer}>
-              <TouchableOpacity
-                style={styles.alertCancelBtn}
-                onPress={() => setSweetAlertVisible(false)}
-              >
-                <Text style={styles.alertCancelBtnText}>Cancelar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.alertConfirmBtn,
-                  { backgroundColor: alertInfo.color },
-                ]}
-                onPress={() => {
-                  setSweetAlertVisible(false);
-                  router.push("/(auth)/login");
-                }}
-              >
-                <Text style={styles.alertConfirmBtnText}>Iniciar sesion</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        icono={alertInfo.icono}
+        titulo={alertInfo.titulo}
+        mensaje={alertInfo.mensaje}
+        botones={[
+          {
+            texto: "Cancelar",
+            variante: "secundario",
+            onPress: () => setSweetAlertVisible(false),
+          },
+          {
+            texto: "Iniciar sesion",
+            variante: "primario",
+            onPress: () => {
+              setSweetAlertVisible(false);
+              router.push("/(auth)/login");
+            },
+          },
+        ]}
+        onCerrar={() => setSweetAlertVisible(false)}
+      />
     </View>
   );
 }
@@ -467,6 +459,31 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E40AF",
   },
   registerBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+  headerUsuario: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    maxWidth: 200,
+  },
+  headerUsuarioTexto: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#475569",
+    flexShrink: 1,
+  },
+  headerAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#1E40AF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerAvatarTexto: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#fff",
+  },
   controlsBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -543,66 +560,4 @@ const styles = StyleSheet.create({
   paginaBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
   paginaBtnTextDisabled: { color: "#CBD5E1" },
   paginaInfoTexto: { fontSize: 14, fontWeight: "700", color: "#475569" },
-  alertOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  alertBox: {
-    width: "100%",
-    maxWidth: 320,
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 24,
-    alignItems: "center",
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-  },
-  alertIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  alertTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  alertMessage: {
-    fontSize: 13.5,
-    color: "#4B5563",
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  alertButtonsContainer: { flexDirection: "row", width: "100%", gap: 12 },
-  alertCancelBtn: {
-    flex: 1,
-    height: 42,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: "#1E40AF",
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  alertCancelBtnText: { fontSize: 14, fontWeight: "600", color: "#1E40AF" },
-  alertConfirmBtn: {
-    flex: 1,
-    height: 42,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  alertConfirmBtnText: { fontSize: 14, fontWeight: "600", color: "#FFF" },
 });

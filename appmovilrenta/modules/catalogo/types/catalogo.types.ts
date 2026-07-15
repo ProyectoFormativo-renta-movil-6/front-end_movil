@@ -11,6 +11,22 @@ export interface Seguro {
   precio: number;
 }
 
+export interface ServicioExtra {
+  nombre: string;
+  precio: number;
+}
+
+export interface Comentario {
+  autor: string;
+  calificacion: number;
+  texto: string;
+  fecha: string;
+}
+
+export interface DisponibilidadVehiculo {
+  ocupados: string[];
+}
+
 export interface Vehiculo {
   id: number;
   nombre: string;
@@ -42,6 +58,9 @@ export interface Vehiculo {
     kmIlimitado?: Tarifa;
   };
   seguros?: Seguro[];
+  servicios?: ServicioExtra[];
+  disponibilidad?: DisponibilidadVehiculo;
+  comentarios?: Comentario[];
   imagenes?: string[];
   imagen?: string;
   foto?: string;
