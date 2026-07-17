@@ -36,15 +36,6 @@ export function SocialAuthButtons({
 
   return (
     <View style={s.wrap}>
-      {/* Separador */}
-      <View style={s.separador}>
-        <View style={[s.linea, { backgroundColor: c.border }]} />
-        <Text style={[s.separadorTexto, { color: c.textMuted }]}>
-          {t("auth.social.o")}
-        </Text>
-        <View style={[s.linea, { backgroundColor: c.border }]} />
-      </View>
-
       {/* Botón Google */}
       <TouchableOpacity
         style={[
@@ -108,20 +99,6 @@ const s = StyleSheet.create({
   wrap: {
     marginTop: 8,
     gap: 12,
-  },
-  separador: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 4,
-  },
-  linea: {
-    flex: 1,
-    height: 1,
-  },
-  separadorTexto: {
-    fontSize: 13,
-    fontWeight: "500",
   },
   btn: {
     flexDirection: "row",
