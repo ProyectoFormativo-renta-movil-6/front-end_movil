@@ -17,21 +17,31 @@ const SECCIONES: SeccionConfig[] = [
 interface Props {
   seccionActiva: SeccionReserva;
   onCambiarSeccion: (seccion: SeccionReserva) => void;
+  tabsDeshabilitados?: SeccionReserva[];
 }
 
-export default function TabsSeccion({ seccionActiva, onCambiarSeccion }: Props) {
+export default function TabsSeccion({ seccionActiva, onCambiarSeccion, tabsDeshabilitados = [] }: Props) {
   return (
     <View style={styles.contenedor}>
       {SECCIONES.map((seccion) => {
         const activa = seccion.id === seccionActiva;
+        const deshabilitado = tabsDeshabilitados.includes(seccion.id);
         return (
           <TouchableOpacity
             key={seccion.id}
-            style={[styles.tab, activa && styles.tabActivo]}
-            onPress={() => onCambiarSeccion(seccion.id)}
-            activeOpacity={0.8}
+            style={[styles.tab, activa && styles.tabActivo, deshabilitado && styles.tabDeshabilitado]}
+            onPress={() => !deshabilitado && onCambiarSeccion(seccion.id)}
+            activeOpacity={deshabilitado ? 1 : 0.8}
+            disabled={deshabilitado}
           >
-            <Text style={[styles.tabText, activa && styles.tabTextActivo]} numberOfLines={1}>
+            <Text
+              style={[
+                styles.tabText,
+                activa && styles.tabTextActivo,
+                deshabilitado && styles.tabTextDeshabilitado,
+              ]}
+              numberOfLines={1}
+            >
               {seccion.label}
             </Text>
           </TouchableOpacity>
@@ -56,6 +66,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   tabActivo: { backgroundColor: "#FFFFFF" },
+  tabDeshabilitado: { opacity: 0.4 },
   tabText: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.75)" },
   tabTextActivo: { color: COLOR_MARCA },
+  tabTextDeshabilitado: { color: "rgba(255,255,255,0.75)" },
 });

@@ -25,6 +25,11 @@ interface Props {
   onCerrar: () => void;
   onEditarFechas?: () => void;
   onEditarVehiculo?: () => void;
+  // Controla si el resumen ya muestra lo relacionado al tab "Planes"
+  // (protección en el desglose). Lo decide el padre (FlujoReserva)
+  // según en qué tab está el usuario — true cuando ya avanzó más allá
+  // de "fechas".
+  mostrarPlanes?: boolean;
 }
 
 type Modo = "resumen" | "editarPago" | "editarFechas";
@@ -56,7 +61,7 @@ function formatFechaCorta(fecha: string | null): string {
   return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short" });
 }
 
-// NUEVO: combina fecha + hora en un solo texto, para la fila unificada
+// Combina fecha + hora en un solo texto, para la fila unificada
 // "Retiras" / "Devuelves" (ej: "15 jul · 10:00 a.m.")
 function formatFechaHora(fecha: string | null, hora: string): string {
   const f = fecha ? formatFechaCorta(fecha) : "";
@@ -126,10 +131,11 @@ function FilaDato({
   );
 }
 
-export default function ResumenReservaModal({ visible, vehiculo, onCerrar }: Props) {
+export default function ResumenReservaModal({ visible, vehiculo, onCerrar, mostrarPlanes = false }: Props) {
   const insets = useSafeAreaInsets();
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const actualizarFechasLugar = useReservaStore((s) => s.actualizarFechasLugar);
+  const planes = useReservaStore((s) => s.planes);
 
   const [modo, setModo] = useState<Modo>("resumen");
   const [modalTipoLugar, setModalTipoLugar] = useState<"retiro" | "devolucion" | null>(null);
@@ -200,16 +206,24 @@ export default function ResumenReservaModal({ visible, vehiculo, onCerrar }: Pro
   const colRetiro = formatFechaHora(fechasLugar.fechaRetiro, fechasLugar.horaRetiro);
   const colDevolucion = formatFechaHora(fechasLugar.fechaDevolucion, fechasLugar.horaDevolucion);
 
+  // Protección elegida en el tab "Planes" (si el usuario ya llegó ahí
+  // y seleccionó una). Se busca su precio en vehiculo.seguros.
+  const seguroElegido = useMemo(
+    () => vehiculo.seguros?.find((s) => s.nombre === planes.proteccion) ?? null,
+    [vehiculo.seguros, planes.proteccion]
+  );
+
   const desglose = useMemo(() => {
     const dias = diasEntre(fechasLugar.fechaRetiro, fechasLugar.fechaDevolucion);
     const diarias = vehiculo.precio * dias;
+    const proteccion = mostrarPlanes && seguroElegido ? seguroElegido.precio * dias : 0;
     const cargos = Math.round(diarias * PORCENTAJE_CARGOS_ADMINISTRATIVOS);
     const recargoLogistico = RECARGO_LOGISTICO;
-    const subtotal = diarias + cargos + recargoLogistico;
+    const subtotal = diarias + proteccion + cargos + recargoLogistico;
     const iva = Math.round(subtotal * PORCENTAJE_IVA);
     const total = subtotal + iva;
-    return { dias, diarias, cargos, recargoLogistico, subtotal, iva, total };
-  }, [vehiculo.precio, fechasLugar.fechaRetiro, fechasLugar.fechaDevolucion]);
+    return { dias, diarias, proteccion, cargos, recargoLogistico, subtotal, iva, total };
+  }, [vehiculo.precio, fechasLugar.fechaRetiro, fechasLugar.fechaDevolucion, mostrarPlanes, seguroElegido]);
 
   const abrirEditarPago = () => {
     setDraftPago({
@@ -281,9 +295,9 @@ export default function ResumenReservaModal({ visible, vehiculo, onCerrar }: Pro
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.cardMaestra}>
-            {/* --- VEHÍCULO: informativo, sin Editar --- */}
+            {/* --- VEHÍCULO / GRUPO: informativo, sin Editar --- */}
             <View style={styles.vehiculoBanner}>
-              <Text style={styles.vehiculoBannerLabel}>VEHÍCULO</Text>
+              <Text style={styles.vehiculoBannerLabel}>GRUPO</Text>
               <Text style={styles.vehiculoBannerNombre}>{vehiculo.nombre}</Text>
               <Text style={styles.vehiculoBannerSub}>{vehiculo.categoria ?? "Económico"} — {vehiculo.transmision}</Text>
             </View>
@@ -437,6 +451,19 @@ export default function ResumenReservaModal({ visible, vehiculo, onCerrar }: Pro
                       <Text style={styles.lineaLabel}>Diarias ({desglose.dias} día{desglose.dias > 1 ? "s" : ""})</Text>
                       <Text style={styles.lineaValor}>{formatPrecio(desglose.diarias)}</Text>
                     </View>
+
+                    {/* Protección: solo aparece si el usuario ya llegó al
+                        tab de Planes y eligió una. Antes de eso, no se
+                        muestra (el usuario aún no la ha elegido). */}
+                    {desglose.proteccion > 0 && (
+                      <View style={styles.lineaPrecio}>
+                        <Text style={styles.lineaLabel}>
+                          Protección — {planes.proteccion} ({desglose.dias} día{desglose.dias > 1 ? "s" : ""})
+                        </Text>
+                        <Text style={styles.lineaValor}>{formatPrecio(desglose.proteccion)}</Text>
+                      </View>
+                    )}
+
                     <View style={styles.lineaPrecio}>
                       <Text style={styles.lineaLabel}>
                         Cargos administrativos ({formatPorcentaje(PORCENTAJE_CARGOS_ADMINISTRATIVOS)})
@@ -471,7 +498,11 @@ export default function ResumenReservaModal({ visible, vehiculo, onCerrar }: Pro
                   <Text style={styles.totalLabel}>TOTAL A PAGAR</Text>
                   <Text style={styles.totalValor}>{formatPrecio(desglose.total)}</Text>
                 </View>
-                <Text style={styles.totalNota}>Incluye IVA. No incluye protección, la eliges en el siguiente paso</Text>
+                <Text style={styles.totalNota}>
+                  {desglose.proteccion > 0
+                    ? "Incluye IVA y protección."
+                    : "Incluye IVA. No incluye protección, la eliges en el siguiente paso"}
+                </Text>
               </View>
             )}
           </View>
@@ -552,7 +583,7 @@ const styles = StyleSheet.create({
   filaBotonesEdicion: { flexDirection: "row", gap: 10, marginTop: 4 },
 
   lineaPrecio: { flexDirection: "row", justifyContent: "space-between", marginTop: 8 },
-  lineaLabel: { fontSize: 12, color: COLORES.textSecondary },
+  lineaLabel: { fontSize: 12, color: COLORES.textSecondary, flex: 1, marginRight: 8 },
   lineaValor: { fontSize: 12, fontWeight: "700", color: COLORES.textPrimary },
 
   subtotalBox: {

@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { useReservaStore } from "@/store/reservaStore";
 import { COLOR_MARCA, COLORES, METODOS_PAGO } from "../constants/reserva.constants";
-import { CIUDADES_DATA, getCiudadPorSucursal } from "@/modules/catalogo/constants/catalogo.constants";
+import { CIUDADES_DATA, getCiudadPorSucursal, getDisponibilidadVehiculo } from "@/modules/catalogo/constants/catalogo.constants";
 import CalendarioRango from "./CalendarioRango";
 import SelectorSucursalModal, { OpcionLugar } from "./SelectorSucursalModal";
 import SelectorHoraModal from "./SelectorHoraModal";
@@ -64,8 +64,6 @@ export default function FormFechasLugar({ vehiculo }: Props) {
     return base;
   }, [nombreSucursal, esWompi, ciudadInfo]);
 
-  // Si el usuario pasa a "efectivo" mientras tenía domicilio/aeropuerto/terminal
-  // seleccionado, esas opciones dejan de existir — se vuelve a la sucursal.
   useEffect(() => {
     if (!esWompi) {
       const actualizacion: Partial<typeof fechasLugar> = {};
@@ -88,13 +86,13 @@ export default function FormFechasLugar({ vehiculo }: Props) {
     setModalTipo(null);
   };
 
-  // Mismo criterio que el calendario de fechas: cada hora ocupada trae un
-  // motivo ("reservado" | "mantenimiento") para poder explicar el bloqueo.
   const handleElegirHora = (hora: string) => {
     const fecha = horaVisible === "retiro" ? fechasLugar.fechaRetiro : fechasLugar.fechaDevolucion;
 
     if (fecha) {
-      const horasOcupadas = vehiculo.disponibilidad?.horasOcupadas?.[fecha] ?? [];
+      // La disponibilidad ya no viene embebida en el vehículo — se calcula
+      // a partir de RESERVAS_MOCK (mocks/reservas.json) según su id.
+      const horasOcupadas = getDisponibilidadVehiculo(vehiculo.id).horasOcupadas?.[fecha] ?? [];
       const bloqueo = horasOcupadas.find((h) => h.hora === hora);
 
       if (bloqueo) {
@@ -123,12 +121,14 @@ export default function FormFechasLugar({ vehiculo }: Props) {
     fechasLugar.lugarDevolucion ||
     "Seleccionar";
 
+  const ciudadEntregaNombre = ciudadInfo?.nombre ?? ciudadNombre ?? "";
+
+  const mostrarDomicilioRetiro = fechasLugar.lugarRetiro === "domicilio";
+  const mostrarDomicilioDevolucion = fechasLugar.lugarDevolucion === "domicilio";
+
   return (
     <View style={styles.card}>
-      <Text style={styles.titulo}>Fechas y lugar</Text>
-      <Text style={styles.subtitulo}>Elige el lugar y las fechas de tu reserva</Text>
-
-      <Text style={styles.label}>MÉTODO DE PAGO PREFERIDO</Text>
+      <Text style={[styles.tituloSeccion, styles.primerLabel]}>MÉTODO DE PAGO PREFERIDO</Text>
       <View style={styles.filaDosCols}>
         {METODOS_PAGO.map((metodo) => {
           const activo = fechasLugar.metodoPago === metodo.id;
@@ -155,7 +155,7 @@ export default function FormFechasLugar({ vehiculo }: Props) {
         })}
       </View>
 
-      <Text style={styles.label}>LUGAR Y HORA DE ENTREGA/DEVOLUCIÓN</Text>
+      <Text style={styles.tituloSeccion}>LUGAR Y HORA DE ENTREGA/DEVOLUCIÓN</Text>
       <View style={styles.filaDosCols}>
         <TouchableOpacity style={styles.selectBox} onPress={() => setModalTipo("retiro")}>
           <View style={styles.selectLabelRow}>
@@ -176,6 +176,96 @@ export default function FormFechasLugar({ vehiculo }: Props) {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* --- INFO DE ENTREGA A DOMICILIO (solo si lugarRetiro === "domicilio") --- */}
+      {mostrarDomicilioRetiro && (
+        <View style={styles.domicilioCard}>
+          <Text style={styles.domicilioTitulo}>INFORMACIÓN DE ENTREGA A DOMICILIO</Text>
+
+          <View style={styles.ciudadBox}>
+            <View style={styles.selectLabelRow}>
+              <Ionicons name="location" size={13} color={COLOR_MARCA} />
+              <Text style={styles.ciudadLabel}>CIUDAD DE ENTREGA</Text>
+            </View>
+            <View style={styles.ciudadValorRow}>
+              <Text style={styles.ciudadValor}>{ciudadEntregaNombre}</Text>
+              <Text style={styles.autoDetectado}>AUTO-DETECTADO</Text>
+            </View>
+          </View>
+
+          <Text style={styles.inputLabel}>BARRIO *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ej: Centro"
+            placeholderTextColor={COLORES.textMuted}
+            value={fechasLugar.barrioRetiro ?? ""}
+            onChangeText={(texto) => actualizarFechasLugar({ barrioRetiro: texto })}
+          />
+
+          <Text style={styles.inputLabel}>DIRECCIÓN *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ej: Calle 10 # 5 - 42"
+            placeholderTextColor={COLORES.textMuted}
+            value={fechasLugar.direccionRetiro ?? ""}
+            onChangeText={(texto) => actualizarFechasLugar({ direccionRetiro: texto })}
+          />
+
+          <Text style={styles.inputLabel}>REFERENCIAS DE ENTREGA *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ej: Frente al parque, indicaciones adicionales..."
+            placeholderTextColor={COLORES.textMuted}
+            value={fechasLugar.referenciasRetiro ?? ""}
+            onChangeText={(texto) => actualizarFechasLugar({ referenciasRetiro: texto })}
+          />
+        </View>
+      )}
+
+      {/* --- INFO DE DEVOLUCIÓN A DOMICILIO (solo si lugarDevolucion === "domicilio") --- */}
+      {mostrarDomicilioDevolucion && (
+        <View style={styles.domicilioCard}>
+          <Text style={styles.domicilioTitulo}>INFORMACIÓN DE DEVOLUCIÓN A DOMICILIO</Text>
+
+          <View style={styles.ciudadBox}>
+            <View style={styles.selectLabelRow}>
+              <Ionicons name="location" size={13} color={COLOR_MARCA} />
+              <Text style={styles.ciudadLabel}>CIUDAD DE DEVOLUCIÓN</Text>
+            </View>
+            <View style={styles.ciudadValorRow}>
+              <Text style={styles.ciudadValor}>{ciudadEntregaNombre}</Text>
+              <Text style={styles.autoDetectado}>AUTO-DETECTADO</Text>
+            </View>
+          </View>
+
+          <Text style={styles.inputLabel}>BARRIO *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ej: Centro"
+            placeholderTextColor={COLORES.textMuted}
+            value={fechasLugar.barrioDevolucion ?? ""}
+            onChangeText={(texto) => actualizarFechasLugar({ barrioDevolucion: texto })}
+          />
+
+          <Text style={styles.inputLabel}>DIRECCIÓN *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ej: Calle 10 # 5 - 42"
+            placeholderTextColor={COLORES.textMuted}
+            value={fechasLugar.direccionDevolucion ?? ""}
+            onChangeText={(texto) => actualizarFechasLugar({ direccionDevolucion: texto })}
+          />
+
+          <Text style={styles.inputLabel}>REFERENCIAS DE DEVOLUCIÓN *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ej: Frente al parque, indicaciones adicionales..."
+            placeholderTextColor={COLORES.textMuted}
+            value={fechasLugar.referenciasDevolucion ?? ""}
+            onChangeText={(texto) => actualizarFechasLugar({ referenciasDevolucion: texto })}
+          />
+        </View>
+      )}
 
       <View style={[styles.filaDosCols, { marginTop: 8 }]}>
         <TouchableOpacity style={styles.selectBox} onPress={() => setHoraVisible("retiro")}>
@@ -200,7 +290,22 @@ export default function FormFechasLugar({ vehiculo }: Props) {
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.filaDosCols, { marginTop: 8 }]}>
+      {/* --- CALENDARIO DE DISPONIBILIDAD (justo después de la hora) --- */}
+      <View style={styles.labelConIcono}>
+        <Ionicons name="calendar-outline" size={13} color={COLORES.textMuted} />
+        <Text style={styles.tituloSeccion}>CALENDARIO DE DISPONIBILIDAD</Text>
+      </View>
+      <CalendarioRango
+        vehiculo={vehiculo}
+        fechaRetiro={fechasLugar.fechaRetiro}
+        fechaDevolucion={fechasLugar.fechaDevolucion}
+        onCambiarFechas={(retiro, devolucion) =>
+          actualizarFechasLugar({ fechaRetiro: retiro, fechaDevolucion: devolucion })
+        }
+      />
+
+      {/* --- FECHAS AUTOMÁTICAS (se llenan solas con lo elegido en el calendario) --- */}
+      <View style={[styles.filaDosCols, { marginTop: 12 }]}>
         <View style={styles.selectBox}>
           <View style={styles.selectLabelRow}>
             <Ionicons name="calendar-outline" size={12} color={COLORES.textMuted} />
@@ -220,19 +325,6 @@ export default function FormFechasLugar({ vehiculo }: Props) {
           </Text>
         </View>
       </View>
-
-      <View style={styles.labelConIcono}>
-        <Ionicons name="calendar-outline" size={13} color={COLORES.textMuted} />
-        <Text style={styles.label}>SELECCIONA EL RANGO DE FECHAS</Text>
-      </View>
-      <CalendarioRango
-        vehiculo={vehiculo}
-        fechaRetiro={fechasLugar.fechaRetiro}
-        fechaDevolucion={fechasLugar.fechaDevolucion}
-        onCambiarFechas={(retiro, devolucion) =>
-          actualizarFechasLugar({ fechaRetiro: retiro, fechaDevolucion: devolucion })
-        }
-      />
 
       <SelectorSucursalModal
         visible={modalTipo !== null}
@@ -264,9 +356,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  titulo: { fontSize: 18, fontWeight: "800", color: COLORES.textPrimary },
-  subtitulo: { fontSize: 12, color: COLORES.textSecondary, marginTop: 4, marginBottom: 16 },
-  label: { fontSize: 10, fontWeight: "700", color: COLORES.textMuted, letterSpacing: 0.3, marginBottom: 8, marginTop: 4 },
+  tituloSeccion: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: COLORES.textSecondary,
+    letterSpacing: 0.3,
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  primerLabel: { marginTop: 0 },
   labelConIcono: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 4, marginBottom: 8 },
   filaDosCols: { flexDirection: "row", gap: 8, marginBottom: 14 },
   metodoCard: { flex: 1, borderWidth: 1, borderColor: COLORES.panelBorderStrong, borderRadius: 10, padding: 10 },
@@ -284,4 +382,49 @@ const styles = StyleSheet.create({
   selectLabel: { fontSize: 9, color: COLORES.textMuted, fontWeight: "700" },
   selectValue: { fontSize: 11, fontWeight: "600", color: COLORES.textPrimary },
   selectValorRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+
+  // --- Bloque de información a domicilio ---
+  domicilioCard: {
+    borderWidth: 1,
+    borderColor: COLORES.panelBorderStrong,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 14,
+    marginTop: -6,
+  },
+  domicilioTitulo: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#0c447c",
+    marginBottom: 10,
+  },
+  ciudadBox: {
+    backgroundColor: "#eef2fb",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 12,
+  },
+  ciudadLabel: { fontSize: 9, fontWeight: "700", color: COLORES.textMuted, letterSpacing: 0.3 },
+  ciudadValorRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 4 },
+  ciudadValor: { fontSize: 13, fontWeight: "700", color: COLORES.textPrimary },
+  autoDetectado: { fontSize: 9, fontWeight: "700", color: COLOR_MARCA, letterSpacing: 0.3 },
+  inputLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: COLORES.textSecondary,
+    letterSpacing: 0.3,
+    marginBottom: 5,
+    marginTop: 4,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: COLORES.panelBorderStrong,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    fontSize: 12,
+    color: COLORES.textPrimary,
+    backgroundColor: "#fafbfd",
+    marginBottom: 4,
+  },
 });

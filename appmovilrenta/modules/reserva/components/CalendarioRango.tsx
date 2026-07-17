@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { Calendar, DateData } from "react-native-calendars";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
+import { getDisponibilidadVehiculo } from "@/modules/catalogo/constants/catalogo.constants";
 import { COLOR_MARCA, COLORES } from "../constants/reserva.constants";
 
 interface Props {
@@ -32,15 +33,15 @@ export default function CalendarioRango({
   fechaDevolucion,
   onCambiarFechas,
 }: Props) {
-  // Mapa fecha -> motivo ("reservado" | "mantenimiento"), para poder pintar
-  // y explicar cada bloqueo según su causa real.
+  // La disponibilidad ya no viene embebida en el vehículo — se calcula
+  // a partir de RESERVAS_MOCK (mocks/reservas.json) según su id.
   const ocupados = useMemo(() => {
     const mapa = new Map<string, "reservado" | "mantenimiento">();
-    (vehiculo.disponibilidad?.ocupados ?? []).forEach((item) => {
+    getDisponibilidadVehiculo(vehiculo.id).ocupados.forEach((item) => {
       mapa.set(item.fecha, item.motivo);
     });
     return mapa;
-  }, [vehiculo]);
+  }, [vehiculo.id]);
 
   const hoy = new Date().toISOString().split("T")[0];
 
@@ -160,10 +161,6 @@ export default function CalendarioRango({
           <Text style={styles.leyendaText}>Seleccionado</Text>
         </View>
       </View>
-
-      {!fechaRetiro && (
-        <Text style={styles.avisoTexto}>Debes seleccionar las fechas de retiro y devolución</Text>
-      )}
     </View>
   );
 }
@@ -188,11 +185,4 @@ const styles = StyleSheet.create({
   leyendaItem: { flexDirection: "row", alignItems: "center", gap: 5 },
   dot: { width: 7, height: 7, borderRadius: 4 },
   leyendaText: { fontSize: 10, color: COLORES.textSecondary },
-  avisoTexto: {
-    fontSize: 11,
-    color: "#dc2626",
-    textAlign: "right",
-    paddingHorizontal: 8,
-    paddingBottom: 4,
-  },
 });

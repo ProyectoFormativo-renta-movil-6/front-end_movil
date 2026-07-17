@@ -40,3 +40,66 @@ export function formatHoraAmPm(hora24: string): string {
   if (h === 0) h = 12;
   return `${h}:${m} ${sufijo}`;
 }
+
+// ===================== TAB "PLANES" =====================
+
+// Texto informativo sobre cómo se maneja el kilometraje en el alquiler
+// de carros por días en Colombia. Es la práctica habitual del sector,
+// no una norma legal específica.
+export const INFO_KILOMETRAJE_COLOMBIA =
+  "En Colombia la mayoría de las alquiladoras ofrecen dos modalidades: kilometraje limitado, con un tope de kilómetros por día y un cobro adicional por cada kilómetro que te pases, o kilometraje ilimitado, sin restricción de distancia dentro del territorio nacional. Ninguna de las dos modalidades incluye combustible, peajes ni parqueaderos.";
+
+export interface BeneficioProteccion {
+  tipo: "check" | "warning" | "cross";
+  texto: string;
+}
+
+// Beneficios mostrados en cada tarjeta de protección. Se relacionan por
+// el campo "nombre" que ya viene en vehiculo.seguros. Si aparece un
+// seguro con un nombre nuevo que no está aquí, simplemente no muestra
+// la lista de beneficios (pero sí el precio y el botón de selección).
+export const BENEFICIOS_PROTECCION: Record<string, BeneficioProteccion[]> = {
+  "Protección Obligatoria": [
+    { tipo: "check", texto: "Asistencia durante tu viaje. No incluida en Alquiler Ligero" },
+    { tipo: "check", texto: "Responsabilidad civil extracontractual (hasta $840 millones)" },
+    { tipo: "check", texto: "Cobertura básica del vehículo (no incluye daños graves ni robo)" },
+    { tipo: "warning", texto: "En caso de siniestro asumes una participación obligatoria de hasta $4.760.000, según el vehículo" },
+    { tipo: "cross", texto: "No cubre uso indebido del vehículo" },
+  ],
+  "Protección Total": [
+    { tipo: "check", texto: "Asistencia completa durante tu viaje" },
+    { tipo: "check", texto: "Responsabilidad civil extracontractual (hasta $840 millones)" },
+    { tipo: "check", texto: "Cobertura total del vehículo (incluye daños graves y robo)" },
+    { tipo: "check", texto: "Sin pago de la participación obligatoria en caso de siniestro" },
+    { tipo: "cross", texto: "No cubre uso indebido del vehículo" },
+  ],
+};
+
+// Beneficios/condiciones mostrados en cada tarjeta de tipo de
+// kilometraje, mismo patrón que BENEFICIOS_PROTECCION. Se relacionan
+// por la clave "limitado" / "ilimitado", que coincide con
+// planes.tipoKilometraje en el store.
+export const BENEFICIOS_KILOMETRAJE: Record<"limitado" | "ilimitado", BeneficioProteccion[]> = {
+  limitado: [
+    { tipo: "check", texto: "Incluye un tope de kilómetros por día, según el vehículo elegido" },
+    { tipo: "warning", texto: "Cada kilómetro adicional al tope se cobra aparte, al valor de excedente" },
+    { tipo: "cross", texto: "No recomendado para trayectos largos o interdepartamentales" },
+  ],
+  ilimitado: [
+    { tipo: "check", texto: "Sin restricción de distancia dentro del territorio nacional" },
+    { tipo: "check", texto: "Ideal para viajes largos, interdepartamentales o de varios días" },
+    { tipo: "cross", texto: "No incluye combustible, peajes ni parqueaderos" },
+  ],
+};
+
+// Ícono por servicio adicional (coincide exactamente con los nombres
+// usados en vehiculos.json). Si aparece un servicio nuevo que no está
+// en este mapa, se usa el ícono por defecto.
+export const ICONO_SERVICIO_DEFECTO = "add-circle-outline";
+export const ICONOS_SERVICIOS: Record<string, string> = {
+  GPS: "navigate-outline",
+  "Silla bebé": "body-outline",
+  "Conductor adicional": "person-add-outline",
+  "Entrega en otra ciudad": "map-outline",
+  "WiFi portátil": "wifi-outline",
+};
