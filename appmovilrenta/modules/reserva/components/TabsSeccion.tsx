@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLOR_MARCA } from "../constants/reserva.constants";
 
-export type SeccionReserva = "vehiculo" | "fechas";
+export type SeccionReserva = "fechas" | "planes";
 
 interface SeccionConfig {
   id: SeccionReserva;
@@ -10,8 +10,8 @@ interface SeccionConfig {
 }
 
 const SECCIONES: SeccionConfig[] = [
-  { id: "vehiculo", label: "Ver vehículo" },
   { id: "fechas", label: "Seleccionar fechas y lugar" },
+  { id: "planes", label: "Planes" },
 ];
 
 interface Props {

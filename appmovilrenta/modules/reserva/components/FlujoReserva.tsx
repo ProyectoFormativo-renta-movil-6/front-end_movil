@@ -20,7 +20,9 @@ export default function FlujoReserva({ vehiculo }: Props) {
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const limpiarReserva = useReservaStore((s) => s.limpiarReserva);
 
-  const [seccionActiva, setSeccionActiva] = useState<SeccionReserva>("vehiculo");
+  // Ya no existe la sección "vehiculo" por separado — ahora arranca en
+  // "fechas", que incluye tanto los datos del vehículo como el form.
+  const [seccionActiva, setSeccionActiva] = useState<SeccionReserva>("fechas");
   const [modalResumenVisible, setModalResumenVisible] = useState(false);
 
   const puedeContinuar = !!fechasLugar.fechaRetiro && !!fechasLugar.fechaDevolucion && !!fechasLugar.metodoPago;
@@ -49,11 +51,7 @@ export default function FlujoReserva({ vehiculo }: Props) {
         </TouchableOpacity>
       </View>
 
-      {/* Bloque azul: título + tabs.
-          zIndex/elevation altos a propósito: garantiza que, incluso si el
-          ScrollView de abajo llegara a solaparse visualmente (por rebote,
-          alguna animación, etc.), el bloque azul siempre se dibuje por
-          encima y nunca se vea "atravesado" por el contenido. */}
+      {/* Bloque azul: título + tabs. */}
       <View style={styles.headerAzul}>
         <Text style={styles.headerTitulo}>Reservar ahora</Text>
         <View style={styles.tabsWrapper}>
@@ -61,9 +59,6 @@ export default function FlujoReserva({ vehiculo }: Props) {
         </View>
       </View>
 
-      {/* Contenedor con overflow hidden: evita que cualquier contenido del
-          scroll (imagen, sombra de la tarjeta, etc.) se "escape" visualmente
-          por encima del límite superior del área scrolleable. */}
       <View style={styles.scrollClip}>
         <ScrollView
           style={styles.scroll}
@@ -72,17 +67,24 @@ export default function FlujoReserva({ vehiculo }: Props) {
           bounces={false}
           overScrollMode="never"
         >
-          {seccionActiva === "vehiculo" ? (
-            <VehiculoResumenCard vehiculo={vehiculo} />
-          ) : (
+          {seccionActiva === "fechas" ? (
             <>
+              {/* --- DATOS DEL VEHÍCULO: unido al tab de fechas --- */}
+              <Text style={styles.seccionLabel}>Datos del vehículo</Text>
+              <VehiculoResumenCard vehiculo={vehiculo} />
+
+              <Text style={[styles.seccionLabel, { marginTop: 20 }]}>Seleccionar fechas y lugar</Text>
               <FormFechasLugar vehiculo={vehiculo} />
 
-              {/* Botón Continuar, al final de la tarjeta de Fechas y lugar. Solo navega si puedeContinuar. */}
               <TouchableOpacity style={styles.continuarBtn} onPress={handleContinuar} activeOpacity={0.85}>
                 <Text style={styles.continuarBtnText}>Continuar</Text>
               </TouchableOpacity>
             </>
+          ) : (
+            // --- PLANES: tab nuevo, todavía vacío ---
+            <View style={styles.planesVacio}>
+              <Text style={styles.planesVacioText}>Próximamente: protección, kilometraje y servicios adicionales.</Text>
+            </View>
           )}
         </ScrollView>
       </View>
@@ -96,7 +98,7 @@ export default function FlujoReserva({ vehiculo }: Props) {
           setModalResumenVisible(false);
         }}
         onEditarVehiculo={() => {
-          setSeccionActiva("vehiculo");
+          setSeccionActiva("fechas");
           setModalResumenVisible(false);
         }}
       />
@@ -118,7 +120,7 @@ const styles = StyleSheet.create({
   },
   volverBtn: { flexDirection: "row", alignItems: "center", gap: 2 },
   volverText: { fontSize: 13, fontWeight: "600", color: COLOR_MARCA },
-resumenBtn: {
+  resumenBtn: {
     borderWidth: 1.5,
     borderColor: COLOR_MARCA,
     backgroundColor: "#FFFFFF",
@@ -142,6 +144,17 @@ resumenBtn: {
   scroll: { flex: 1 },
   scrollContent: { padding: 16 },
 
+  // Etiqueta de sección dentro del tab "fechas" (separa visualmente
+  // "Datos del vehículo" de "Seleccionar fechas y lugar")
+  seccionLabel: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: COLORES.textMuted,
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+    marginBottom: 8,
+  },
+
   continuarBtn: {
     alignSelf: "center",
     backgroundColor: COLOR_MARCA,
@@ -151,4 +164,7 @@ resumenBtn: {
     marginTop: 16,
   },
   continuarBtnText: { fontSize: 13, fontWeight: "700", color: "#FFFFFF" },
+
+  planesVacio: { paddingVertical: 60, alignItems: "center" },
+  planesVacioText: { fontSize: 13, color: COLORES.textMuted, textAlign: "center", paddingHorizontal: 24 },
 });
