@@ -13,7 +13,7 @@ export interface UsuarioDemo {
 export const USUARIOS_DEMO: UsuarioDemo[] = [
   {
     correo: "cliente@drivique.com",
-    contrasena: "Cliente123*",
+    contrasena: "cliente123*",
     id: "1",
     nombres: "Cliente",
     apellidos: "Demo",

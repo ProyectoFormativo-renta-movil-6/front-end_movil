@@ -1,5 +1,3 @@
-// app/(tabs)/catalogo.tsx
-
 import { AlertModal } from "@/components/ui/AlertModal";
 import BuscadorCatalogo from "@/modules/catalogo/components/BuscadorCatalogo";
 import FiltrosCatalogo from "@/modules/catalogo/components/FiltrosCatalogo";
@@ -9,7 +7,7 @@ import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
 import { useFavoritos } from "@/modules/catalogo/hooks/useFavoritos";
 import { useAuthStore } from "@/store/authStore";
 import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -45,11 +43,16 @@ const ALERT_CONTENT = {
     titulo: "Guarda en favoritos",
     mensaje: "Inicia sesion para guardar tus vehiculos favoritos.",
   },
+  sinResultados: {
+    icono: "car-outline" as const,
+    titulo: "Sin disponibilidad",
+    mensaje:
+      "No encontramos vehículos disponibles para esa ciudad, sucursal o esas fechas. Te mostramos el catálogo completo mientras tanto.",
+  },
 };
 
 type AlertTipo = keyof typeof ALERT_CONTENT;
 
-// Fallback: si el usuario no tiene "nombres" cargado, se deriva del correo (antes de la @)
 function nombreDesdeCorreo(correo?: string): string {
   if (!correo) return "Usuario";
   const parteLocal = correo.split("@")[0] ?? "";
@@ -138,7 +141,6 @@ export default function Catalogo() {
   const [sweetAlertVisible, setSweetAlertVisible] = useState(false);
   const [alertTipo, setAlertTipo] = useState("busqueda" as AlertTipo);
 
-  // --- FAVORITOS ---
   const usuarioId = usuario ? String(usuario.id ?? usuario.correo ?? "user") : null;
   const { favoritos, toggleFavorito, esFavorito } = useFavoritos(usuarioId);
   const [soloFavoritos, setSoloFavoritos] = useState(false);
@@ -149,23 +151,20 @@ export default function Catalogo() {
     filtros,
     setFiltro,
     vehiculosPaginados,
-    vehiculosFiltrados,
-    limpiar,
+    limpiarFiltros,
+    limpiarBusqueda,
     busquedaForm,
+    busquedaRealizada,
     setForm,
     handleBuscar,
     errorBusqueda,
+    sinResultadosBusqueda,
+    cerrarAlertaSinResultados,
     paginaActual,
     totalPaginas,
     paginaSiguiente,
     paginaAnterior,
   } = useCatalogo();
-
-  const { sucursal } = useLocalSearchParams<{ sucursal?: string }>();
-
-  useEffect(() => {
-    if (sucursal) setFiltro("sucursal", sucursal);
-  }, [sucursal]);
 
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [ordenVisible, setOrdenVisible] = useState(false);
@@ -175,6 +174,16 @@ export default function Catalogo() {
   useEffect(() => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [paginaActual]);
+
+  // Cuando la búsqueda de disponibilidad no encuentra vehículos, se muestra
+  // la misma alerta estándar de la app (sin dejar el catálogo vacío).
+  useEffect(() => {
+    if (sinResultadosBusqueda) {
+      setAlertTipo("sinResultados");
+      setSweetAlertVisible(true);
+      cerrarAlertaSinResultados();
+    }
+  }, [sinResultadosBusqueda, cerrarAlertaSinResultados]);
 
   const ordenLabel =
     ORDEN_OPCIONES.find((o) => o.valor === filtros.orden)?.label ??
@@ -192,11 +201,21 @@ export default function Catalogo() {
       (vehiculo.nombre || "").toLowerCase().includes(busqueda) ||
       (vehiculo.marca || "").toLowerCase().includes(busqueda) ||
       (vehiculo.modelo || "").toLowerCase().includes(busqueda);
-    const coincideFavorito = soloFavoritos
-      ? esFavorito(vehiculo.id)
-      : true;
+    const coincideFavorito = soloFavoritos ? esFavorito(vehiculo.id) : true;
     return coincideTexto && coincideFavorito;
   });
+
+  // Si el usuario completó una búsqueda válida en "Consultar disponibilidad",
+  // esos datos precargan (editables) el resumen de la reserva. lugarDevolucion
+  // de BusquedaForm en realidad guarda la sucursal (así lo maneja BuscadorCatalogo
+  // y useCatalogo), por eso mapea a lugarRetiro en la reserva.
+  const datosPrecargaReserva = busquedaRealizada
+    ? {
+        lugarRetiro: busquedaForm.lugarDevolucion,
+        fechaRetiro: busquedaForm.fechaInicio,
+        fechaDevolucion: busquedaForm.fechaFin,
+      }
+    : undefined;
 
   const abrirSweetAlert = (tipo: AlertTipo) => {
     setAlertTipo(tipo);
@@ -207,7 +226,40 @@ export default function Catalogo() {
     setSoloFavoritos((prev) => !prev);
   };
 
+  // Al tocar el bloque "Bienvenido, ..." + avatar, lleva al tab Perfil
+  // (mismo destino que la pestaña "Perfil" de la barra de navegación).
+  const irAPerfil = () => {
+    router.push("/(tabs)/perfil");
+  };
+
   const alertInfo = ALERT_CONTENT[alertTipo];
+
+  // La alerta de "sin resultados" es informativa: solo botón "Entendido".
+  // El resto de alertas mantiene los botones Cancelar / Iniciar sesion.
+  const alertBotones =
+    alertTipo === "sinResultados"
+      ? [
+          {
+            texto: "Entendido",
+            variante: "primario" as const,
+            onPress: () => setSweetAlertVisible(false),
+          },
+        ]
+      : [
+          {
+            texto: "Cancelar",
+            variante: "secundario" as const,
+            onPress: () => setSweetAlertVisible(false),
+          },
+          {
+            texto: "Iniciar sesion",
+            variante: "primario" as const,
+            onPress: () => {
+              setSweetAlertVisible(false);
+              router.push("/(auth)/login");
+            },
+          },
+        ];
 
   const nombreUsuario = usuario
     ? (usuario.nombres?.trim() || nombreDesdeCorreo(usuario.correo))
@@ -222,20 +274,23 @@ export default function Catalogo() {
         translucent={true}
       />
 
-      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Drivique</Text>
         </View>
         {usuario ? (
-          <View style={styles.headerUsuario}>
+          <TouchableOpacity
+            style={styles.headerUsuario}
+            onPress={irAPerfil}
+            activeOpacity={0.7}
+          >
             <Text style={styles.headerUsuarioTexto} numberOfLines={1}>
               Bienvenido, {nombreUsuario}
             </Text>
             <View style={styles.headerAvatar}>
               <Text style={styles.headerAvatarTexto}>{inicialUsuario}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ) : (
           <View style={styles.headerBtns}>
             <TouchableOpacity
@@ -254,13 +309,13 @@ export default function Catalogo() {
         )}
       </View>
 
-      {/* BUSCADOR */}
       <BuscadorCatalogo
         form={busquedaForm}
         setForm={setForm}
         textBusqueda={textBusqueda}
         setTextBusqueda={setTextBusqueda}
         onBuscar={handleBuscar}
+        onLimpiarBusqueda={limpiarBusqueda}
         errorBusqueda={errorBusqueda}
         disabled={!usuario}
         onPressRestringida={() => abrirSweetAlert("busqueda")}
@@ -268,7 +323,6 @@ export default function Catalogo() {
         setModalFormVisible={setModalFormVisible}
       />
 
-      {/* BARRA DE CONTROLES */}
       <View style={styles.controlsBar}>
         <TouchableOpacity
           style={[styles.filtrosBtn, filtrosActivos && styles.filtrosBtnActivo]}
@@ -306,7 +360,6 @@ export default function Catalogo() {
         </View>
       </View>
 
-      {/* DROPDOWN ORDEN */}
       {ordenVisible && (
         <View style={styles.ordenDropdown}>
           {ORDEN_OPCIONES.map((op) => (
@@ -334,7 +387,6 @@ export default function Catalogo() {
         </View>
       )}
 
-      {/* LISTADO */}
       {cargando ? (
         <View style={styles.estadoCentro}>
           <ActivityIndicator size="large" color="#1E40AF" />
@@ -356,6 +408,7 @@ export default function Catalogo() {
               esFavorito={esFavorito(item.id)}
               onAccionRestringida={!usuario ? abrirSweetAlert : undefined}
               onToggleFavorito={usuario ? toggleFavorito : undefined}
+              datosPrecarga={datosPrecargaReserva}
             />
           )}
           contentContainerStyle={styles.lista}
@@ -381,14 +434,13 @@ export default function Catalogo() {
         />
       )}
 
-      {/* MODAL FILTROS */}
       <FiltrosCatalogo
         visible={filtrosVisible}
         onClose={() => setFiltrosVisible(false)}
         filtros={filtros}
         setFiltro={setFiltro}
         limpiar={() => {
-          limpiar();
+          limpiarFiltros();
           setSoloFavoritos(false);
         }}
         usuario={!!usuario}
@@ -397,27 +449,12 @@ export default function Catalogo() {
         totalFavoritos={favoritos.length}
       />
 
-      {/* ── ALERTA (mismo componente y diseño reutilizable AlertModal) ── */}
       <AlertModal
         visible={sweetAlertVisible}
         icono={alertInfo.icono}
         titulo={alertInfo.titulo}
         mensaje={alertInfo.mensaje}
-        botones={[
-          {
-            texto: "Cancelar",
-            variante: "secundario",
-            onPress: () => setSweetAlertVisible(false),
-          },
-          {
-            texto: "Iniciar sesion",
-            variante: "primario",
-            onPress: () => {
-              setSweetAlertVisible(false);
-              router.push("/(auth)/login");
-            },
-          },
-        ]}
+        botones={alertBotones}
         onCerrar={() => setSweetAlertVisible(false)}
       />
     </View>
@@ -479,11 +516,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  headerAvatarTexto: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#fff",
-  },
+  headerAvatarTexto: { fontSize: 13, fontWeight: "800", color: "#fff" },
   controlsBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -532,12 +565,7 @@ const styles = StyleSheet.create({
   lista: { padding: 16 },
   estadoCentro: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60 },
   errorTexto: { fontSize: 14, color: "#EF4444", textAlign: "center" },
-  emptyText: {
-    fontSize: 14,
-    color: "#94A3B8",
-    marginTop: 12,
-    fontWeight: "600",
-  },
+  emptyText: { fontSize: 14, color: "#94A3B8", marginTop: 12, fontWeight: "600" },
   paginacionContainer: {
     flexDirection: "row",
     alignItems: "center",

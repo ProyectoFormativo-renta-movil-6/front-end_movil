@@ -23,8 +23,22 @@ export interface Comentario {
   fecha: string;
 }
 
+export type MotivoNoDisponible = "reservado" | "mantenimiento";
+
+export interface FechaOcupada {
+  fecha: string; // "YYYY-MM-DD"
+  motivo: MotivoNoDisponible;
+}
+
+export interface HoraOcupada {
+  hora: string; // "HH:mm"
+  motivo: MotivoNoDisponible;
+}
+
 export interface DisponibilidadVehiculo {
-  ocupados: string[];
+  ocupados: FechaOcupada[];
+  // Horas bloqueadas por fecha, ej: { "2026-07-20": [{ hora: "09:00", motivo: "reservado" }] }
+  horasOcupadas?: Record<string, HoraOcupada[]>;
 }
 
 export interface Vehiculo {

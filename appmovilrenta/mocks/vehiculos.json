@@ -40,7 +40,21 @@
       "https://pplx-res.cloudinary.com/image/upload/pplx_search_images/1c6e90229d22ae38444b4c27a5ecedbc3aaa7739.jpg",
       "https://pplx-res.cloudinary.com/image/upload/pplx_search_images/5c55d73935760e36ac2c84a6f676e75136c75d1f.jpg"
     ],
-    "disponibilidad": { "ocupados": ["2026-07-20","2026-07-21","2026-07-22","2026-07-28","2026-07-29"] },
+    "disponibilidad": {
+      "ocupados": [
+        { "fecha": "2026-07-20", "motivo": "reservado" },
+        { "fecha": "2026-07-21", "motivo": "reservado" },
+        { "fecha": "2026-07-22", "motivo": "reservado" },
+        { "fecha": "2026-07-28", "motivo": "mantenimiento" },
+        { "fecha": "2026-07-29", "motivo": "mantenimiento" }
+      ],
+      "horasOcupadas": {
+        "2026-07-19": [
+          { "hora": "09:00", "motivo": "reservado" },
+          { "hora": "09:30", "motivo": "reservado" }
+        ]
+      }
+    },
     "comentarios": [
       { "autor": "Carlos M.", "calificacion": 5, "texto": "Excelente vehículo, muy cómodo y puntual en la entrega.", "fecha": "2026-04-10" },
       { "autor": "Laura P.", "calificacion": 4, "texto": "Buen servicio, el carro en perfectas condiciones.", "fecha": "2026-03-22" },
@@ -126,7 +140,8 @@
     ],
     "imagenes": [
       "https://th.bing.com/th/id/OIP.fXE8mmnIQyu_3aOZ3jDciAHaE0?w=277&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
-      "https://th.bing.com/th/id/OIP.Ta7fayfrmFJd3HPo8xojKAHaEJ?w=321&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3"
+      "https://th.bing.com/th/id/OIP.Ta7fayfrmFJd3HPo8xojKAHaEJ?w=321&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
+      "https://th.bing.com/th/id/OIP.fXE8mmnIQyu_3aOZ3jDciAHaE0?w=277&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3"
     ],
     "disponibilidad": { "ocupados": [] },
     "comentarios": []
@@ -253,9 +268,21 @@
     ],
     "imagenes": [
       "https://th.bing.com/th/id/OIP.M8Xr6C7QAbptaShiYv_SigHaEi?w=259&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
-      "https://th.bing.com/th/id/OIP.51EBaowC6BNblc7CVjxDMQHaFL?w=258&h=181&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3"
+      "https://th.bing.com/th/id/OIP.51EBaowC6BNblc7CVjxDMQHaFL?w=258&h=181&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
+      "https://th.bing.com/th/id/OIP.M8Xr6C7QAbptaShiYv_SigHaEi?w=259&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3"
     ],
-    "disponibilidad": { "ocupados": [] },
+    "disponibilidad": {
+      "ocupados": [
+        { "fecha": "2026-07-24", "motivo": "reservado" },
+        { "fecha": "2026-07-25", "motivo": "reservado" }
+      ],
+      "horasOcupadas": {
+        "2026-07-23": [
+          { "hora": "14:00", "motivo": "mantenimiento" },
+          { "hora": "14:30", "motivo": "mantenimiento" }
+        ]
+      }
+    },
     "comentarios": []
   },
   {
@@ -351,7 +378,7 @@
     "modelo": "Qashqai",
     "categoria": "SUV",
     "transmision": "Automática",
-    "combustible": "Híbrido",
+    "combustible": "Gasolina",
     "precio": 140000,
     "calificacion": 4.9,
     "disponible": true,
@@ -359,7 +386,7 @@
     "puertas": 5,
     "pasajeros": 5,
     "maletero": 504,
-    "cilindraje": "1.3L Turbo MHEV",
+    "cilindraje": "1.3L Turbo",
     "color": "Magnetic Blue",
     "año": 2024,
     "placa": "YZA-567",

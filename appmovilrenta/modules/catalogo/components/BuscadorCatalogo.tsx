@@ -62,6 +62,7 @@ interface Props {
   form: BusquedaForm;
   setForm: (campo: keyof BusquedaForm, valor: string | boolean) => void;
   onBuscar: () => void;
+  onLimpiarBusqueda: () => void;
   textBusqueda: string;
   setTextBusqueda: (texto: string) => void;
   errorBusqueda?: string;
@@ -75,6 +76,7 @@ export default function BuscadorCatalogo({
   form,
   setForm,
   onBuscar,
+  onLimpiarBusqueda,
   textBusqueda,
   setTextBusqueda,
   errorBusqueda,
@@ -85,7 +87,6 @@ export default function BuscadorCatalogo({
 }: Props) {
   const [pickerOpen, setPickerOpen] = useState<PickerField>(null);
 
-  // lugarRecogida = ciudad seleccionada | lugarDevolucion = sucursal seleccionada
   const ciudadSeleccionada = form.lugarRecogida;
   const sucursalSeleccionada = form.lugarDevolucion;
 
@@ -106,17 +107,12 @@ export default function BuscadorCatalogo({
   );
 
   const limpiarFormulario = () => {
-    setForm("lugarRecogida", "");
-    setForm("lugarDevolucion", "");
-    setForm("fechaInicio", "");
-    setForm("fechaFin", "");
+    onLimpiarBusqueda();
   };
 
   const selectPunto = (valor: string) => {
     if (pickerOpen === "ciudad") {
       setForm("lugarRecogida", valor);
-      // Si cambia de ciudad, reseteamos la sucursal para evitar
-      // que quede seleccionada una sucursal de otra ciudad
       setForm("lugarDevolucion", "");
     } else {
       setForm("lugarDevolucion", valor);
@@ -128,16 +124,13 @@ export default function BuscadorCatalogo({
     if (disabled) return;
     const dateStr = day.dateString;
 
-    // Si no hay fecha de inicio, o ya había un rango completo -> empezamos de nuevo
     if (!form.fechaInicio || (form.fechaInicio && form.fechaFin)) {
       setForm("fechaInicio", dateStr);
       setForm("fechaFin", "");
       return;
     }
 
-    // Ya hay fecha de inicio, esta es la fecha final
     if (dateStr < form.fechaInicio) {
-      // Si toca una fecha anterior a la de inicio, reiniciamos con esa como nuevo inicio
       setForm("fechaInicio", dateStr);
       setForm("fechaFin", "");
     } else {
@@ -167,7 +160,7 @@ export default function BuscadorCatalogo({
   };
 
   const abrirPickerSucursal = () => {
-    if (!ciudadSeleccionada) return; // no hace nada si no hay ciudad seleccionada
+    if (!ciudadSeleccionada) return;
     setPickerOpen("sucursal");
   };
 
@@ -175,7 +168,6 @@ export default function BuscadorCatalogo({
 
   return (
     <View style={styles.containerGeneral}>
-      {/* BARRA BÚSQUEDA TEXTO — libre para todos */}
       <View style={styles.barraInput}>
         <Ionicons
           name="search-outline"
@@ -192,7 +184,6 @@ export default function BuscadorCatalogo({
         />
       </View>
 
-      {/* BOTÓN FECHAS Y LUGAR — restringido para invitados */}
       <TouchableOpacity
         style={[
           styles.fechasBarraBtn,
@@ -228,7 +219,6 @@ export default function BuscadorCatalogo({
         <Ionicons name="chevron-forward" size={14} color="#C4C9D4" />
       </TouchableOpacity>
 
-      {/* MODAL DE DISPONIBILIDAD */}
       <Modal
         visible={modalFormVisible}
         animationType="slide"
@@ -251,7 +241,6 @@ export default function BuscadorCatalogo({
 
           <View style={styles.modalFormBody}>
             <View style={styles.row}>
-              {/* CIUDAD (antes: RECOGIDA) */}
               <View style={styles.field}>
                 <Text style={styles.label}>CIUDAD</Text>
                 <TouchableOpacity
@@ -272,7 +261,6 @@ export default function BuscadorCatalogo({
                 </TouchableOpacity>
               </View>
 
-              {/* SUCURSAL (antes: DEVOLUCIÓN), depende de la ciudad elegida */}
               <View style={styles.field}>
                 <Text style={styles.label}>SUCURSAL</Text>
                 <TouchableOpacity
@@ -304,7 +292,6 @@ export default function BuscadorCatalogo({
               </View>
             </View>
 
-            {/* FECHAS — se muestran igual que antes, pero ahora se actualizan solas al tocar el calendario de abajo */}
             <View style={styles.row}>
               <View style={styles.field}>
                 <Text style={styles.label}>FECHA RECOGIDA</Text>
@@ -341,7 +328,6 @@ export default function BuscadorCatalogo({
               </View>
             </View>
 
-            {/* CALENDARIO DE RANGO */}
             <View style={styles.calendarioContainer}>
               <Calendar
                 minDate={hoyISO}
@@ -383,7 +369,6 @@ export default function BuscadorCatalogo({
           </View>
         </SafeAreaView>
 
-        {/* Picker de ciudad / sucursal */}
         <Modal visible={!!pickerOpen} animationType="fade" transparent>
           <View style={styles.modalOverlayInterno}>
             <View style={styles.modalInternoContenedor}>
@@ -456,15 +441,8 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: 12,
   },
-  searchIcon: {
-    marginRight: 8,
-  },
-  textInput: {
-    flex: 1,
-    fontSize: 14,
-    color: "#1F2937",
-    height: "100%",
-  },
+  searchIcon: { marginRight: 8 },
+  textInput: { flex: 1, fontSize: 14, color: "#1F2937", height: "100%" },
   fechasBarraBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -475,23 +453,10 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 12,
   },
-  fechasBarraBtnDisabled: {
-    backgroundColor: "#F3F4F6",
-  },
-  fechasBarraBtnActiva: {
-    borderColor: "#BFDBFE",
-    backgroundColor: "#EFF6FF",
-  },
-  fechasBarraBtnText: {
-    flex: 1,
-    fontSize: 13.5,
-    color: "#9CA3AF",
-    fontWeight: "500",
-  },
-  fechasBarraBtnTextActivo: {
-    color: "#2f4ea2",
-    fontWeight: "600",
-  },
+  fechasBarraBtnDisabled: { backgroundColor: "#F3F4F6" },
+  fechasBarraBtnActiva: { borderColor: "#BFDBFE", backgroundColor: "#EFF6FF" },
+  fechasBarraBtnText: { flex: 1, fontSize: 13.5, color: "#9CA3AF", fontWeight: "500" },
+  fechasBarraBtnTextActivo: { color: "#2f4ea2", fontWeight: "600" },
   placeholder: { color: "#9CA3AF" },
   modalFormContainer: {
     flex: 1,
@@ -508,17 +473,11 @@ const styles = StyleSheet.create({
     borderBottomColor: "#E5E7EB",
   },
   modalFormTitle: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  txtLimpiarModal: { fontSize: 14, color: "#DC2626", fontWeight: "600" },
+  txtLimpiarModal: { fontSize: 14, color: "#2f4ea2", fontWeight: "600" },
   modalFormBody: { padding: 20, gap: 16 },
   row: { flexDirection: "row", gap: 12 },
   field: { flex: 1 },
-  label: {
-    fontSize: 9,
-    fontWeight: "700",
-    color: "#6B7280",
-    letterSpacing: 0.8,
-    marginBottom: 6,
-  },
+  label: { fontSize: 9, fontWeight: "700", color: "#6B7280", letterSpacing: 0.8, marginBottom: 6 },
   selector: {
     flexDirection: "row",
     alignItems: "center",
@@ -530,10 +489,7 @@ const styles = StyleSheet.create({
     height: 44,
     backgroundColor: "#F9FAFB",
   },
-  selectorDisabled: {
-    backgroundColor: "#F3F4F6",
-    opacity: 0.6,
-  },
+  selectorDisabled: { backgroundColor: "#F3F4F6", opacity: 0.6 },
   selectorText: { fontSize: 13, color: "#374151", flex: 1 },
   dateBtn: {
     flexDirection: "row",

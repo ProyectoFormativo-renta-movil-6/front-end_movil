@@ -1,5 +1,3 @@
-// modules/catalogo/components/FiltrosCatalogo.tsx
-
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
@@ -119,7 +117,6 @@ export default function FiltrosCatalogo({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Filtros</Text>
           <TouchableOpacity onPress={limpiar}>
@@ -132,7 +129,6 @@ export default function FiltrosCatalogo({
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* ── MIS FAVORITOS (solo si hay sesión) ── */}
           {usuario && (
             <Seccion label="FAVORITOS">
               <TouchableOpacity
@@ -158,10 +154,7 @@ export default function FiltrosCatalogo({
                 </Text>
                 {totalFavoritos > 0 && (
                   <View
-                    style={[
-                      styles.badge,
-                      soloFavoritos && styles.badgeActivo,
-                    ]}
+                    style={[styles.badge, soloFavoritos && styles.badgeActivo]}
                   >
                     <Text
                       style={[
@@ -177,7 +170,6 @@ export default function FiltrosCatalogo({
             </Seccion>
           )}
 
-          {/* CATEGORÍA */}
           <Seccion label="CATEGORÍA">
             <View style={styles.chipsRow}>
               {CATEGORIAS.map((cat) => (
@@ -191,7 +183,6 @@ export default function FiltrosCatalogo({
             </View>
           </Seccion>
 
-          {/* CIUDAD — independiente de sucursal */}
           <Seccion label="CIUDAD">
             <TouchableOpacity
               style={styles.selectorBtn}
@@ -232,7 +223,6 @@ export default function FiltrosCatalogo({
             )}
           </Seccion>
 
-          {/* SUCURSAL — independiente de ciudad */}
           <Seccion label="SUCURSAL">
             <TouchableOpacity
               style={styles.selectorBtn}
@@ -277,7 +267,6 @@ export default function FiltrosCatalogo({
             )}
           </Seccion>
 
-          {/* PRECIO POR DÍA */}
           <Seccion label="PRECIO POR DÍA (COP)">
             <View style={styles.precioRow}>
               <TextInput
@@ -303,7 +292,6 @@ export default function FiltrosCatalogo({
             </View>
           </Seccion>
 
-          {/* TRANSMISIÓN */}
           <Seccion label="TRANSMISIÓN">
             <View style={styles.chipsRow}>
               {TRANSMISIONES.map((tr) => (
@@ -317,7 +305,6 @@ export default function FiltrosCatalogo({
             </View>
           </Seccion>
 
-          {/* COMBUSTIBLE */}
           <Seccion label="COMBUSTIBLE">
             <View style={styles.chipsRow}>
               {COMBUSTIBLES.map((c) => (
@@ -332,7 +319,6 @@ export default function FiltrosCatalogo({
           </Seccion>
         </ScrollView>
 
-        {/* Botón Aplicar */}
         <View style={styles.footerBtn}>
           <TouchableOpacity style={styles.aplicarBtn} onPress={onClose}>
             <Text style={styles.aplicarBtnText}>Aplicar filtros</Text>
@@ -344,10 +330,7 @@ export default function FiltrosCatalogo({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORES.panelBg,
-  },
+  container: { flex: 1, backgroundColor: COLORES.panelBg },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -357,21 +340,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORES.panelBorder,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: COLORES.textPrimary,
-  },
-  limpiarBtn: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: COLORES.accentText,
-  },
+  headerTitle: { fontSize: 18, fontWeight: "800", color: COLORES.textPrimary },
+  limpiarBtn: { fontSize: 13, fontWeight: "700", color: COLORES.accentText },
   scroll: { flex: 1 },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 8,
-  },
+  scrollContent: { padding: 20, paddingBottom: 8 },
   seccion: {
     marginBottom: 22,
     paddingBottom: 22,
@@ -386,11 +358,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 10,
   },
-  chipsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
+  chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 7,
@@ -399,11 +367,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   chipActivo: { backgroundColor: COLORES.chipActiveBg },
-  chipText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORES.chipText,
-  },
+  chipText: { fontSize: 13, fontWeight: "600", color: COLORES.chipText },
   chipTextoActivo: { color: COLORES.chipActiveText },
   selectorBtn: {
     flexDirection: "row",
@@ -416,16 +380,8 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     backgroundColor: COLORES.inputBg,
   },
-  selectorText: {
-    fontSize: 13,
-    color: COLORES.inputText,
-    flex: 1,
-  },
-  selectorArrow: {
-    fontSize: 11,
-    color: COLORES.textSecondary,
-    marginLeft: 8,
-  },
+  selectorText: { fontSize: 13, color: COLORES.inputText, flex: 1 },
+  selectorArrow: { fontSize: 11, color: COLORES.textSecondary, marginLeft: 8 },
   dropdownList: {
     marginTop: 4,
     borderWidth: 1,
@@ -434,9 +390,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORES.panelBg,
     overflow: "hidden",
   },
-  dropdownScroll: {
-    maxHeight: 220,
-  },
+  dropdownScroll: { maxHeight: 220 },
   dropdownItem: {
     paddingHorizontal: 14,
     paddingVertical: 11,
@@ -444,18 +398,9 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORES.panelBorder,
   },
   dropdownItemActivo: { backgroundColor: COLORES.accentBgSoft },
-  dropdownItemText: {
-    fontSize: 13,
-    color: COLORES.inputText,
-  },
-  dropdownItemTextActivo: {
-    color: COLORES.accentText,
-    fontWeight: "700",
-  },
-  precioRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
+  dropdownItemText: { fontSize: 13, color: COLORES.inputText },
+  dropdownItemTextActivo: { color: COLORES.accentText, fontWeight: "700" },
+  precioRow: { flexDirection: "row", gap: 10 },
   precioInput: {
     flex: 1,
     borderWidth: 1.5,
@@ -479,12 +424,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
   },
-  aplicarBtnText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  // --- ESTILOS FAVORITOS ---
+  aplicarBtnText: { color: "#fff", fontSize: 15, fontWeight: "800" },
   favoritoBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -501,11 +441,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORES.chipActiveBg,
     borderColor: COLORES.chipActiveBg,
   },
-  favoritoBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: COLORES.accentText,
-  },
+  favoritoBtnText: { fontSize: 13, fontWeight: "700", color: COLORES.accentText },
   favoritoBtnTextActivo: { color: "#fff" },
   badge: {
     backgroundColor: COLORES.accentText,
