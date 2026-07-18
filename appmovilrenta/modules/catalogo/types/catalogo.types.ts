@@ -35,10 +35,25 @@ export interface HoraOcupada {
   motivo: MotivoNoDisponible;
 }
 
+// Forma "calculada" de disponibilidad — la siguen usando CalendarioRango
+// y FormFechasLugar, pero ahora se construye a partir de RESERVAS_MOCK
+// (ver catalogo.constants.ts -> getDisponibilidadVehiculo) en vez de
+// venir embebida en el vehículo.
 export interface DisponibilidadVehiculo {
   ocupados: FechaOcupada[];
   // Horas bloqueadas por fecha, ej: { "2026-07-20": [{ hora: "09:00", motivo: "reservado" }] }
   horasOcupadas?: Record<string, HoraOcupada[]>;
+}
+
+// Reserva simulada tal cual vive en mocks/reservas.json — una fila por
+// cada día u hora ocupada, ligada al vehículo por vehiculoId. Si "hora"
+// está presente, es un bloqueo de horario específico; si no, es un día
+// completo ocupado.
+export interface ReservaOcupada {
+  vehiculoId: number;
+  fecha: string;
+  hora?: string;
+  motivo: MotivoNoDisponible;
 }
 
 export interface Vehiculo {
@@ -73,7 +88,6 @@ export interface Vehiculo {
   };
   seguros?: Seguro[];
   servicios?: ServicioExtra[];
-  disponibilidad?: DisponibilidadVehiculo;
   comentarios?: Comentario[];
   imagenes?: string[];
   imagen?: string;

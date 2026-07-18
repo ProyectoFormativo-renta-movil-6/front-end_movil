@@ -1,7 +1,8 @@
 import ciudadesData from "../../../mocks/ciudades.json";
 import sucursalesData from "../../../mocks/sucursales.json";
 import vehiculosData from "../../../mocks/vehiculos.json";
-import { Vehiculo } from "../types/catalogo.types";
+import reservasData from "../../../mocks/reservas.json";
+import { DisponibilidadVehiculo, ReservaOcupada, Vehiculo } from "../types/catalogo.types";
 
 export const COLOR_MARCA = "#2f4ea2";
 export const COLOR_ACCENT = "#2563eb";
@@ -123,3 +124,31 @@ export const FILTROS_BASE = {
 // cada objeto se muestra en la tarjeta vs. en el detalle)
 // =========================================================
 export const VEHICULOS_MOCK: Vehiculo[] = vehiculosData as Vehiculo[];
+
+// =========================================================
+// RESERVAS / DISPONIBILIDAD (desde mocks/reservas.json — separado
+// del catálogo porque son datos transaccionales que cambian con
+// cada reserva, no información fija del vehículo)
+// =========================================================
+export const RESERVAS_MOCK: ReservaOcupada[] = reservasData as ReservaOcupada[];
+
+// Arma la disponibilidad de un vehículo a partir de RESERVAS_MOCK,
+// separando bloqueos de día completo (ocupados) de bloqueos de hora
+// específica (horasOcupadas), agrupados por fecha.
+export function getDisponibilidadVehiculo(vehiculoId: number): DisponibilidadVehiculo {
+  const reservasVehiculo = RESERVAS_MOCK.filter((r) => r.vehiculoId === vehiculoId);
+
+  const ocupados: DisponibilidadVehiculo["ocupados"] = [];
+  const horasOcupadas: NonNullable<DisponibilidadVehiculo["horasOcupadas"]> = {};
+
+  reservasVehiculo.forEach((r) => {
+    if (r.hora) {
+      if (!horasOcupadas[r.fecha]) horasOcupadas[r.fecha] = [];
+      horasOcupadas[r.fecha].push({ hora: r.hora, motivo: r.motivo });
+    } else {
+      ocupados.push({ fecha: r.fecha, motivo: r.motivo });
+    }
+  });
+
+  return { ocupados, horasOcupadas };
+}

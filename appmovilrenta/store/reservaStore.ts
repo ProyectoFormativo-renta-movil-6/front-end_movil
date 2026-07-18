@@ -1,11 +1,21 @@
+// store/reservaStore.ts
 import { create } from "zustand";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
-import { DatosFechasLugar, PasoReserva } from "@/modules/reserva/types/reserva.types";
+import {
+  DatosDocumentos,
+  DatosFechasLugar,
+  DatosPersonales,
+  DatosPlanes,
+  PasoReserva,
+} from "@/modules/reserva/types/reserva.types";
 
 interface ReservaStore {
   vehiculoSeleccionado: Vehiculo | null;
   pasoActual: PasoReserva;
   fechasLugar: DatosFechasLugar;
+  planes: DatosPlanes;
+  datosPersonales: DatosPersonales;
+  documentos: DatosDocumentos;
 
   seleccionarVehiculo: (
     vehiculo: Vehiculo,
@@ -13,10 +23,14 @@ interface ReservaStore {
   ) => void;
   setPaso: (paso: PasoReserva) => void;
   actualizarFechasLugar: (data: Partial<DatosFechasLugar>) => void;
+  actualizarPlanes: (data: Partial<DatosPlanes>) => void;
+  toggleServicioAdicional: (nombre: string) => void;
+  actualizarDatosPersonales: (data: Partial<DatosPersonales>) => void;
+  actualizarDocumento: (llave: keyof DatosDocumentos, archivo: DatosDocumentos[keyof DatosDocumentos]) => void;
   limpiarReserva: () => void;
 }
 
-function fechasLugarInicial(vehiculo?: Vehiculo | null): DatosFechasLugar {
+function fechasLugarInicial(): DatosFechasLugar {
   return {
     metodoPago: null,
     lugarRetiro: "",
@@ -25,6 +39,40 @@ function fechasLugarInicial(vehiculo?: Vehiculo | null): DatosFechasLugar {
     fechaDevolucion: null,
     horaRetiro: "",
     horaDevolucion: "",
+    barrioRetiro: "",
+    direccionRetiro: "",
+    referenciasRetiro: "",
+    barrioDevolucion: "",
+    direccionDevolucion: "",
+    referenciasDevolucion: "",
+  };
+}
+
+function planesInicial(): DatosPlanes {
+  return {
+    proteccion: null,
+    tipoKilometraje: null,
+    serviciosSeleccionados: [],
+  };
+}
+
+function datosPersonalesInicial(): DatosPersonales {
+  return {
+    nombreCompleto: "",
+    nacionalidad: "",
+    correo: "",
+    celular: "",
+    tipoDocumento: null,
+    numeroDocumento: "",
+    terminosAceptados: false,
+  };
+}
+
+function documentosInicial(): DatosDocumentos {
+  return {
+    cedulaFrente: null,
+    cedulaReverso: null,
+    licenciaConduccion: null,
   };
 }
 
@@ -32,15 +80,18 @@ export const useReservaStore = create<ReservaStore>()((set) => ({
   vehiculoSeleccionado: null,
   pasoActual: "fechas",
   fechasLugar: fechasLugarInicial(),
+  planes: planesInicial(),
+  datosPersonales: datosPersonalesInicial(),
+  documentos: documentosInicial(),
 
-  // datosPrecarga viene de una búsqueda previa en "Consultar disponibilidad"
-  // (BuscadorCatalogo). Si el usuario no buscó nada, llega undefined y el
-  // spread no cambia nada — arranca igual que siempre.
   seleccionarVehiculo: (vehiculo, datosPrecarga) =>
     set({
       vehiculoSeleccionado: vehiculo,
       pasoActual: "fechas",
-      fechasLugar: { ...fechasLugarInicial(vehiculo), ...datosPrecarga },
+      fechasLugar: { ...fechasLugarInicial(), ...datosPrecarga },
+      planes: planesInicial(),
+      datosPersonales: datosPersonalesInicial(),
+      documentos: documentosInicial(),
     }),
 
   setPaso: (paso) => set({ pasoActual: paso }),
@@ -48,10 +99,31 @@ export const useReservaStore = create<ReservaStore>()((set) => ({
   actualizarFechasLugar: (data) =>
     set((state) => ({ fechasLugar: { ...state.fechasLugar, ...data } })),
 
+  actualizarPlanes: (data) =>
+    set((state) => ({ planes: { ...state.planes, ...data } })),
+
+  toggleServicioAdicional: (nombre) =>
+    set((state) => {
+      const yaEsta = state.planes.serviciosSeleccionados.includes(nombre);
+      const serviciosSeleccionados = yaEsta
+        ? state.planes.serviciosSeleccionados.filter((s) => s !== nombre)
+        : [...state.planes.serviciosSeleccionados, nombre];
+      return { planes: { ...state.planes, serviciosSeleccionados } };
+    }),
+
+  actualizarDatosPersonales: (data) =>
+    set((state) => ({ datosPersonales: { ...state.datosPersonales, ...data } })),
+
+  actualizarDocumento: (llave, archivo) =>
+    set((state) => ({ documentos: { ...state.documentos, [llave]: archivo } })),
+
   limpiarReserva: () =>
     set({
       vehiculoSeleccionado: null,
       pasoActual: "fechas",
       fechasLugar: fechasLugarInicial(),
+      planes: planesInicial(),
+      datosPersonales: datosPersonalesInicial(),
+      documentos: documentosInicial(),
     }),
 }));
