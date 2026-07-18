@@ -1,4 +1,4 @@
-import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
+// modules/reserva/types/reserva.types.ts
 
 export type MetodoPago = "wompi" | "efectivo";
 
@@ -30,7 +30,10 @@ export interface DesgloseTarifa {
   diasReserva: number;
 }
 
-export type PasoReserva = "fechas" | "proteccion" | "datos";
+// Debe coincidir exactamente con SeccionReserva (definido en
+// modules/reserva/components/TabsSeccion.tsx), que es el tipo que la
+// UI (FlujoReserva.tsx) realmente usa para sus tabs.
+export type PasoReserva = "fechas" | "planes" | "datos";
 
 // ===================== TAB "PLANES" =====================
 export type TipoKilometraje = "limitado" | "ilimitado";
@@ -40,3 +43,29 @@ export interface DatosPlanes {
   tipoKilometraje: TipoKilometraje | null; // null hasta que el usuario elige (es obligatorio pero no viene preseleccionado)
   serviciosSeleccionados: string[]; // nombres de servicios adicionales elegidos
 }
+
+// ===================== TAB "DATOS PERSONALES" =====================
+
+export type TipoDocumento = "CC" | "CE" | "PA";
+
+export interface DatosPersonales {
+  nombreCompleto: string;
+  nacionalidad: string;
+  correo: string;
+  celular: string; // solo dígitos, sin el prefijo +57
+  tipoDocumento: TipoDocumento | null;
+  numeroDocumento: string;
+  terminosAceptados: boolean; // checkbox de "Autorizo el tratamiento de mis datos..."
+}
+
+// Representa un archivo ya seleccionado con expo-document-picker.
+export interface ArchivoDocumento {
+  uri: string;
+  nombre: string;
+  tipoMime: string;
+  tamanoBytes: number;
+}
+
+export type LlaveDocumento = "cedulaFrente" | "cedulaReverso" | "licenciaConduccion";
+
+export type DatosDocumentos = Record<LlaveDocumento, ArchivoDocumento | null>;

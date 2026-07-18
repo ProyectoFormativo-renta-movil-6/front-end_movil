@@ -19,22 +19,6 @@ interface Props {
   onContinuar?: () => void;
 }
 
-// Servicios adicionales fijos que aplican a cualquier vehículo,
-// independientemente de lo que traiga vehiculo.servicios. Todos
-// opcionales. Los íconos NO van aquí: salen de ICONOS_SERVICIOS en
-// reserva.constants.ts según el nombre.
-// TODO: reemplazar estos precios de ejemplo por las tarifas reales
-// definidas por el negocio (valor por día, en pesos).
-const SERVICIOS_FIJOS = [
-  { nombre: "Lavado si el vehículo llega sucio", precio: 15000 }, // TODO
-  { nombre: "Entrega con tanque lleno", precio: 20000 }, // TODO
-  { nombre: "Silla para bebé", precio: 12000 }, // TODO
-  { nombre: "Conductor adicional", precio: 25000 }, // TODO
-  { nombre: "GPS / Sistema de navegación", precio: 10000 }, // TODO
-  { nombre: "Entrega en otra ciudad", precio: 50000 }, // TODO
-  { nombre: "WiFi portátil", precio: 18000 }, // TODO
-];
-
 function formatPrecio(precio: number): string {
   return `$${Math.round(precio).toLocaleString("es-CO")}`;
 }
@@ -91,8 +75,10 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
 
   const [alertaFaltantesVisible, setAlertaFaltantesVisible] = useState(false);
 
-  const servicios = vehiculo.servicios ?? [];
-  const todosLosServicios = useMemo(() => [...servicios, ...SERVICIOS_FIJOS], [servicios]);
+  // Servicios adicionales: exclusivamente los que trae el vehículo en
+  // vehiculo.servicios (JSON del catálogo). Nada hardcodeado aquí —
+  // así cada vehículo puede tener precios y disponibilidad distintos.
+  const todosLosServicios = vehiculo.servicios ?? [];
   const kmLimitado = vehiculo.tarifas?.kmLimitado;
   const kmIlimitado = vehiculo.tarifas?.kmIlimitado;
   const seguros = vehiculo.seguros ?? [];
@@ -267,46 +253,50 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
       )}
 
       {/* --- SERVICIOS ADICIONALES (opcionales) --- */}
-      <Text style={[styles.seccionLabel, { marginTop: 20 }]}>Servicios adicionales</Text>
-      <View style={styles.card}>
-        <Text style={styles.serviciosSub}>Elige uno, varios o ninguno.</Text>
+      {todosLosServicios.length > 0 && (
+        <>
+          <Text style={[styles.seccionLabel, { marginTop: 20 }]}>Servicios adicionales</Text>
+          <View style={styles.card}>
+            <Text style={styles.serviciosSub}>Elige uno, varios o ninguno.</Text>
 
-        {todosLosServicios.map((servicio) => {
-          const seleccionado = planes.serviciosSeleccionados.includes(servicio.nombre);
-          const icono = ICONOS_SERVICIOS[servicio.nombre] ?? ICONO_SERVICIO_DEFECTO;
+            {todosLosServicios.map((servicio) => {
+              const seleccionado = planes.serviciosSeleccionados.includes(servicio.nombre);
+              const icono = ICONOS_SERVICIOS[servicio.nombre] ?? ICONO_SERVICIO_DEFECTO;
 
-          return (
-            <TouchableOpacity
-              key={servicio.nombre}
-              style={[styles.servicioCard, seleccionado && styles.opcionCardActiva]}
-              onPress={() => toggleServicioAdicional(servicio.nombre)}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name={seleccionado ? "checkbox" : "square-outline"}
-                size={18}
-                color={seleccionado ? COLOR_MARCA : COLORES.textMuted}
-              />
-              <Ionicons
-                name={icono as any}
-                size={14}
-                color={seleccionado ? COLOR_MARCA : COLORES.textMuted}
-                style={{ marginLeft: 8, marginRight: 8 }}
-              />
-              <Text style={[styles.servicioNombre, seleccionado && styles.opcionTituloActiva]} numberOfLines={2}>
-                {servicio.nombre}
-              </Text>
-              {servicio.precio > 0 && (
-                <Text style={styles.servicioPrecio}>{formatPrecio(servicio.precio)}/día</Text>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+              return (
+                <TouchableOpacity
+                  key={servicio.nombre}
+                  style={[styles.servicioCard, seleccionado && styles.opcionCardActiva]}
+                  onPress={() => toggleServicioAdicional(servicio.nombre)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={seleccionado ? "checkbox" : "square-outline"}
+                    size={18}
+                    color={seleccionado ? COLOR_MARCA : COLORES.textMuted}
+                  />
+                  <Ionicons
+                    name={icono as any}
+                    size={14}
+                    color={seleccionado ? COLOR_MARCA : COLORES.textMuted}
+                    style={{ marginLeft: 8, marginRight: 8 }}
+                  />
+                  <Text style={[styles.servicioNombre, seleccionado && styles.opcionTituloActiva]} numberOfLines={2}>
+                    {servicio.nombre}
+                  </Text>
+                  {servicio.precio > 0 && (
+                    <Text style={styles.servicioPrecio}>{formatPrecio(servicio.precio)}/día</Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
 
-        {totalServicios > 0 && (
-          <FooterTotalTarjeta label="Total servicios adicionales" valor={totalServicios} />
-        )}
-      </View>
+            {totalServicios > 0 && (
+              <FooterTotalTarjeta label="Total servicios adicionales" valor={totalServicios} />
+            )}
+          </View>
+        </>
+      )}
 
       {/* --- RESUMEN DE PLANES: tarjeta final con el desglose de las
           tres secciones de este tab (protección + kilometraje +

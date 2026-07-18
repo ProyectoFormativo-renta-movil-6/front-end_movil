@@ -2,28 +2,35 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLOR_MARCA } from "../constants/reserva.constants";
 
-export type SeccionReserva = "fechas" | "planes";
+export type SeccionReserva = "fechas" | "planes" | "datos";
 
-interface SeccionConfig {
-  id: SeccionReserva;
+export interface SeccionConfig<T extends string = string> {
+  id: T;
   label: string;
 }
 
-const SECCIONES: SeccionConfig[] = [
-  { id: "fechas", label: "Seleccionar fechas y lugar" },
+const SECCIONES_RESERVA: SeccionConfig<SeccionReserva>[] = [
+  { id: "fechas", label: "fechas y lugar" },
   { id: "planes", label: "Planes" },
+  { id: "datos", label: "Datos personales" },
 ];
 
-interface Props {
-  seccionActiva: SeccionReserva;
-  onCambiarSeccion: (seccion: SeccionReserva) => void;
-  tabsDeshabilitados?: SeccionReserva[];
+interface Props<T extends string> {
+  seccionActiva: T;
+  onCambiarSeccion: (seccion: T) => void;
+  tabsDeshabilitados?: T[];
+  secciones?: SeccionConfig<T>[];
 }
 
-export default function TabsSeccion({ seccionActiva, onCambiarSeccion, tabsDeshabilitados = [] }: Props) {
+export default function TabsSeccion<T extends string = SeccionReserva>({
+  seccionActiva,
+  onCambiarSeccion,
+  tabsDeshabilitados = [],
+  secciones = SECCIONES_RESERVA as unknown as SeccionConfig<T>[],
+}: Props<T>) {
   return (
     <View style={styles.contenedor}>
-      {SECCIONES.map((seccion) => {
+      {secciones.map((seccion) => {
         const activa = seccion.id === seccionActiva;
         const deshabilitado = tabsDeshabilitados.includes(seccion.id);
         return (
@@ -67,7 +74,7 @@ const styles = StyleSheet.create({
   },
   tabActivo: { backgroundColor: "#FFFFFF" },
   tabDeshabilitado: { opacity: 0.4 },
-  tabText: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.75)" },
+  tabText: { fontSize: 10, fontWeight: "700", color: "rgba(255,255,255,0.75)" },
   tabTextActivo: { color: COLOR_MARCA },
   tabTextDeshabilitado: { color: "rgba(255,255,255,0.75)" },
 });

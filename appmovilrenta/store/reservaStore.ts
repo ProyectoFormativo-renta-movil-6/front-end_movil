@@ -1,12 +1,21 @@
+// store/reservaStore.ts
 import { create } from "zustand";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
-import { DatosFechasLugar, DatosPlanes, PasoReserva } from "@/modules/reserva/types/reserva.types";
+import {
+  DatosDocumentos,
+  DatosFechasLugar,
+  DatosPersonales,
+  DatosPlanes,
+  PasoReserva,
+} from "@/modules/reserva/types/reserva.types";
 
 interface ReservaStore {
   vehiculoSeleccionado: Vehiculo | null;
   pasoActual: PasoReserva;
   fechasLugar: DatosFechasLugar;
   planes: DatosPlanes;
+  datosPersonales: DatosPersonales;
+  documentos: DatosDocumentos;
 
   seleccionarVehiculo: (
     vehiculo: Vehiculo,
@@ -16,10 +25,12 @@ interface ReservaStore {
   actualizarFechasLugar: (data: Partial<DatosFechasLugar>) => void;
   actualizarPlanes: (data: Partial<DatosPlanes>) => void;
   toggleServicioAdicional: (nombre: string) => void;
+  actualizarDatosPersonales: (data: Partial<DatosPersonales>) => void;
+  actualizarDocumento: (llave: keyof DatosDocumentos, archivo: DatosDocumentos[keyof DatosDocumentos]) => void;
   limpiarReserva: () => void;
 }
 
-function fechasLugarInicial(vehiculo?: Vehiculo | null): DatosFechasLugar {
+function fechasLugarInicial(): DatosFechasLugar {
   return {
     metodoPago: null,
     lugarRetiro: "",
@@ -28,8 +39,6 @@ function fechasLugarInicial(vehiculo?: Vehiculo | null): DatosFechasLugar {
     fechaDevolucion: null,
     horaRetiro: "",
     horaDevolucion: "",
-    // Datos de entrega/devolución a domicilio — solo aplican cuando
-    // lugarRetiro / lugarDevolucion === "domicilio".
     barrioRetiro: "",
     direccionRetiro: "",
     referenciasRetiro: "",
@@ -39,14 +48,31 @@ function fechasLugarInicial(vehiculo?: Vehiculo | null): DatosFechasLugar {
   };
 }
 
-// Ni la protección ni el tipo de kilometraje vienen preseleccionados:
-// son obligatorios, pero los elige el usuario. Lo único realmente
-// opcional son los servicios adicionales (arrancan vacíos).
-function planesInicial(vehiculo?: Vehiculo | null): DatosPlanes {
+function planesInicial(): DatosPlanes {
   return {
     proteccion: null,
     tipoKilometraje: null,
     serviciosSeleccionados: [],
+  };
+}
+
+function datosPersonalesInicial(): DatosPersonales {
+  return {
+    nombreCompleto: "",
+    nacionalidad: "",
+    correo: "",
+    celular: "",
+    tipoDocumento: null,
+    numeroDocumento: "",
+    terminosAceptados: false,
+  };
+}
+
+function documentosInicial(): DatosDocumentos {
+  return {
+    cedulaFrente: null,
+    cedulaReverso: null,
+    licenciaConduccion: null,
   };
 }
 
@@ -55,16 +81,17 @@ export const useReservaStore = create<ReservaStore>()((set) => ({
   pasoActual: "fechas",
   fechasLugar: fechasLugarInicial(),
   planes: planesInicial(),
+  datosPersonales: datosPersonalesInicial(),
+  documentos: documentosInicial(),
 
-  // datosPrecarga viene de una búsqueda previa en "Consultar disponibilidad"
-  // (BuscadorCatalogo). Si el usuario no buscó nada, llega undefined y el
-  // spread no cambia nada — arranca igual que siempre.
   seleccionarVehiculo: (vehiculo, datosPrecarga) =>
     set({
       vehiculoSeleccionado: vehiculo,
       pasoActual: "fechas",
-      fechasLugar: { ...fechasLugarInicial(vehiculo), ...datosPrecarga },
-      planes: planesInicial(vehiculo),
+      fechasLugar: { ...fechasLugarInicial(), ...datosPrecarga },
+      planes: planesInicial(),
+      datosPersonales: datosPersonalesInicial(),
+      documentos: documentosInicial(),
     }),
 
   setPaso: (paso) => set({ pasoActual: paso }),
@@ -84,11 +111,19 @@ export const useReservaStore = create<ReservaStore>()((set) => ({
       return { planes: { ...state.planes, serviciosSeleccionados } };
     }),
 
+  actualizarDatosPersonales: (data) =>
+    set((state) => ({ datosPersonales: { ...state.datosPersonales, ...data } })),
+
+  actualizarDocumento: (llave, archivo) =>
+    set((state) => ({ documentos: { ...state.documentos, [llave]: archivo } })),
+
   limpiarReserva: () =>
     set({
       vehiculoSeleccionado: null,
       pasoActual: "fechas",
       fechasLugar: fechasLugarInicial(),
       planes: planesInicial(),
+      datosPersonales: datosPersonalesInicial(),
+      documentos: documentosInicial(),
     }),
 }));

@@ -1,3 +1,4 @@
+// modules/reserva/components/FlujoReserva.tsx
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,6 +12,7 @@ import FormFechasLugar from "./FormFechasLugar";
 import ResumenReservaModal from "./ResumenReservaModal";
 import TabsSeccion, { SeccionReserva } from "./TabsSeccion";
 import PlanesAdicionales from "./PlanesAdicionales";
+import FormDatosPersonales from "./FormDatosPersonales";
 import { AlertModal } from "../../../components/ui/AlertModal";
 
 interface Props {
@@ -21,16 +23,38 @@ export default function FlujoReserva({ vehiculo }: Props) {
   const insets = useSafeAreaInsets();
 
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
+  const planes = useReservaStore((s) => s.planes);
   const limpiarReserva = useReservaStore((s) => s.limpiarReserva);
 
   const [seccionActiva, setSeccionActiva] = useState<SeccionReserva>("fechas");
   const [modalResumenVisible, setModalResumenVisible] = useState(false);
   const [alertaFaltantesVisible, setAlertaFaltantesVisible] = useState(false);
 
+  // "Alcanzada alguna vez" — una vez true, nunca vuelve a false, aunque
+  // el usuario regrese a un tab anterior. Esto es lo que usa el modal
+  // de Resumen para decidir qué tarjetas mostrar (revelado progresivo).
+  const [seccionesAlcanzadas, setSeccionesAlcanzadas] = useState<Record<SeccionReserva, boolean>>({
+    fechas: true,
+    planes: false,
+    datos: false,
+  });
+
   const puedeContinuarAPlanes =
     !!fechasLugar.fechaRetiro && !!fechasLugar.fechaDevolucion && !!fechasLugar.metodoPago;
 
-  const tabsDeshabilitados: SeccionReserva[] = puedeContinuarAPlanes ? [] : ["planes"];
+  const puedeContinuarADatos = !!planes.proteccion && !!planes.tipoKilometraje;
+
+  // Los tabs solo se bloquean HACIA ADELANTE. Nunca se bloquea el
+  // regreso a un tab ya visitado, aunque luego cambien datos ahí.
+  const tabsDeshabilitados: SeccionReserva[] = [
+    ...(!puedeContinuarAPlanes ? (["planes", "datos"] as SeccionReserva[]) : []),
+    ...(puedeContinuarAPlanes && !puedeContinuarADatos ? (["datos"] as SeccionReserva[]) : []),
+  ];
+
+  const irASeccion = (seccion: SeccionReserva) => {
+    setSeccionActiva(seccion);
+    setSeccionesAlcanzadas((prev) => (prev[seccion] ? prev : { ...prev, [seccion]: true }));
+  };
 
   const handleVolver = () => {
     limpiarReserva();
@@ -40,16 +64,15 @@ export default function FlujoReserva({ vehiculo }: Props) {
   // Botón del tab "fechas": si falta info, muestra alerta; si no, pasa al tab "planes".
   const handleVerPlanes = () => {
     if (puedeContinuarAPlanes) {
-      setSeccionActiva("planes");
+      irASeccion("planes");
       return;
     }
     setAlertaFaltantesVisible(true);
   };
 
   // Se dispara cuando en "planes" ya se eligió protección + kilometraje.
-  // Ya no cambia de tab: navega a la pantalla de datos personales.
   const handleIrADatosPersonales = () => {
-    router.push("/reserva/datos-personales"); // TODO: ajustar al path real de tu proyecto
+    irASeccion("datos");
   };
 
   return (
@@ -70,7 +93,7 @@ export default function FlujoReserva({ vehiculo }: Props) {
         <View style={styles.tabsWrapper}>
           <TabsSeccion
             seccionActiva={seccionActiva}
-            onCambiarSeccion={setSeccionActiva}
+            onCambiarSeccion={irASeccion}
             tabsDeshabilitados={tabsDeshabilitados}
           />
         </View>
@@ -84,7 +107,7 @@ export default function FlujoReserva({ vehiculo }: Props) {
           bounces={false}
           overScrollMode="never"
         >
-          {seccionActiva === "fechas" ? (
+          {seccionActiva === "fechas" && (
             <>
               <Text style={styles.seccionLabel}>Datos del vehículo</Text>
               <VehiculoResumenCard vehiculo={vehiculo} />
@@ -96,25 +119,22 @@ export default function FlujoReserva({ vehiculo }: Props) {
                 <Text style={styles.continuarBtnText}>Continuar</Text>
               </TouchableOpacity>
             </>
-          ) : (
+          )}
+
+          {seccionActiva === "planes" && (
             <PlanesAdicionales vehiculo={vehiculo} onContinuar={handleIrADatosPersonales} />
           )}
+
+          {seccionActiva === "datos" && <FormDatosPersonales vehiculo={vehiculo} />}
         </ScrollView>
       </View>
 
       <ResumenReservaModal
   visible={modalResumenVisible}
   vehiculo={vehiculo}
-  mostrarPlanes={seccionActiva !== "fechas"}
+  mostrarPlanes={seccionesAlcanzadas.planes}
+  seccionFechasCompleta={puedeContinuarAPlanes}
   onCerrar={() => setModalResumenVisible(false)}
-  onEditarFechas={() => {
-    setSeccionActiva("fechas");
-    setModalResumenVisible(false);
-  }}
-  onEditarVehiculo={() => {
-    setSeccionActiva("fechas");
-    setModalResumenVisible(false);
-  }}
 />
 
       <AlertModal
@@ -165,7 +185,7 @@ const styles = StyleSheet.create({
 
   scrollClip: { flex: 1, overflow: "hidden" },
   scroll: { flex: 1 },
-  scrollContent: { padding: 16 },
+  scrollContent: { padding: 16, flexGrow: 1 },
 
   seccionLabel: {
     fontSize: 12,
@@ -185,4 +205,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   continuarBtnText: { fontSize: 13, fontWeight: "700", color: "#FFFFFF" },
+
+  placeholderWrap: {
+    flex: 1,
+    minHeight: 300,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  placeholderText: { fontSize: 16, color: "#6B7280" },
 });
