@@ -1,13 +1,17 @@
 // modules/reserva/constants/reserva.constants.ts
-import { COLORES, COLOR_MARCA } from "@/modules/catalogo/constants/catalogo.constants";
 import nacionalidadesData from "@/mocks/nacionalidades.json";
+import {
+  COLORES,
+  COLOR_MARCA,
+} from "@/modules/catalogo/constants/catalogo.constants";
+import { TipoDocumento } from "@/modules/perfil/types/perfil.types";
 
 // Reutilizamos la paleta del catálogo, sin duplicar valores
 export { COLORES, COLOR_MARCA };
 
 // Placeholders de negocio — reemplazar cuando haya reglas reales de precios
 export const PROTECCION_OBLIGATORIA_DIA = 29000;
-export const PORCENTAJE_CARGOS_ADMINISTRATIVOS = 0.10;
+export const PORCENTAJE_CARGOS_ADMINISTRATIVOS = 0.1;
 export const RECARGO_LOGISTICO = 0;
 export const PORCENTAJE_IVA = 0.19;
 
@@ -18,9 +22,18 @@ export const PORCENTAJE_IVA = 0.19;
 export const VALOR_KM_EXCEDENTE = 1500;
 
 export const HORAS_DISPONIBLES = [
-  "07:00", "08:00", "09:00", "10:00", "11:00",
-  "12:00", "13:00", "14:00", "15:00", "16:00",
-  "17:00", "18:00",
+  "07:00",
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
 ];
 
 export const METODOS_PAGO = [
@@ -68,17 +81,39 @@ export interface BeneficioProteccion {
 // la lista de beneficios (pero sí el precio y el botón de selección).
 export const BENEFICIOS_PROTECCION: Record<string, BeneficioProteccion[]> = {
   "Protección Obligatoria": [
-    { tipo: "check", texto: "Asistencia durante tu viaje. No incluida en Alquiler Ligero" },
-    { tipo: "check", texto: "Responsabilidad civil extracontractual (hasta $840 millones)" },
-    { tipo: "check", texto: "Cobertura básica del vehículo (no incluye daños graves ni robo)" },
-    { tipo: "warning", texto: "En caso de siniestro asumes una participación obligatoria de hasta $4.760.000, según el vehículo" },
+    {
+      tipo: "check",
+      texto: "Asistencia durante tu viaje. No incluida en Alquiler Ligero",
+    },
+    {
+      tipo: "check",
+      texto: "Responsabilidad civil extracontractual (hasta $840 millones)",
+    },
+    {
+      tipo: "check",
+      texto: "Cobertura básica del vehículo (no incluye daños graves ni robo)",
+    },
+    {
+      tipo: "warning",
+      texto:
+        "En caso de siniestro asumes una participación obligatoria de hasta $4.760.000, según el vehículo",
+    },
     { tipo: "cross", texto: "No cubre uso indebido del vehículo" },
   ],
   "Protección Total": [
     { tipo: "check", texto: "Asistencia completa durante tu viaje" },
-    { tipo: "check", texto: "Responsabilidad civil extracontractual (hasta $840 millones)" },
-    { tipo: "check", texto: "Cobertura total del vehículo (incluye daños graves y robo)" },
-    { tipo: "check", texto: "Sin pago de la participación obligatoria en caso de siniestro" },
+    {
+      tipo: "check",
+      texto: "Responsabilidad civil extracontractual (hasta $840 millones)",
+    },
+    {
+      tipo: "check",
+      texto: "Cobertura total del vehículo (incluye daños graves y robo)",
+    },
+    {
+      tipo: "check",
+      texto: "Sin pago de la participación obligatoria en caso de siniestro",
+    },
     { tipo: "cross", texto: "No cubre uso indebido del vehículo" },
   ],
 };
@@ -87,15 +122,34 @@ export const BENEFICIOS_PROTECCION: Record<string, BeneficioProteccion[]> = {
 // kilometraje, mismo patrón que BENEFICIOS_PROTECCION. Se relacionan
 // por la clave "limitado" / "ilimitado", que coincide con
 // planes.tipoKilometraje en el store.
-export const BENEFICIOS_KILOMETRAJE: Record<"limitado" | "ilimitado", BeneficioProteccion[]> = {
+export const BENEFICIOS_KILOMETRAJE: Record<
+  "limitado" | "ilimitado",
+  BeneficioProteccion[]
+> = {
   limitado: [
-    { tipo: "check", texto: "Incluye un tope de kilómetros por día, según el vehículo elegido" },
-    { tipo: "warning", texto: "Cada kilómetro adicional al tope se cobra aparte, al valor de excedente" },
-    { tipo: "cross", texto: "No recomendado para trayectos largos o interdepartamentales" },
+    {
+      tipo: "check",
+      texto: "Incluye un tope de kilómetros por día, según el vehículo elegido",
+    },
+    {
+      tipo: "warning",
+      texto:
+        "Cada kilómetro adicional al tope se cobra aparte, al valor de excedente",
+    },
+    {
+      tipo: "cross",
+      texto: "No recomendado para trayectos largos o interdepartamentales",
+    },
   ],
   ilimitado: [
-    { tipo: "check", texto: "Sin restricción de distancia dentro del territorio nacional" },
-    { tipo: "check", texto: "Ideal para viajes largos, interdepartamentales o de varios días" },
+    {
+      tipo: "check",
+      texto: "Sin restricción de distancia dentro del territorio nacional",
+    },
+    {
+      tipo: "check",
+      texto: "Ideal para viajes largos, interdepartamentales o de varios días",
+    },
     { tipo: "cross", texto: "No incluye combustible, peajes ni parqueaderos" },
   ],
 };
@@ -114,11 +168,16 @@ export const ICONOS_SERVICIOS: Record<string, string> = {
 
 // ===================== TAB "DATOS PERSONALES" =====================
 
-export const TIPOS_DOCUMENTO = [
+// ⚠️ CAMBIO: se unificó al tipo de Perfil (CC | TI | Doc. Extranjero |
+// Pasaporte). El id ahora tipa contra TipoDocumento (importado de
+// perfil.types.ts) en vez de ser un literal local — así el compilador
+// avisa si algún día los enums se vuelven a desalinear.
+export const TIPOS_DOCUMENTO: { id: TipoDocumento; label: string }[] = [
   { id: "CC", label: "Cédula de ciudadanía" },
-  { id: "CE", label: "Cédula de extranjería" },
-  { id: "PA", label: "Pasaporte" },
-] as const;
+  { id: "TI", label: "Tarjeta de identidad" },
+  { id: "Doc. Extranjero", label: "Documento de extranjería" },
+  { id: "Pasaporte", label: "Pasaporte" },
+];
 
 // Estructura de cada nacionalidad: nombre visible + código de
 // marcación telefónica. Sale de mocks/nacionalidades.json — simula lo
@@ -200,7 +259,9 @@ export const PUNTOS_POLITICA: PuntoPolitica[] = [
   {
     titulo: "6. DOCUMENTACIÓN REQUERIDA",
     items: [
-      "El usuario debe presentar documento de identidad válido (CC, CE o Pasaporte).",
+      // ⚠️ CAMBIO: se actualizó la lista de documentos aceptados para
+      // reflejar el nuevo enum (antes decía "CC, CE o Pasaporte").
+      "El usuario debe presentar documento de identidad válido (CC, TI, Documento de extranjería o Pasaporte).",
       "Debe cumplir con los requisitos de edad y licencia de conducción según normativa vigente.",
     ],
   },

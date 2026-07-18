@@ -8,6 +8,7 @@ import { SocialAuthButtons } from "@/modules/auth/components/SocialAuthButtons";
 import { useLogin } from "@/modules/auth/hooks/useAuth";
 import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
 import { useAuthStore } from "@/store/authStore";
+import { useUsuarioStore } from "@/store/usuarioStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -46,6 +47,7 @@ export default function LoginScreen() {
   const { form, errores, cargando, bloqueado, actualizarCampo, iniciarSesion } =
     useLogin();
   const setUsuario = useAuthStore((s) => s.setUsuario);
+  const actualizarUsuarioGlobal = useUsuarioStore((s) => s.actualizarUsuario);
   const errorGlobal = errores.find((e) => !e.campo)?.mensaje;
   const [loginExitoso, setLoginExitoso] = useState(false);
 
@@ -73,10 +75,21 @@ export default function LoginScreen() {
           correo: usuarioEncontrado.correo,
           nombres: usuarioEncontrado.nombres,
           apellidos: usuarioEncontrado.apellidos,
-          rol: usuarioEncontrado.rol as "cliente" | "administrador" | "operador" | "supervisor",
+          rol: usuarioEncontrado.rol as
+            | "cliente"
+            | "administrador"
+            | "operador"
+            | "supervisor",
         },
         "token-demo",
       );
+      // Solo el correo es dato de perfil garantizado en login/registro.
+      // TODO backend real: reemplazar por obtenerPerfil(token) para
+      // hidratar el perfil completo (perfilService.ts ya existe para esto).
+      actualizarUsuarioGlobal({
+        id: usuarioEncontrado.id,
+        correo: usuarioEncontrado.correo,
+      });
       setLoginExitoso(true);
       setTimeout(() => router.replace("/(tabs)/catalogo"), 1500);
     });
@@ -209,14 +222,11 @@ export default function LoginScreen() {
                           actualizarCampo("contrasena", val)
                         }
                         error={
-                          errores.find((e) => e.campo === "contrasena")
-                            ?.mensaje
+                          errores.find((e) => e.campo === "contrasena")?.mensaje
                         }
                       />
                       <TouchableOpacity
-                        onPress={() =>
-                          router.push("/(auth)/olvide-contrasena")
-                        }
+                        onPress={() => router.push("/(auth)/olvide-contrasena")}
                         style={styles.enlaceOlvide}
                       >
                         <Text style={styles.textoEnlace}>
@@ -276,8 +286,8 @@ export default function LoginScreen() {
                     <View style={styles.encabezado}>
                       <Text style={styles.titulo}>Bienvenido de vuelta</Text>
                       <Text style={styles.subtitulo}>
-                        Gestiona tus reservas, pagos y contratos desde un
-                        solo lugar.
+                        Gestiona tus reservas, pagos y contratos desde un solo
+                        lugar.
                       </Text>
                     </View>
 

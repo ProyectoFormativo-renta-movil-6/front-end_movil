@@ -1,28 +1,63 @@
 // modules/reserva/components/FormDatosPersonales.tsx
-import React, { useMemo, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
+import { useReservaStore } from "@/store/reservaStore";
+import { useUsuarioStore } from "@/store/usuarioStore";
+import React, { useEffect, useMemo, useState } from "react";
+import { StyleSheet, Text, TextInput, View } from "react-native";
+import { AlertModal } from "../../../components/ui/AlertModal";
 import {
   COLOR_MARCA,
   COLORES,
+  getPrefijoPorNacionalidad,
   NACIONALIDADES,
   PORCENTAJE_CARGOS_ADMINISTRATIVOS,
   PORCENTAJE_IVA,
   RECARGO_LOGISTICO,
   TIPOS_DOCUMENTO,
-  getPrefijoPorNacionalidad,
 } from "../constants/reserva.constants";
-import { useReservaStore } from "@/store/reservaStore";
-import CampoSelectorLista from "./CampoSelectorLista";
-import TarjetaVerificacionDocumental from "./TarjetaVerificacionDocumental";
-import TarjetaTerminosCondiciones from "./TarjetaTerminosCondiciones";
+import { TipoDocumento } from "../types/reserva.types";
 import BarraTotalConfirmar from "./BarraTotalConfirmar";
+import CampoSelectorLista from "./CampoSelectorLista";
 import ModalReservaRegistrada from "./ModalReservaRegistrada";
 import { diasEntre } from "./ResumenReservaModal.piezas";
-import { AlertModal } from "../../../components/ui/AlertModal";
+import TarjetaTerminosCondiciones from "./TarjetaTerminosCondiciones";
+import TarjetaVerificacionDocumental from "./TarjetaVerificacionDocumental";
 
-const OPCIONES_TIPO_DOCUMENTO = TIPOS_DOCUMENTO.map((t) => ({ id: t.id, label: t.label }));
-const OPCIONES_NACIONALIDAD = NACIONALIDADES.map((n) => ({ id: n.nombre, label: n.nombre }));
+const OPCIONES_TIPO_DOCUMENTO = TIPOS_DOCUMENTO.map((t) => ({
+  id: t.id,
+  label: t.label,
+}));
+const OPCIONES_NACIONALIDAD = NACIONALIDADES.map((n) => ({
+  id: n.nombre,
+  label: n.nombre,
+}));
+
+// ── Sincronización nombreCompleto (reserva) ↔ nombres/apellidos (perfil) ──
+// reservaStore guarda un solo campo de texto libre; usuarioStore guarda
+// nombres y apellidos separados. No hay forma 100% confiable de separar
+// un string libre en nombres/apellidos, así que usamos la convención
+// colombiana típica (2 nombres + 2 apellidos): se reparten las palabras
+// a la mitad, redondeando hacia arriba para "nombres".
+//   "Juan Pérez"                 -> nombres: "Juan",        apellidos: "Pérez"
+//   "Juan Carlos Pérez Gómez"    -> nombres: "Juan Carlos",  apellidos: "Pérez Gómez"
+//   "Juan Carlos Pérez" (3 pal.) -> nombres: "Juan Carlos",  apellidos: "Pérez"
+function combinarNombreCompleto(nombres: string, apellidos: string): string {
+  return [nombres, apellidos].filter(Boolean).join(" ").trim();
+}
+
+function separarNombreCompleto(nombreCompleto: string): {
+  nombres: string;
+  apellidos: string;
+} {
+  const partes = nombreCompleto.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return { nombres: "", apellidos: "" };
+  if (partes.length === 1) return { nombres: partes[0], apellidos: "" };
+  const mitad = Math.ceil(partes.length / 2);
+  return {
+    nombres: partes.slice(0, mitad).join(" "),
+    apellidos: partes.slice(mitad).join(" "),
+  };
+}
 
 interface Props {
   vehiculo: Vehiculo;
@@ -30,16 +65,60 @@ interface Props {
 
 export default function FormDatosPersonales({ vehiculo }: Props) {
   const datosPersonales = useReservaStore((s) => s.datosPersonales);
-  const actualizarDatosPersonales = useReservaStore((s) => s.actualizarDatosPersonales);
+  const actualizarDatosPersonales = useReservaStore(
+    (s) => s.actualizarDatosPersonales,
+  );
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const planes = useReservaStore((s) => s.planes);
   const documentos = useReservaStore((s) => s.documentos);
 
+  const usuarioGlobal = useUsuarioStore((s) => s.usuario);
+  const actualizarUsuarioGlobal = useUsuarioStore((s) => s.actualizarUsuario);
+
   const [modalReservaVisible, setModalReservaVisible] = useState(false);
   const [alertaFaltantesVisible, setAlertaFaltantesVisible] = useState(false);
 
+  // Precarga al entrar al tab: el correo siempre que exista (viene del
+  // login), el resto solo si el usuario ya completó su perfil antes de
+  // reservar. Nunca pisa algo que el usuario ya haya escrito aquí.
+  useEffect(() => {
+    const precarga: Partial<typeof datosPersonales> = {};
+    if (
+      !datosPersonales.nombreCompleto &&
+      (usuarioGlobal.nombres || usuarioGlobal.apellidos)
+    ) {
+      precarga.nombreCompleto = combinarNombreCompleto(
+        usuarioGlobal.nombres,
+        usuarioGlobal.apellidos,
+      );
+    }
+    if (!datosPersonales.correo && usuarioGlobal.correo) {
+      precarga.correo = usuarioGlobal.correo;
+    }
+    if (!datosPersonales.nacionalidad && usuarioGlobal.nacionalidad) {
+      precarga.nacionalidad = usuarioGlobal.nacionalidad;
+    }
+    if (!datosPersonales.tipoDocumento && usuarioGlobal.tipoDocumento) {
+      precarga.tipoDocumento = usuarioGlobal.tipoDocumento;
+    }
+    if (!datosPersonales.numeroDocumento && usuarioGlobal.numeroDocumento) {
+      precarga.numeroDocumento = usuarioGlobal.numeroDocumento;
+    }
+    if (!datosPersonales.celular && usuarioGlobal.telefono) {
+      precarga.celular = usuarioGlobal.telefono;
+    }
+    if (Object.keys(precarga).length > 0) {
+      actualizarDatosPersonales(precarga);
+    }
+    // Solo al entrar al tab — no queremos pisar lo que el usuario ya
+    // escribió si usuarioGlobal cambia después por otra vía.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Vacío hasta que el usuario elige nacionalidad — no cae a +57 por defecto.
-  const prefijoTelefono = getPrefijoPorNacionalidad(datosPersonales.nacionalidad || null);
+  const prefijoTelefono = getPrefijoPorNacionalidad(
+    datosPersonales.nacionalidad || null,
+  );
   const hayPrefijo = prefijoTelefono !== "";
 
   // Todo lo que se pide en este tab tiene que estar diligenciado antes
@@ -63,10 +142,19 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
     const kmIlimitado = vehiculo.tarifas?.kmIlimitado;
     const servicios = vehiculo.servicios ?? [];
 
-    const seguroElegido = seguros.find((s) => s.nombre === planes.proteccion) ?? null;
-    const kmElegido = planes.tipoKilometraje === "limitado" ? kmLimitado : planes.tipoKilometraje === "ilimitado" ? kmIlimitado : null;
+    const seguroElegido =
+      seguros.find((s) => s.nombre === planes.proteccion) ?? null;
+    const kmElegido =
+      planes.tipoKilometraje === "limitado"
+        ? kmLimitado
+        : planes.tipoKilometraje === "ilimitado"
+          ? kmIlimitado
+          : null;
 
-    const dias = diasEntre(fechasLugar.fechaRetiro, fechasLugar.fechaDevolucion);
+    const dias = diasEntre(
+      fechasLugar.fechaRetiro,
+      fechasLugar.fechaDevolucion,
+    );
     const diarias = vehiculo.precio * dias;
     const proteccion = seguroElegido ? seguroElegido.precio * dias : 0;
     const kilometraje = kmElegido ? kmElegido.precio * dias : 0;
@@ -74,7 +162,13 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
       .filter((s) => planes.serviciosSeleccionados.includes(s.nombre))
       .reduce((a, s) => a + s.precio * dias, 0);
     const cargos = Math.round(diarias * PORCENTAJE_CARGOS_ADMINISTRATIVOS);
-    const subtotal = diarias + proteccion + kilometraje + servAdic + cargos + RECARGO_LOGISTICO;
+    const subtotal =
+      diarias +
+      proteccion +
+      kilometraje +
+      servAdic +
+      cargos +
+      RECARGO_LOGISTICO;
     const iva = Math.round(subtotal * PORCENTAJE_IVA);
     return subtotal + iva;
   }, [vehiculo, fechasLugar.fechaRetiro, fechasLugar.fechaDevolucion, planes]);
@@ -102,8 +196,12 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
       <View style={styles.card}>
         {/* Subtarjeta: aquí vive todo el contenido (subtítulo, nota y formulario) */}
         <View style={styles.subcard}>
-          <Text style={styles.subtitulo}>Informa tus datos para que podamos realizar tu reserva.</Text>
-          <Text style={styles.nota}>Los campos marcados con asterisco (*) son obligatorios.</Text>
+          <Text style={styles.subtitulo}>
+            Informa tus datos para que podamos realizar tu reserva.
+          </Text>
+          <Text style={styles.nota}>
+            Los campos marcados con asterisco (*) son obligatorios.
+          </Text>
 
           <View style={styles.separador} />
 
@@ -112,7 +210,11 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
             <TextInput
               style={styles.input}
               value={datosPersonales.nombreCompleto}
-              onChangeText={(v) => actualizarDatosPersonales({ nombreCompleto: v })}
+              onChangeText={(v) => {
+                actualizarDatosPersonales({ nombreCompleto: v });
+                const { nombres, apellidos } = separarNombreCompleto(v);
+                actualizarUsuarioGlobal({ nombres, apellidos });
+              }}
               placeholderTextColor={COLORES.textMuted}
               autoCapitalize="words"
             />
@@ -123,7 +225,10 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
               etiqueta="NACIONALIDAD *"
               valorSeleccionado={datosPersonales.nacionalidad || null}
               opciones={OPCIONES_NACIONALIDAD}
-              onSeleccionar={(id) => actualizarDatosPersonales({ nacionalidad: id })}
+              onSeleccionar={(id) => {
+                actualizarDatosPersonales({ nacionalidad: id });
+                actualizarUsuarioGlobal({ nacionalidad: id });
+              }}
             />
           </View>
 
@@ -132,7 +237,10 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
             <TextInput
               style={styles.input}
               value={datosPersonales.correo}
-              onChangeText={(v) => actualizarDatosPersonales({ correo: v })}
+              onChangeText={(v) => {
+                actualizarDatosPersonales({ correo: v });
+                actualizarUsuarioGlobal({ correo: v });
+              }}
               placeholderTextColor={COLORES.textMuted}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -142,8 +250,18 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
           <View style={styles.campo}>
             <Text style={styles.inputLabel}>NÚMERO DE CELULAR *</Text>
             <View style={styles.filaCelular}>
-              <View style={[styles.prefijoBox, !hayPrefijo && styles.prefijoBoxVacio]}>
-                <Text style={[styles.prefijoText, !hayPrefijo && styles.prefijoTextVacio]}>
+              <View
+                style={[
+                  styles.prefijoBox,
+                  !hayPrefijo && styles.prefijoBoxVacio,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.prefijoText,
+                    !hayPrefijo && styles.prefijoTextVacio,
+                  ]}
+                >
                   {hayPrefijo ? prefijoTelefono : ""}
                 </Text>
               </View>
@@ -154,7 +272,11 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
                   !hayPrefijo && styles.inputDeshabilitado,
                 ]}
                 value={datosPersonales.celular}
-                onChangeText={(v) => actualizarDatosPersonales({ celular: v.replace(/\D/g, "") })}
+                onChangeText={(v) => {
+                  const digits = v.replace(/\D/g, "");
+                  actualizarDatosPersonales({ celular: digits });
+                  actualizarUsuarioGlobal({ telefono: digits });
+                }}
                 keyboardType="phone-pad"
                 placeholder={hayPrefijo ? undefined : ""}
                 placeholderTextColor={COLORES.textMuted}
@@ -168,9 +290,14 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
               etiqueta="TIPO DE DOCUMENTO *"
               valorSeleccionado={datosPersonales.tipoDocumento}
               opciones={OPCIONES_TIPO_DOCUMENTO}
-              onSeleccionar={(id) =>
-                actualizarDatosPersonales({ tipoDocumento: id as typeof datosPersonales.tipoDocumento })
-              }
+              onSeleccionar={(id) => {
+                actualizarDatosPersonales({
+                  tipoDocumento: id as typeof datosPersonales.tipoDocumento,
+                });
+                actualizarUsuarioGlobal({
+                  tipoDocumento: id as TipoDocumento,
+                });
+              }}
             />
           </View>
 
@@ -179,7 +306,10 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
             <TextInput
               style={styles.input}
               value={datosPersonales.numeroDocumento}
-              onChangeText={(v) => actualizarDatosPersonales({ numeroDocumento: v })}
+              onChangeText={(v) => {
+                actualizarDatosPersonales({ numeroDocumento: v });
+                actualizarUsuarioGlobal({ numeroDocumento: v });
+              }}
               placeholderTextColor={COLORES.textMuted}
               keyboardType="numeric"
             />
@@ -239,7 +369,12 @@ const styles = StyleSheet.create({
   },
   subtitulo: { fontSize: 12, color: COLORES.textMuted, marginBottom: 8 },
   nota: { fontSize: 10.5, color: COLOR_MARCA, fontStyle: "italic" },
-  separador: { height: 1, backgroundColor: COLORES.panelBorder, marginTop: 14, marginBottom: 14 },
+  separador: {
+    height: 1,
+    backgroundColor: COLORES.panelBorder,
+    marginTop: 14,
+    marginBottom: 14,
+  },
 
   campo: { marginBottom: 14 },
 
