@@ -3,6 +3,8 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { memo, useState } from "react";
+import { useReservaStore } from "@/store/reservaStore";
+import { DatosFechasLugar } from "@/modules/reserva/types/reserva.types";
 import {
   Image,
   NativeScrollEvent,
@@ -23,6 +25,9 @@ interface Props {
   esFavorito?: boolean;
   onAccionRestringida?: (accion: "reservar" | "favorito") => void;
   onToggleFavorito?: (id: number) => void;
+  // Viene de una búsqueda previa en "Consultar disponibilidad". Si el
+  // usuario no buscó nada, llega undefined y la reserva arranca vacía.
+  datosPrecarga?: Partial<Pick<DatosFechasLugar, "lugarRetiro" | "fechaRetiro" | "fechaDevolucion">>;
 }
 
 function getSafeImages(vehiculo: Vehiculo): string[] {
@@ -54,6 +59,7 @@ function VehiculoCard({
   esFavorito = false,
   onAccionRestringida,
   onToggleFavorito,
+  datosPrecarga,
 }: Props) {
   const [fotoActiva, setFotoActiva] = useState(0);
   const [verDetalles, setVerDetalles] = useState(false);
@@ -79,6 +85,7 @@ function VehiculoCard({
       onAccionRestringida?.("reservar");
       return;
     }
+    useReservaStore.getState().seleccionarVehiculo(vehiculo, datosPrecarga);
     router.push("/(tabs)/reservar");
   };
 
@@ -235,11 +242,6 @@ function VehiculoCard({
           <Text style={styles.detallesBtnText}>
             {verDetalles ? "Ocultar detalles" : "Ver detalles"}
           </Text>
-          <Ionicons
-            name={verDetalles ? "chevron-up" : "chevron-down"}
-            size={14}
-            color="#2563eb"
-          />
         </TouchableOpacity>
 
         {verDetalles && <VehiculoDetalles vehiculo={vehiculo} />}

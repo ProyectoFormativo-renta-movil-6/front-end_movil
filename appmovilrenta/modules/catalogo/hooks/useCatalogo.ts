@@ -1,34 +1,84 @@
-import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert } from "react-native";
-import { FILTROS_BASE, VEHICULOS_MOCK } from "../constants/catalogo.constants";
+import {
+  FILTROS_BASE,
+  VEHICULOS_MOCK,
+  getCiudadPorSucursal,
+} from "../constants/catalogo.constants";
 import {
   BusquedaForm,
   FiltrosCatalogoState,
   Vehiculo,
 } from "../types/catalogo.types";
 
-// Tipo extendido local para que useCatalogo reconozca las propiedades marca y modelo de forma opcional si tu interfaz base no las tiene todavía.
-export interface VehiculoConDetalles extends Vehiculo {
-  marca?: string;
-  modelo?: string;
+function estaDisponibleEnRango(
+  vehiculo: Vehiculo,
+  fechaInicio: string,
+  fechaFin: string,
+): boolean {
+  const ocupados = vehiculo.disponibilidad?.ocupados ?? [];
+  if (ocupados.length === 0) return true;
+
+  const inicio = new Date(fechaInicio + "T00:00:00");
+  const fin = new Date(fechaFin + "T00:00:00");
+
+  return !ocupados.some((fechaStr) => {
+    const fecha = new Date(fechaStr + "T00:00:00");
+    return fecha >= inicio && fecha < fin;
+  });
 }
 
+// Aplica los criterios del modal "Consultar Disponibilidad" sobre un array dado.
+// Se extrae aparte para poder reusarla tanto en el filtrado real (useMemo)
+// como en la comprobación previa de "¿esto daría 0 resultados?" en handleBuscar.
+function aplicarCriteriosBusqueda(
+  arr: Vehiculo[],
+  form: BusquedaForm,
+): Vehiculo[] {
+  let out = arr;
+
+  if (form.lugarRecogida) {
+    out = out.filter(
+      (v) => v.sucursal && getCiudadPorSucursal(v.sucursal) === form.lugarRecogida,
+    );
+  }
+  if (form.lugarDevolucion) {
+    out = out.filter((v) => v.sucursal === form.lugarDevolucion);
+  }
+  if (form.fechaInicio && form.fechaFin) {
+    out = out.filter((v) =>
+      estaDisponibleEnRango(v, form.fechaInicio, form.fechaFin),
+    );
+  }
+
+  return out;
+}
+
+const BUSQUEDA_FORM_BASE: BusquedaForm = {
+  lugarRecogida: "",
+  lugarDevolucion: "",
+  fechaInicio: "",
+  fechaFin: "",
+  mismoLugar: true,
+};
+
 export function useCatalogo() {
-  const [vehiculos] = useState<VehiculoConDetalles[]>(VEHICULOS_MOCK);
+  const [vehiculos] = useState<Vehiculo[]>(VEHICULOS_MOCK);
   const [cargando] = useState(false);
   const [error] = useState<string | null>(null);
 
+  // Dominio exclusivo del modal "Filtros"
   const [filtros, setFiltros] = useState<FiltrosCatalogoState>(FILTROS_BASE);
-  const [busquedaForm, setBusquedaForm] = useState<BusquedaForm>({
-    lugarRecogida: "",
-    lugarDevolucion: "",
-    fechaInicio: "",
-    fechaFin: "",
-    mismoLugar: true,
-  });
+
+  // Dominio exclusivo del modal "Consultar Disponibilidad"
+  const [busquedaForm, setBusquedaForm] = useState<BusquedaForm>(BUSQUEDA_FORM_BASE);
   const [busquedaRealizada, setBusquedaRealizada] = useState(false);
   const [errorBusqueda, setErrorBusqueda] = useState("");
+
+  // Bandera para avisarle a la UI que la última búsqueda no encontró vehículos
+  // (no es un estado vacío de catálogo: el catálogo se queda mostrando todo normal)
+  const [sinResultadosBusqueda, setSinResultadosBusqueda] = useState(false);
+
   const [pagina, setPagina] = useState(1);
 
   const setFiltro = (campo: keyof FiltrosCatalogoState, valor: string) => {
@@ -44,48 +94,60 @@ export function useCatalogo() {
   const handleBuscarInvitado = () => {
     Alert.alert(
       "Modo invitado",
-      "Inicia sesión o regístrate para guardar y realizar búsquedas avanzadas.",
+      "Inicia sesion o regístrate para guardar y realizar búsquedas avanzadas.",
       [
         { text: "Cancelar", style: "cancel" },
-        {
-          text: "Ir a registrarse",
-          onPress: () => router.push("/(auth)/registro"),
-        },
+        { text: "Ir a registrarse", onPress: () => {} },
       ],
     );
   };
 
   const handleBuscar = () => {
     if (!busquedaForm.lugarRecogida || !busquedaForm.lugarDevolucion) {
-      setErrorBusqueda("Selecciona los puntos de recogida y devolución");
+      setErrorBusqueda("Selecciona la ciudad y la sucursal");
       return;
     }
     if (!busquedaForm.fechaInicio || !busquedaForm.fechaFin) {
       setErrorBusqueda("Selecciona las fechas de recogida y devolución");
       return;
     }
+    if (busquedaForm.fechaFin <= busquedaForm.fechaInicio) {
+      setErrorBusqueda("La fecha de devolución debe ser posterior a la de recogida");
+      return;
+    }
     setErrorBusqueda("");
-    router.push({
-      pathname: "/(tabs)/catalogo",
-      params: {
-        sucursal: busquedaForm.lugarRecogida,
-        fechaInicio: busquedaForm.fechaInicio,
-        fechaFin: busquedaForm.fechaFin,
-      },
-    });
+
+    // Comprobación previa: ¿esta búsqueda daría 0 vehículos?
+    const disponibles = aplicarCriteriosBusqueda(vehiculos, busquedaForm);
+
+    if (disponibles.length === 0) {
+      // No se activa el filtro de disponibilidad -> el catálogo sigue mostrando
+      // todos los vehículos normal. Solo se avisa con alerta.
+      setBusquedaRealizada(false);
+      setSinResultadosBusqueda(true);
+      return;
+    }
+
+    setBusquedaRealizada(true);
+    setPagina(1);
   };
 
-  const limpiar = () => {
-    setFiltros(FILTROS_BASE);
-    setBusquedaForm({
-      lugarRecogida: "",
-      lugarDevolucion: "",
-      fechaInicio: "",
-      fechaFin: "",
-      mismoLugar: true,
-    });
+  const cerrarAlertaSinResultados = () => {
+    setSinResultadosBusqueda(false);
+  };
+
+  // Responsabilidad EXCLUSIVA de "Consultar Disponibilidad" — no toca `filtros`
+  const limpiarBusqueda = () => {
+    setBusquedaForm(BUSQUEDA_FORM_BASE);
     setBusquedaRealizada(false);
     setErrorBusqueda("");
+    setSinResultadosBusqueda(false);
+    setPagina(1);
+  };
+
+  // Responsabilidad EXCLUSIVA del modal "Filtros" — no toca `busquedaForm`
+  const limpiarFiltros = () => {
+    setFiltros(FILTROS_BASE);
     setPagina(1);
   };
 
@@ -103,22 +165,35 @@ export function useCatalogo() {
       arr = arr.filter((v) => v.transmision === filtros.transmision);
     if (filtros.combustible !== "Todos")
       arr = arr.filter((v) => v.combustible === filtros.combustible);
-    if (filtros.sucursal !== "Todas las sucursales")
+
+    // Ciudad/sucursal elegidas en el modal "Filtros" (independientes de disponibilidad)
+    if (filtros.ciudad !== "Todas las ciudades") {
+      arr = arr.filter(
+        (v) => v.sucursal && getCiudadPorSucursal(v.sucursal) === filtros.ciudad,
+      );
+    }
+    if (filtros.sucursal !== "Todas las sucursales") {
       arr = arr.filter((v) => v.sucursal === filtros.sucursal);
+    }
 
     const min = filtros.precioMin ? Number(filtros.precioMin) : null;
     const max = filtros.precioMax ? Number(filtros.precioMax) : null;
     if (min !== null) arr = arr.filter((v) => v.precio >= min);
     if (max !== null) arr = arr.filter((v) => v.precio <= max);
 
+    // Ciudad/sucursal/fechas de "Consultar Disponibilidad" — dominio propio,
+    // solo se aplica si el usuario efectivamente completó una búsqueda con resultados
+    if (busquedaRealizada) {
+      arr = aplicarCriteriosBusqueda(arr, busquedaForm);
+    }
+
     if (filtros.orden === "precio_asc") arr.sort((a, b) => a.precio - b.precio);
-    if (filtros.orden === "precio_desc")
-      arr.sort((a, b) => b.precio - a.precio);
+    if (filtros.orden === "precio_desc") arr.sort((a, b) => b.precio - a.precio);
     if (filtros.orden === "calificacion")
       arr.sort((a, b) => (b.calificacion ?? 0) - (a.calificacion ?? 0));
 
     return arr;
-  }, [vehiculos, filtros]);
+  }, [vehiculos, filtros, busquedaRealizada, busquedaForm]);
 
   const POR_PAGINA = 6;
   const totalPaginas = Math.max(1, Math.ceil(resultado.length / POR_PAGINA));
@@ -138,7 +213,10 @@ export function useCatalogo() {
     setForm,
     busquedaRealizada,
     errorBusqueda,
-    limpiar,
+    sinResultadosBusqueda,
+    cerrarAlertaSinResultados,
+    limpiarFiltros,
+    limpiarBusqueda,
     handleBuscarInvitado,
     handleBuscar,
     pagina,
@@ -146,7 +224,6 @@ export function useCatalogo() {
     totalPaginas,
     vehiculosFiltrados: resultado,
     vehiculosPaginados: vehiculosPagina,
-    resetFiltros: limpiar,
     paginaActual: pagina,
     paginaSiguiente: () => setPagina((p) => Math.min(p + 1, totalPaginas)),
     paginaAnterior: () => setPagina((p) => Math.max(p - 1, 1)),
