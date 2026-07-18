@@ -1,3 +1,9 @@
+import ciudadesData from "../../../mocks/ciudades.json";
+import sucursalesData from "../../../mocks/sucursales.json";
+import vehiculosData from "../../../mocks/vehiculos.json";
+import reservasData from "../../../mocks/reservas.json";
+import { DisponibilidadVehiculo, ReservaOcupada, Vehiculo } from "../types/catalogo.types";
+
 export const COLOR_MARCA = "#2f4ea2";
 export const COLOR_ACCENT = "#2563eb";
 
@@ -46,15 +52,59 @@ export const COMBUSTIBLES = [
   "Híbrido",
   "Eléctrico",
 ];
+
+// =========================================================
+// CIUDADES (desde mocks/ciudades.json — igual que la web)
+// =========================================================
+export interface CiudadInfo {
+  id: string;
+  nombre: string;
+  departamento: string;
+  tieneAeropuerto: boolean;
+  tieneTerminal: boolean;
+}
+
+export const CIUDADES_DATA: CiudadInfo[] = ciudadesData;
+
+// Lista plana para filtros con opción "Todas las ciudades"
+export const CIUDADES_FILTRO = [
+  "Todas las ciudades",
+  ...CIUDADES_DATA.map((c) => c.nombre),
+];
+
+// Lista plana original (se mantiene por compatibilidad con BuscadorCatalogo,
+// que no necesita la opción "Todas las ciudades")
+export const CIUDADES: string[] = CIUDADES_DATA.map((c) => c.nombre);
+
+// =========================================================
+// SUCURSALES (desde mocks/sucursales.json — igual que la web)
+// =========================================================
+export interface SucursalInfo {
+  nombre: string;
+  ciudad: string;
+}
+
+export const SUCURSALES_DATA: SucursalInfo[] = sucursalesData;
+
+// Lista plana (se mantiene por compatibilidad con FiltrosCatalogo y otros
+// componentes que ya consumen SUCURSALES como array de strings)
 export const SUCURSALES = [
   "Todas las sucursales",
-  "Localiza (El Dorado)",
-  "Tu Roll (El Poblado)",
-  "Europcar (El Dorado)",
-  "Enterprise (El Dorado)",
-  "Sixt (JMC)",
-  "Alamo (El Dorado)",
+  ...SUCURSALES_DATA.map((s) => s.nombre),
 ];
+
+// Helper para obtener las sucursales de una ciudad específica
+export function getSucursalesPorCiudad(ciudad: string): string[] {
+  return SUCURSALES_DATA.filter((s) => s.ciudad === ciudad).map(
+    (s) => s.nombre,
+  );
+}
+
+// Helper para obtener la ciudad de una sucursal específica
+export function getCiudadPorSucursal(sucursal: string): string | null {
+  const encontrada = SUCURSALES_DATA.find((s) => s.nombre === sucursal);
+  return encontrada ? encontrada.ciudad : null;
+}
 
 export const FILTROS_BASE = {
   categoria: "Todos",
@@ -62,431 +112,43 @@ export const FILTROS_BASE = {
   precioMax: "",
   transmision: "Todas",
   combustible: "Todos",
+  ciudad: "Todas las ciudades",
   sucursal: "Todas las sucursales",
   orden: "precio_asc",
   busqueda: "",
 };
 
-export const VEHICULOS_MOCK: import("../types/catalogo.types").Vehiculo[] = [
-  {
-    id: 1,
-    nombre: "Toyota Corolla 2024",
-    marca: "Toyota",
-    modelo: "Corolla",
-    categoria: "Sedan",
-    transmision: "Automática",
-    combustible: "Gasolina",
-    precio: 85000,
-    calificacion: 4.8,
-    disponible: true,
-    destacado: true,
-    puertas: 4,
-    pasajeros: 5,
-    maletero: 470,
-    cilindraje: "1.8L",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: true,
-    camaraReversa: true,
-    sensoresParqueo: false,
-    sucursal: "Localiza (El Dorado)",
-    tarifas: {
-      kmLimitado: { km: 200, precio: 85000 },
-      kmIlimitado: { precio: 105000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&q=80",
-      "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=600&q=80",
-    ],
-  },
-  {
-    id: 2,
-    nombre: "Mazda CX-5 2024",
-    marca: "Mazda",
-    modelo: "CX-5",
-    categoria: "SUV",
-    transmision: "Automática",
-    combustible: "Gasolina",
-    precio: 145000,
-    calificacion: 4.9,
-    disponible: true,
-    puertas: 5,
-    pasajeros: 5,
-    maletero: 505,
-    cilindraje: "2.5L",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: true,
-    camaraReversa: true,
-    sensoresParqueo: true,
-    sucursal: "Tu Roll (El Poblado)",
-    tarifas: {
-      kmLimitado: { km: 250, precio: 145000 },
-      kmIlimitado: { precio: 175000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1615887023516-9b6bcd559e87?w=600&q=80",
-      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&q=80",
-    ],
-  },
-  {
-    id: 3,
-    nombre: "Chevrolet Spark 2023",
-    marca: "Chevrolet",
-    modelo: "Spark",
-    categoria: "Económico",
-    transmision: "Manual",
-    combustible: "Gasolina",
-    precio: 60000,
-    calificacion: 4.5,
-    disponible: true,
-    puertas: 4,
-    pasajeros: 4,
-    maletero: 170,
-    cilindraje: "1.0L",
-    aireAcondicionado: true,
-    vidriosElectricos: false,
-    cierreCentralizado: true,
-    bluetooth: true,
-    camaraReversa: false,
-    sensoresParqueo: false,
-    sucursal: "Europcar (El Dorado)",
-    tarifas: {
-      kmLimitado: { km: 150, precio: 60000 },
-      kmIlimitado: { precio: 75000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=600&q=80",
-      "https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=600&q=80",
-    ],
-  },
-  {
-    id: 4,
-    nombre: "Renault Sandero 2023",
-    marca: "Renault",
-    modelo: "Sandero",
-    categoria: "Económico",
-    transmision: "Manual",
-    combustible: "Gasolina",
-    precio: 55000,
-    calificacion: 4.3,
-    disponible: true,
-    puertas: 4,
-    pasajeros: 5,
-    maletero: 320,
-    cilindraje: "1.6L",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: false,
-    camaraReversa: false,
-    sensoresParqueo: false,
-    sucursal: "Alamo (El Dorado)",
-    tarifas: {
-      kmLimitado: { km: 150, precio: 55000 },
-      kmIlimitado: { precio: 68000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=600&q=80",
-      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&q=80",
-    ],
-  },
-  {
-    id: 5,
-    nombre: "Ford Mustang 2024",
-    marca: "Ford",
-    modelo: "Mustang",
-    categoria: "Deportivo",
-    transmision: "Automática",
-    combustible: "Gasolina",
-    precio: 250000,
-    calificacion: 4.7,
-    disponible: false,
-    puertas: 2,
-    pasajeros: 4,
-    maletero: 408,
-    cilindraje: "5.0L V8",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: true,
-    camaraReversa: true,
-    sensoresParqueo: true,
-    sucursal: "Sixt (JMC)",
-    tarifas: {
-      kmLimitado: { km: 300, precio: 250000 },
-      kmIlimitado: { precio: 300000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1611245329358-c8d35210996a?w=600&q=80",
-      "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&q=80",
-    ],
-  },
-  {
-    id: 6,
-    nombre: "Kia Sportage 2024",
-    marca: "Kia",
-    modelo: "Sportage",
-    categoria: "SUV",
-    transmision: "Automática",
-    combustible: "Híbrido",
-    precio: 180000,
-    calificacion: 4.6,
-    disponible: true,
-    puertas: 5,
-    pasajeros: 5,
-    maletero: 543,
-    cilindraje: "1.6T Híbrido",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: true,
-    camaraReversa: true,
-    sensoresParqueo: true,
-    sucursal: "Enterprise (El Dorado)",
-    tarifas: {
-      kmLimitado: { km: 200, precio: 180000 },
-      kmIlimitado: { precio: 210000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1632245889029-e406faaa34cd?w=600&q=80",
-      "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=600&q=80",
-    ],
-  },
-  {
-    id: 7,
-    nombre: "Hyundai Tucson 2024",
-    marca: "Hyundai",
-    modelo: "Tucson",
-    categoria: "SUV",
-    transmision: "Automática",
-    combustible: "Gasolina",
-    precio: 160000,
-    calificacion: 4.7,
-    disponible: true,
-    puertas: 5,
-    pasajeros: 5,
-    maletero: 513,
-    cilindraje: "2.0L",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: true,
-    camaraReversa: true,
-    sensoresParqueo: true,
-    sucursal: "Localiza (El Dorado)",
-    tarifas: {
-      kmLimitado: { km: 200, precio: 160000 },
-      kmIlimitado: { precio: 190000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1633113215188-4e5b7b9e7e3a?w=600&q=80",
-      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&q=80",
-    ],
-  },
-  {
-    id: 8,
-    nombre: "Nissan Sentra 2024",
-    marca: "Nissan",
-    modelo: "Sentra",
-    categoria: "Sedan",
-    transmision: "Automática",
-    combustible: "Gasolina",
-    precio: 95000,
-    calificacion: 4.4,
-    disponible: true,
-    puertas: 4,
-    pasajeros: 5,
-    maletero: 502,
-    cilindraje: "2.0L",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: true,
-    camaraReversa: true,
-    sensoresParqueo: false,
-    sucursal: "Europcar (El Dorado)",
-    tarifas: {
-      kmLimitado: { km: 200, precio: 95000 },
-      kmIlimitado: { precio: 115000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80",
-      "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=600&q=80",
-    ],
-  },
-  {
-    id: 9,
-    nombre: "Volkswagen Golf 2024",
-    marca: "Volkswagen",
-    modelo: "Golf",
-    categoria: "Sedan",
-    transmision: "Automática",
-    combustible: "Gasolina",
-    precio: 120000,
-    calificacion: 4.6,
-    disponible: true,
-    puertas: 4,
-    pasajeros: 5,
-    maletero: 380,
-    cilindraje: "1.4T",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: true,
-    camaraReversa: true,
-    sensoresParqueo: true,
-    sucursal: "Enterprise (El Dorado)",
-    tarifas: {
-      kmLimitado: { km: 250, precio: 120000 },
-      kmIlimitado: { precio: 145000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80",
-      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&q=80",
-    ],
-  },
-  {
-    id: 10,
-    nombre: "Honda CR-V 2024",
-    marca: "Honda",
-    modelo: "CR-V",
-    categoria: "SUV",
-    transmision: "Automática",
-    combustible: "Híbrido",
-    precio: 195000,
-    calificacion: 4.8,
-    disponible: true,
-    puertas: 5,
-    pasajeros: 5,
-    maletero: 589,
-    cilindraje: "2.0L Híbrido",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: true,
-    camaraReversa: true,
-    sensoresParqueo: true,
-    sucursal: "Tu Roll (El Poblado)",
-    tarifas: {
-      kmLimitado: { km: 250, precio: 195000 },
-      kmIlimitado: { precio: 225000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=600&q=80",
-      "https://images.unsplash.com/photo-1615887023516-9b6bcd559e87?w=600&q=80",
-    ],
-  },
-  {
-    id: 11,
-    nombre: "BMW Serie 3 2024",
-    marca: "BMW",
-    modelo: "Serie 3",
-    categoria: "Sedan",
-    transmision: "Automática",
-    combustible: "Gasolina",
-    precio: 320000,
-    calificacion: 4.9,
-    disponible: true,
-    puertas: 4,
-    pasajeros: 5,
-    maletero: 480,
-    cilindraje: "2.0T",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: true,
-    camaraReversa: true,
-    sensoresParqueo: true,
-    sucursal: "Sixt (JMC)",
-    tarifas: {
-      kmLimitado: { km: 300, precio: 320000 },
-      kmIlimitado: { precio: 370000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80",
-      "https://images.unsplash.com/photo-1494905998402-395d579af36f?w=600&q=80",
-    ],
-  },
-  {
-    id: 12,
-    nombre: "Renault Duster 2024",
-    marca: "Renault",
-    modelo: "Duster",
-    categoria: "SUV",
-    transmision: "Manual",
-    combustible: "Gasolina",
-    precio: 110000,
-    calificacion: 4.3,
-    disponible: true,
-    puertas: 5,
-    pasajeros: 5,
-    maletero: 445,
-    cilindraje: "1.6L",
-    aireAcondicionado: true,
-    vidriosElectricos: true,
-    cierreCentralizado: true,
-    bluetooth: false,
-    camaraReversa: false,
-    sensoresParqueo: false,
-    sucursal: "Alamo (El Dorado)",
-    tarifas: {
-      kmLimitado: { km: 150, precio: 110000 },
-      kmIlimitado: { precio: 130000 },
-    },
-    seguros: [
-      { nombre: "Protección Obligatoria", precio: 29000 },
-      { nombre: "Protección Total", precio: 67000 },
-    ],
-    imagenes: [
-      "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600&q=80",
-      "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=600&q=80",
-    ],
-  },
-];
+// =========================================================
+// VEHÍCULOS (desde mocks/vehiculos.json — mismo catálogo para
+// invitados y usuarios registrados; solo cambia qué tanto de
+// cada objeto se muestra en la tarjeta vs. en el detalle)
+// =========================================================
+export const VEHICULOS_MOCK: Vehiculo[] = vehiculosData as Vehiculo[];
+
+// =========================================================
+// RESERVAS / DISPONIBILIDAD (desde mocks/reservas.json — separado
+// del catálogo porque son datos transaccionales que cambian con
+// cada reserva, no información fija del vehículo)
+// =========================================================
+export const RESERVAS_MOCK: ReservaOcupada[] = reservasData as ReservaOcupada[];
+
+// Arma la disponibilidad de un vehículo a partir de RESERVAS_MOCK,
+// separando bloqueos de día completo (ocupados) de bloqueos de hora
+// específica (horasOcupadas), agrupados por fecha.
+export function getDisponibilidadVehiculo(vehiculoId: number): DisponibilidadVehiculo {
+  const reservasVehiculo = RESERVAS_MOCK.filter((r) => r.vehiculoId === vehiculoId);
+
+  const ocupados: DisponibilidadVehiculo["ocupados"] = [];
+  const horasOcupadas: NonNullable<DisponibilidadVehiculo["horasOcupadas"]> = {};
+
+  reservasVehiculo.forEach((r) => {
+    if (r.hora) {
+      if (!horasOcupadas[r.fecha]) horasOcupadas[r.fecha] = [];
+      horasOcupadas[r.fecha].push({ hora: r.hora, motivo: r.motivo });
+    } else {
+      ocupados.push({ fecha: r.fecha, motivo: r.motivo });
+    }
+  });
+
+  return { ocupados, horasOcupadas };
+}

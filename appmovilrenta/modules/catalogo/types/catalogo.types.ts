@@ -11,12 +11,56 @@ export interface Seguro {
   precio: number;
 }
 
+export interface ServicioExtra {
+  nombre: string;
+  precio: number;
+}
+
+export interface Comentario {
+  autor: string;
+  calificacion: number;
+  texto: string;
+  fecha: string;
+}
+
+export type MotivoNoDisponible = "reservado" | "mantenimiento";
+
+export interface FechaOcupada {
+  fecha: string; // "YYYY-MM-DD"
+  motivo: MotivoNoDisponible;
+}
+
+export interface HoraOcupada {
+  hora: string; // "HH:mm"
+  motivo: MotivoNoDisponible;
+}
+
+// Forma "calculada" de disponibilidad — la siguen usando CalendarioRango
+// y FormFechasLugar, pero ahora se construye a partir de RESERVAS_MOCK
+// (ver catalogo.constants.ts -> getDisponibilidadVehiculo) en vez de
+// venir embebida en el vehículo.
+export interface DisponibilidadVehiculo {
+  ocupados: FechaOcupada[];
+  // Horas bloqueadas por fecha, ej: { "2026-07-20": [{ hora: "09:00", motivo: "reservado" }] }
+  horasOcupadas?: Record<string, HoraOcupada[]>;
+}
+
+// Reserva simulada tal cual vive en mocks/reservas.json — una fila por
+// cada día u hora ocupada, ligada al vehículo por vehiculoId. Si "hora"
+// está presente, es un bloqueo de horario específico; si no, es un día
+// completo ocupado.
+export interface ReservaOcupada {
+  vehiculoId: number;
+  fecha: string;
+  hora?: string;
+  motivo: MotivoNoDisponible;
+}
+
 export interface Vehiculo {
   id: number;
   nombre: string;
-  // 👇 AQUÍ ESTÁ EL CAMBIO: Añadidos para solucionar el filtrado y quitar los "any"
-  marca: string; // O 'marca?: string;' si es opcional en tu base de datos
-  modelo: string; // O 'modelo?: string;' si es opcional en tu base de datos
+  marca: string;
+  modelo: string;
   categoria: string;
   transmision: string;
   combustible: string;
@@ -32,7 +76,6 @@ export interface Vehiculo {
   año?: number;
   placa?: string;
   sucursal?: string;
-  // Características booleanas
   aireAcondicionado?: boolean;
   vidriosElectricos?: boolean;
   cierreCentralizado?: boolean;
@@ -44,6 +87,8 @@ export interface Vehiculo {
     kmIlimitado?: Tarifa;
   };
   seguros?: Seguro[];
+  servicios?: ServicioExtra[];
+  comentarios?: Comentario[];
   imagenes?: string[];
   imagen?: string;
   foto?: string;
@@ -55,6 +100,7 @@ export interface FiltrosCatalogoState {
   precioMax: string;
   transmision: string;
   combustible: string;
+  ciudad: string;
   sucursal: string;
   orden: string;
   busqueda: string;

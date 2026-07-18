@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LoginForm, RegistroForm, OlvideContrasenaForm, AuthError } from '../types/auth.types';
+import { buscarUsuarioDemo, UsuarioDemo } from '../../../mocks/usuariosDemo';
 
 function validarCorreo(correo: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) && !correo.includes(' ');
@@ -8,7 +9,6 @@ function validarCorreo(correo: string): boolean {
 function validarContrasenaSegura(contrasena: string): boolean {
   return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(contrasena);
 }
-
 
 // ── useLogin (RF43) ──────────────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ export function useLogin() {
     return e.length === 0;
   }
 
-  async function iniciarSesion(onExito: () => void) {
+  async function iniciarSesion(onExito: (usuario: UsuarioDemo) => void) {
     if (bloqueado) {
       setErrores([{ mensaje: 'Cuenta bloqueada tras 3 intentos fallidos. Intenta más tarde.' }]);
       return;
@@ -47,11 +47,12 @@ export function useLogin() {
     try {
       await new Promise(r => setTimeout(r, 1000));
 
-      // Mock: simula respuesta de API — en producción se reemplaza por llamada real
-      const loginExitoso = true;
-      if (loginExitoso) {
+      // Mock: valida contra los usuarios de prueba — en producción se reemplaza por llamada real
+      const usuario = buscarUsuarioDemo(form.correo, form.contrasena);
+
+      if (usuario) {
         setIntentosFallidos(0);
-        onExito();
+        onExito(usuario);
       } else {
         const intentos = intentosFallidos + 1;
         setIntentosFallidos(intentos);

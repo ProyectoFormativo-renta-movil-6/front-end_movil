@@ -1,19 +1,17 @@
-// app/(tabs)/catalogo.tsx
-
+import { AlertModal } from "@/components/ui/AlertModal";
 import BuscadorCatalogo from "@/modules/catalogo/components/BuscadorCatalogo";
 import FiltrosCatalogo from "@/modules/catalogo/components/FiltrosCatalogo";
 import VehiculoCard from "@/modules/catalogo/components/VehiculoCard";
 import { COLORES } from "@/modules/catalogo/constants/catalogo.constants";
 import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
-import { useFavoritos } from "@/modules/catalogo/hooks/useFavoritos"; // ---
+import { useFavoritos } from "@/modules/catalogo/hooks/useFavoritos";
 import { useAuthStore } from "@/store/authStore";
 import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Modal,
   StatusBar,
   StyleSheet,
   Text,
@@ -30,30 +28,41 @@ const ORDEN_OPCIONES = [
 
 const ALERT_CONTENT = {
   busqueda: {
-    icono: "calendar-outline",
-    color: "#1E40AF",
-    bgColor: "#EFF6FF",
+    icono: "calendar-outline" as const,
     titulo: "Elegi fechas y lugar",
     mensaje:
       "Inicia sesion para buscar por fecha de recogida, devolucion y sucursal.",
   },
   reservar: {
-    icono: "car-sport-outline",
-    color: "#1E40AF",
-    bgColor: "#EFF6FF",
+    icono: "car-sport-outline" as const,
     titulo: "Reserva este vehiculo",
     mensaje: "Necesitas una cuenta activa para realizar reservas en Drivique.",
   },
   favorito: {
-    icono: "heart-outline",
-    color: "#1E40AF",
-    bgColor: "#EFF6FF",
+    icono: "heart-outline" as const,
     titulo: "Guarda en favoritos",
     mensaje: "Inicia sesion para guardar tus vehiculos favoritos.",
+  },
+  sinResultados: {
+    icono: "car-outline" as const,
+    titulo: "Sin disponibilidad",
+    mensaje:
+      "No encontramos vehículos disponibles para esa ciudad, sucursal o esas fechas. Te mostramos el catálogo completo mientras tanto.",
   },
 };
 
 type AlertTipo = keyof typeof ALERT_CONTENT;
+
+function nombreDesdeCorreo(correo?: string): string {
+  if (!correo) return "Usuario";
+  const parteLocal = correo.split("@")[0] ?? "";
+  const limpio = parteLocal.replace(/[._-]+/g, " ").trim();
+  if (!limpio) return "Usuario";
+  return limpio
+    .split(" ")
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
+}
 
 function ListFooter({
   paginaActual,
@@ -132,7 +141,6 @@ export default function Catalogo() {
   const [sweetAlertVisible, setSweetAlertVisible] = useState(false);
   const [alertTipo, setAlertTipo] = useState("busqueda" as AlertTipo);
 
-  // --- FAVORITOS ---
   const usuarioId = usuario ? String(usuario.id ?? usuario.correo ?? "user") : null;
   const { favoritos, toggleFavorito, esFavorito } = useFavoritos(usuarioId);
   const [soloFavoritos, setSoloFavoritos] = useState(false);
@@ -143,23 +151,20 @@ export default function Catalogo() {
     filtros,
     setFiltro,
     vehiculosPaginados,
-    vehiculosFiltrados,
-    limpiar,
+    limpiarFiltros,
+    limpiarBusqueda,
     busquedaForm,
+    busquedaRealizada,
     setForm,
     handleBuscar,
     errorBusqueda,
+    sinResultadosBusqueda,
+    cerrarAlertaSinResultados,
     paginaActual,
     totalPaginas,
     paginaSiguiente,
     paginaAnterior,
   } = useCatalogo();
-
-  const { sucursal } = useLocalSearchParams<{ sucursal?: string }>();
-
-  useEffect(() => {
-    if (sucursal) setFiltro("sucursal", sucursal);
-  }, [sucursal]);
 
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [ordenVisible, setOrdenVisible] = useState(false);
@@ -170,6 +175,16 @@ export default function Catalogo() {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [paginaActual]);
 
+  // Cuando la búsqueda de disponibilidad no encuentra vehículos, se muestra
+  // la misma alerta estándar de la app (sin dejar el catálogo vacío).
+  useEffect(() => {
+    if (sinResultadosBusqueda) {
+      setAlertTipo("sinResultados");
+      setSweetAlertVisible(true);
+      cerrarAlertaSinResultados();
+    }
+  }, [sinResultadosBusqueda, cerrarAlertaSinResultados]);
+
   const ordenLabel =
     ORDEN_OPCIONES.find((o) => o.valor === filtros.orden)?.label ??
     "Ordenar por";
@@ -178,32 +193,78 @@ export default function Catalogo() {
     filtros.sucursal !== "Todas las sucursales" ||
     !!filtros.precioMin ||
     !!filtros.precioMax ||
-    soloFavoritos; // --- incluir favoritos en el indicador activo
+    soloFavoritos;
 
-  // --- Filtrar por búsqueda de texto Y por soloFavoritos ---
   const vehiculosAMostrar = vehiculosPaginados.filter((vehiculo: any) => {
     const busqueda = textBusqueda.toLowerCase();
     const coincideTexto =
       (vehiculo.nombre || "").toLowerCase().includes(busqueda) ||
       (vehiculo.marca || "").toLowerCase().includes(busqueda) ||
       (vehiculo.modelo || "").toLowerCase().includes(busqueda);
-    const coincideFavorito = soloFavoritos
-      ? esFavorito(vehiculo.id)
-      : true;
+    const coincideFavorito = soloFavoritos ? esFavorito(vehiculo.id) : true;
     return coincideTexto && coincideFavorito;
   });
+
+  // Si el usuario completó una búsqueda válida en "Consultar disponibilidad",
+  // esos datos precargan (editables) el resumen de la reserva. lugarDevolucion
+  // de BusquedaForm en realidad guarda la sucursal (así lo maneja BuscadorCatalogo
+  // y useCatalogo), por eso mapea a lugarRetiro en la reserva.
+  const datosPrecargaReserva = busquedaRealizada
+    ? {
+        lugarRetiro: busquedaForm.lugarDevolucion,
+        fechaRetiro: busquedaForm.fechaInicio,
+        fechaDevolucion: busquedaForm.fechaFin,
+      }
+    : undefined;
 
   const abrirSweetAlert = (tipo: AlertTipo) => {
     setAlertTipo(tipo);
     setSweetAlertVisible(true);
   };
 
-  // --- Toggle soloFavoritos: si se activa, desactiva al volver a presionar ---
   const handleToggleSoloFavoritos = () => {
     setSoloFavoritos((prev) => !prev);
   };
 
+  // Al tocar el bloque "Bienvenido, ..." + avatar, lleva al tab Perfil
+  // (mismo destino que la pestaña "Perfil" de la barra de navegación).
+  const irAPerfil = () => {
+    router.push("/(tabs)/perfil");
+  };
+
   const alertInfo = ALERT_CONTENT[alertTipo];
+
+  // La alerta de "sin resultados" es informativa: solo botón "Entendido".
+  // El resto de alertas mantiene los botones Cancelar / Iniciar sesion.
+  const alertBotones =
+    alertTipo === "sinResultados"
+      ? [
+          {
+            texto: "Entendido",
+            variante: "primario" as const,
+            onPress: () => setSweetAlertVisible(false),
+          },
+        ]
+      : [
+          {
+            texto: "Cancelar",
+            variante: "secundario" as const,
+            onPress: () => setSweetAlertVisible(false),
+          },
+          {
+            texto: "Iniciar sesion",
+            variante: "primario" as const,
+            onPress: () => {
+              setSweetAlertVisible(false);
+              router.push("/(auth)/login");
+            },
+          },
+        ];
+
+  const nombreUsuario = usuario
+    ? (usuario.nombres?.trim() || nombreDesdeCorreo(usuario.correo))
+    : "";
+  const inicialUsuario = nombreUsuario.charAt(0).toUpperCase();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -213,12 +274,24 @@ export default function Catalogo() {
         translucent={true}
       />
 
-      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Drivique</Text>
         </View>
-        {!usuario && (
+        {usuario ? (
+          <TouchableOpacity
+            style={styles.headerUsuario}
+            onPress={irAPerfil}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.headerUsuarioTexto} numberOfLines={1}>
+              Bienvenido, {nombreUsuario}
+            </Text>
+            <View style={styles.headerAvatar}>
+              <Text style={styles.headerAvatarTexto}>{inicialUsuario}</Text>
+            </View>
+          </TouchableOpacity>
+        ) : (
           <View style={styles.headerBtns}>
             <TouchableOpacity
               style={styles.loginBtn}
@@ -236,13 +309,13 @@ export default function Catalogo() {
         )}
       </View>
 
-      {/* BUSCADOR */}
       <BuscadorCatalogo
         form={busquedaForm}
         setForm={setForm}
         textBusqueda={textBusqueda}
         setTextBusqueda={setTextBusqueda}
         onBuscar={handleBuscar}
+        onLimpiarBusqueda={limpiarBusqueda}
         errorBusqueda={errorBusqueda}
         disabled={!usuario}
         onPressRestringida={() => abrirSweetAlert("busqueda")}
@@ -250,7 +323,6 @@ export default function Catalogo() {
         setModalFormVisible={setModalFormVisible}
       />
 
-      {/* BARRA DE CONTROLES */}
       <View style={styles.controlsBar}>
         <TouchableOpacity
           style={[styles.filtrosBtn, filtrosActivos && styles.filtrosBtnActivo]}
@@ -288,7 +360,6 @@ export default function Catalogo() {
         </View>
       </View>
 
-      {/* DROPDOWN ORDEN */}
       {ordenVisible && (
         <View style={styles.ordenDropdown}>
           {ORDEN_OPCIONES.map((op) => (
@@ -316,7 +387,6 @@ export default function Catalogo() {
         </View>
       )}
 
-      {/* LISTADO */}
       {cargando ? (
         <View style={styles.estadoCentro}>
           <ActivityIndicator size="large" color="#1E40AF" />
@@ -338,6 +408,7 @@ export default function Catalogo() {
               esFavorito={esFavorito(item.id)}
               onAccionRestringida={!usuario ? abrirSweetAlert : undefined}
               onToggleFavorito={usuario ? toggleFavorito : undefined}
+              datosPrecarga={datosPrecargaReserva}
             />
           )}
           contentContainerStyle={styles.lista}
@@ -363,15 +434,14 @@ export default function Catalogo() {
         />
       )}
 
-      {/* MODAL FILTROS */}
       <FiltrosCatalogo
         visible={filtrosVisible}
         onClose={() => setFiltrosVisible(false)}
         filtros={filtros}
         setFiltro={setFiltro}
         limpiar={() => {
-          limpiar();
-          setSoloFavoritos(false); // --- limpiar también el filtro de favoritos
+          limpiarFiltros();
+          setSoloFavoritos(false);
         }}
         usuario={!!usuario}
         soloFavoritos={soloFavoritos}
@@ -379,55 +449,14 @@ export default function Catalogo() {
         totalFavoritos={favoritos.length}
       />
 
-      {/* SWEET ALERT */}
-      <Modal
+      <AlertModal
         visible={sweetAlertVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setSweetAlertVisible(false)}
-      >
-        <View style={styles.alertOverlay}>
-          <View style={styles.alertBox}>
-            <View
-              style={[
-                styles.alertIconContainer,
-                { backgroundColor: alertInfo.bgColor },
-              ]}
-            >
-              <Ionicons
-                name={alertInfo.icono as any}
-                size={44}
-                color={alertInfo.color}
-              />
-            </View>
-
-            <Text style={styles.alertTitle}>{alertInfo.titulo}</Text>
-            <Text style={styles.alertMessage}>{alertInfo.mensaje}</Text>
-
-            <View style={styles.alertButtonsContainer}>
-              <TouchableOpacity
-                style={styles.alertCancelBtn}
-                onPress={() => setSweetAlertVisible(false)}
-              >
-                <Text style={styles.alertCancelBtnText}>Cancelar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.alertConfirmBtn,
-                  { backgroundColor: alertInfo.color },
-                ]}
-                onPress={() => {
-                  setSweetAlertVisible(false);
-                  router.push("/(auth)/login");
-                }}
-              >
-                <Text style={styles.alertConfirmBtnText}>Iniciar sesion</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        icono={alertInfo.icono}
+        titulo={alertInfo.titulo}
+        mensaje={alertInfo.mensaje}
+        botones={alertBotones}
+        onCerrar={() => setSweetAlertVisible(false)}
+      />
     </View>
   );
 }
@@ -467,6 +496,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E40AF",
   },
   registerBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+  headerUsuario: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    maxWidth: 200,
+  },
+  headerUsuarioTexto: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#475569",
+    flexShrink: 1,
+  },
+  headerAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#1E40AF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerAvatarTexto: { fontSize: 13, fontWeight: "800", color: "#fff" },
   controlsBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -515,12 +565,7 @@ const styles = StyleSheet.create({
   lista: { padding: 16 },
   estadoCentro: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60 },
   errorTexto: { fontSize: 14, color: "#EF4444", textAlign: "center" },
-  emptyText: {
-    fontSize: 14,
-    color: "#94A3B8",
-    marginTop: 12,
-    fontWeight: "600",
-  },
+  emptyText: { fontSize: 14, color: "#94A3B8", marginTop: 12, fontWeight: "600" },
   paginacionContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -543,66 +588,4 @@ const styles = StyleSheet.create({
   paginaBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
   paginaBtnTextDisabled: { color: "#CBD5E1" },
   paginaInfoTexto: { fontSize: 14, fontWeight: "700", color: "#475569" },
-  alertOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  alertBox: {
-    width: "100%",
-    maxWidth: 320,
-    backgroundColor: "#FFF",
-    borderRadius: 16,
-    padding: 24,
-    alignItems: "center",
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-  },
-  alertIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  alertTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  alertMessage: {
-    fontSize: 13.5,
-    color: "#4B5563",
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  alertButtonsContainer: { flexDirection: "row", width: "100%", gap: 12 },
-  alertCancelBtn: {
-    flex: 1,
-    height: 42,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: "#1E40AF",
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  alertCancelBtnText: { fontSize: 14, fontWeight: "600", color: "#1E40AF" },
-  alertConfirmBtn: {
-    flex: 1,
-    height: 42,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  alertConfirmBtnText: { fontSize: 14, fontWeight: "600", color: "#FFF" },
 });
