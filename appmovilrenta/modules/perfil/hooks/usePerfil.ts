@@ -9,7 +9,8 @@
  * RF50.6: Cancelar edición perfil
  */
 
-import { useState } from "react";
+import { useUsuarioStore } from "@/store/usuarioStore";
+import { useEffect, useState } from "react";
 import {
   ErroresCambiarCorreo,
   ErroresCompletarPerfil,
@@ -17,12 +18,12 @@ import {
   FormCambiarCorreo,
   FormCompletarPerfil,
   FormEditarPerfil,
-  UsuarioPerfil,
 } from "../types/perfil.types";
-import usuarioMock from "../data/usuario.mock";
 
 export function usePerfil() {
-  const [usuario, setUsuario] = useState<UsuarioPerfil>(usuarioMock);
+  const usuario = useUsuarioStore((s) => s.usuario);
+  const actualizarUsuarioGlobal = useUsuarioStore((s) => s.actualizarUsuario);
+
   const [editando, setEditando] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [mostrarModalCorreo, setMostrarModalCorreo] = useState(false);
@@ -33,6 +34,19 @@ export function usePerfil() {
     apellidos: usuario.apellidos,
     telefono: usuario.telefono,
   });
+
+  // Si el usuario global cambia (p. ej. porque lo llenó desde el
+  // formulario de reserva) y no estamos editando, refrescamos el form
+  // para que al abrir "Editar" se vea lo último.
+  useEffect(() => {
+    if (!editando) {
+      setForm({
+        nombres: usuario.nombres,
+        apellidos: usuario.apellidos,
+        telefono: usuario.telefono,
+      });
+    }
+  }, [usuario, editando]);
 
   // Formulario cambiar correo
   const [formCorreo, setFormCorreo] = useState<FormCambiarCorreo>({
@@ -50,7 +64,10 @@ export function usePerfil() {
     setErrores((prev) => ({ ...prev, [campo]: undefined }));
   };
 
-  const actualizarCampoCorreo = (campo: keyof FormCambiarCorreo, valor: string) => {
+  const actualizarCampoCorreo = (
+    campo: keyof FormCambiarCorreo,
+    valor: string,
+  ) => {
     setFormCorreo((prev) => ({ ...prev, [campo]: valor }));
     setErroresCorreo((prev) => ({ ...prev, [campo]: undefined }));
   };
@@ -68,7 +85,8 @@ export function usePerfil() {
     if (!form.apellidos.trim()) {
       nuevosErrores.apellidos = "Los apellidos son obligatorios";
     } else if (form.apellidos.trim().length < 2) {
-      nuevosErrores.apellidos = "Los apellidos deben tener al menos 2 caracteres";
+      nuevosErrores.apellidos =
+        "Los apellidos deben tener al menos 2 caracteres";
     }
 
     if (!form.telefono.trim()) {
@@ -89,7 +107,8 @@ export function usePerfil() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formCorreo.nuevoCorreo)) {
       nuevosErrores.nuevoCorreo = "Formato de correo inválido";
     } else if (formCorreo.nuevoCorreo === usuario.correo) {
-      nuevosErrores.nuevoCorreo = "El nuevo correo debe ser diferente al actual";
+      nuevosErrores.nuevoCorreo =
+        "El nuevo correo debe ser diferente al actual";
     }
 
     if (!formCorreo.confirmarCorreo.trim()) {
@@ -107,10 +126,7 @@ export function usePerfil() {
   };
 
   // ── Guardar cambios perfil ─────────────────────────────────────────────────
-  const guardarCambios = (
-    onExito: () => void,
-    onError: () => void
-  ) => {
+  const guardarCambios = (onExito: () => void, onError: () => void) => {
     if (!validarPerfil()) {
       onError();
       return;
@@ -119,12 +135,11 @@ export function usePerfil() {
     setCargando(true);
     // Simula llamada API — se reemplaza por servicio real
     setTimeout(() => {
-      setUsuario((prev) => ({
-        ...prev,
+      actualizarUsuarioGlobal({
         nombres: form.nombres.trim(),
         apellidos: form.apellidos.trim(),
         telefono: form.telefono.trim(),
-      }));
+      });
       setEditando(false);
       setCargando(false);
       onExito();
@@ -145,7 +160,7 @@ export function usePerfil() {
   // ── Guardar cambio de correo ───────────────────────────────────────────────
   const guardarCambioCorreo = (
     onExito: () => void,
-    _onError: (msg: string) => void
+    _onError: (msg: string) => void,
   ) => {
     if (!validarCambioCorreo()) return;
 
@@ -153,8 +168,12 @@ export function usePerfil() {
     // Simula llamada API — se reemplaza por servicio real
     setTimeout(() => {
       // Mock: simula verificación de contraseña — en producción se valida contra la API
-      setUsuario((prev) => ({ ...prev, correo: formCorreo.nuevoCorreo }));
-      setFormCorreo({ nuevoCorreo: "", confirmarCorreo: "", contrasenaActual: "" });
+      actualizarUsuarioGlobal({ correo: formCorreo.nuevoCorreo });
+      setFormCorreo({
+        nuevoCorreo: "",
+        confirmarCorreo: "",
+        contrasenaActual: "",
+      });
       setMostrarModalCorreo(false);
       setCargando(false);
       onExito();
@@ -162,13 +181,17 @@ export function usePerfil() {
   };
 
   const cerrarModalCorreo = () => {
-    setFormCorreo({ nuevoCorreo: "", confirmarCorreo: "", contrasenaActual: "" });
+    setFormCorreo({
+      nuevoCorreo: "",
+      confirmarCorreo: "",
+      contrasenaActual: "",
+    });
     setErroresCorreo({});
     setMostrarModalCorreo(false);
   };
 
   const marcarPerfilCompleto = () => {
-    setUsuario(prev => ({ ...prev, perfilCompleto: true }));
+    actualizarUsuarioGlobal({ perfilCompleto: true });
   };
 
   return {
@@ -193,38 +216,38 @@ export function usePerfil() {
 }
 
 export function useCompletarPerfil() {
+  const usuario = useUsuarioStore((s) => s.usuario);
+  const actualizarUsuarioGlobal = useUsuarioStore((s) => s.actualizarUsuario);
+
   const [form, setForm] = useState<FormCompletarPerfil>({
-    nombres: "",
-    apellidos: "",
-    telefono: "",
-    fechaNacimiento: "",
-    tipoDocumento: "",
-    numeroDocumento: "",
-    nacionalidad: "",
+    nombres: usuario.nombres,
+    apellidos: usuario.apellidos,
+    telefono: usuario.telefono,
+    fechaNacimiento: usuario.fechaNacimiento,
+    tipoDocumento: usuario.tipoDocumento,
+    numeroDocumento: usuario.numeroDocumento,
+    nacionalidad: usuario.nacionalidad,
   });
   const [errores, setErrores] = useState<ErroresCompletarPerfil>({});
   const [cargando, setCargando] = useState(false);
 
   const actualizarCampo = (campo: keyof FormCompletarPerfil, valor: string) => {
-    setForm(prev => ({ ...prev, [campo]: valor }));
-    setErrores(prev => ({ ...prev, [campo]: undefined }));
+    setForm((prev) => ({ ...prev, [campo]: valor }));
+    setErrores((prev) => ({ ...prev, [campo]: undefined }));
   };
 
   const validar = (): boolean => {
     const e: ErroresCompletarPerfil = {};
 
-    if (!form.nombres.trim())
-      e.nombres = "Los nombres son obligatorios";
+    if (!form.nombres.trim()) e.nombres = "Los nombres son obligatorios";
     else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(form.nombres))
       e.nombres = "Solo letras y espacios";
 
-    if (!form.apellidos.trim())
-      e.apellidos = "Los apellidos son obligatorios";
+    if (!form.apellidos.trim()) e.apellidos = "Los apellidos son obligatorios";
     else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(form.apellidos))
       e.apellidos = "Solo letras y espacios";
 
-    if (!form.telefono.trim())
-      e.telefono = "El teléfono es obligatorio";
+    if (!form.telefono.trim()) e.telefono = "El teléfono es obligatorio";
     else if (!/^\+?[\d\s\-(). ]{7,20}$/.test(form.telefono.trim()))
       e.telefono = "Número inválido (ej: +57 300 123 4567)";
 
@@ -241,17 +264,29 @@ export function useCompletarPerfil() {
     else if (!/^\d{6,10}$/.test(form.numeroDocumento))
       e.numeroDocumento = "Entre 6 y 10 dígitos numéricos";
 
-    if (!form.nacionalidad)
-      e.nacionalidad = "Selecciona tu nacionalidad";
+    if (!form.nacionalidad) e.nacionalidad = "Selecciona tu nacionalidad";
 
     setErrores(e);
     return Object.keys(e).length === 0;
   };
 
   const guardar = (onExito: () => void, onError: () => void) => {
-    if (!validar()) { onError(); return; }
+    if (!validar()) {
+      onError();
+      return;
+    }
     setCargando(true);
     setTimeout(() => {
+      actualizarUsuarioGlobal({
+        nombres: form.nombres.trim(),
+        apellidos: form.apellidos.trim(),
+        telefono: form.telefono.trim(),
+        fechaNacimiento: form.fechaNacimiento,
+        tipoDocumento: form.tipoDocumento,
+        numeroDocumento: form.numeroDocumento.trim(),
+        nacionalidad: form.nacionalidad,
+        perfilCompleto: true,
+      });
       setCargando(false);
       onExito();
     }, 1000);
