@@ -4,10 +4,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { useReservaStore } from "@/store/reservaStore";
 import { COLOR_MARCA, COLORES, METODOS_PAGO } from "../constants/reserva.constants";
-import { CIUDADES_DATA, getCiudadPorSucursal, getDisponibilidadVehiculo } from "@/modules/catalogo/constants/catalogo.constants";
+import { CIUDADES_DATA, getCiudadPorSucursal, getDireccionSucursal, getDisponibilidadVehiculo } from "@/modules/catalogo/constants/catalogo.constants";
 import CalendarioRango from "./CalendarioRango";
 import SelectorSucursalModal, { OpcionLugar } from "./SelectorSucursalModal";
 import SelectorHoraModal from "./SelectorHoraModal";
+import { AlertaPagoEfectivo } from "./AlertaPagoEfectivo";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -25,6 +26,7 @@ export default function FormFechasLugar({ vehiculo }: Props) {
 
   const [modalTipo, setModalTipo] = useState<"retiro" | "devolucion" | null>(null);
   const [horaVisible, setHoraVisible] = useState<"retiro" | "devolucion" | null>(null);
+  const [alertaEfectivoVisible, setAlertaEfectivoVisible] = useState(false);
 
   const nombreSucursal = vehiculo.sucursal ?? "";
   const ciudadNombre = vehiculo.sucursal ? getCiudadPorSucursal(vehiculo.sucursal) : null;
@@ -136,7 +138,10 @@ export default function FormFechasLugar({ vehiculo }: Props) {
             <TouchableOpacity
               key={metodo.id}
               style={[styles.metodoCard, activo && styles.metodoCardActivo]}
-              onPress={() => actualizarFechasLugar({ metodoPago: metodo.id })}
+              onPress={() => {
+                actualizarFechasLugar({ metodoPago: metodo.id });
+                if (metodo.id === "efectivo") setAlertaEfectivoVisible(true);
+              }}
               activeOpacity={0.8}
             >
               <View style={styles.metodoHeaderRow}>
@@ -339,6 +344,14 @@ export default function FormFechasLugar({ vehiculo }: Props) {
         horaSeleccionada={horaVisible === "retiro" ? fechasLugar.horaRetiro : fechasLugar.horaDevolucion}
         onSeleccionar={handleElegirHora}
         onCerrar={() => setHoraVisible(null)}
+      />
+
+      <AlertaPagoEfectivo
+        visible={alertaEfectivoVisible}
+        nombreSucursal={nombreSucursal}
+        ciudad={ciudadEntregaNombre || ciudadNombre}
+        direccion={getDireccionSucursal(nombreSucursal)}
+        onCerrar={() => setAlertaEfectivoVisible(false)}
       />
     </View>
   );

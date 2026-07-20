@@ -23,6 +23,8 @@ interface Props {
   /** Si no se pasa, muestra un botón "Entendido". Pasa [] para no mostrar botones. */
   botones?: BotonAlerta[];
   onCerrar?: () => void;
+  /** Contenido extra (ej: tarjeta con la dirección de una sucursal) entre el mensaje y los botones. */
+  contenido?: React.ReactNode;
 }
 
 // Mismo color y diseño para TODAS las alertas de la app (igual que catalogo.tsx)
@@ -37,6 +39,7 @@ export function AlertModal({
   mensaje,
   botones,
   onCerrar,
+  contenido,
 }: Props) {
   const listaBotones: BotonAlerta[] =
     botones !== undefined
@@ -62,6 +65,8 @@ export function AlertModal({
 
           <Text style={s.alertTitle}>{titulo}</Text>
           <Text style={s.alertMessage}>{mensaje}</Text>
+
+          {contenido}
 
           {listaBotones.length > 0 && (
             <View style={s.alertButtonsContainer}>

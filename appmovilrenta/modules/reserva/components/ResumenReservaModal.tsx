@@ -12,10 +12,11 @@ import {
   METODOS_PAGO, PORCENTAJE_CARGOS_ADMINISTRATIVOS, PORCENTAJE_IVA,
   RECARGO_LOGISTICO, formatHoraAmPm,
 } from "../constants/reserva.constants";
-import { CIUDADES_DATA, getCiudadPorSucursal } from "@/modules/catalogo/constants/catalogo.constants";
+import { CIUDADES_DATA, getCiudadPorSucursal, getDireccionSucursal } from "@/modules/catalogo/constants/catalogo.constants";
 import CalendarioRango from "./CalendarioRango";
 import SelectorSucursalModal, { OpcionLugar } from "./SelectorSucursalModal";
 import SelectorHoraModal from "./SelectorHoraModal";
+import { AlertaPagoEfectivo } from "./AlertaPagoEfectivo";
 import {
   fmt, fmtPct, fechaHora, diasEntre,
   SubcardHeader, SubcardHeaderEditando, FilaDato, OpcionCard, ServicioRow, LineaPrecio, FilaBotonesEdicion,
@@ -54,6 +55,7 @@ export default function ResumenReservaModal({
   const [modo, setModo] = useState<Modo>("resumen");
   const [modalLugar, setModalLugar] = useState<"retiro" | "devolucion" | null>(null);
   const [horaVisible, setHoraVisible] = useState<"retiro" | "devolucion" | null>(null);
+  const [alertaEfectivoVisible, setAlertaEfectivoVisible] = useState(false);
   const [draftPago, setDraftPago] = useState(fechasLugar);
   const [draftFechas, setDraftFechas] = useState(fechasLugar);
   const [draftPlanes, setDraftPlanes] = useState(planes);
@@ -176,7 +178,7 @@ export default function ResumenReservaModal({
                         <Text style={[piezas.label, { marginTop: 12 }]}>¿CÓMO PAGAS?</Text>
                         <View style={piezas.filaDosCols}>
                           {METODOS_PAGO.map((m) => (
-                            <TouchableOpacity key={m.id} style={[piezas.metodoCard, draftPago.metodoPago === m.id && piezas.metodoCardActivo]} onPress={() => setDraftPago((p) => ({ ...p, metodoPago: m.id }))}>
+                            <TouchableOpacity key={m.id} style={[piezas.metodoCard, draftPago.metodoPago === m.id && piezas.metodoCardActivo]} onPress={() => { setDraftPago((p) => ({ ...p, metodoPago: m.id })); if (m.id === "efectivo") setAlertaEfectivoVisible(true); }}>
                               <Text style={piezas.metodoTitulo}>{m.titulo}</Text>
                               <Text style={piezas.metodoDesc}>{m.descripcion}</Text>
                             </TouchableOpacity>
@@ -410,6 +412,14 @@ export default function ResumenReservaModal({
           horaSeleccionada={horaVisible === "retiro" ? draftFechas.horaRetiro : draftFechas.horaDevolucion}
           onSeleccionar={(h) => setDraftFechas((f) => ({ ...f, [horaVisible === "retiro" ? "horaRetiro" : "horaDevolucion"]: h }))}
           onCerrar={() => setHoraVisible(null)}
+        />
+
+        <AlertaPagoEfectivo
+          visible={alertaEfectivoVisible}
+          nombreSucursal={nombreSucursal}
+          ciudad={ciudadInfo?.nombre ?? getCiudadPorSucursal(nombreSucursal)}
+          direccion={getDireccionSucursal(nombreSucursal)}
+          onCerrar={() => setAlertaEfectivoVisible(false)}
         />
       </View>
     </Modal>

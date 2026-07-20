@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   Alert,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { useCompletarPerfil } from "@/modules/perfil/hooks/usePerfil";
 import { Nacionalidad, TipoDocumento } from "@/modules/perfil/types/perfil.types";
@@ -15,6 +17,39 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { InputField } from "@/components/ui/InputField";
 
 const TIPOS_DOCUMENTO: TipoDocumento[] = ["CC", "TI", "Doc. Extranjero", "Pasaporte"];
+
+// Convierte "YYYY-MM-DD" (formato guardado en el form) a un Date real
+// para el picker. Si el string está vacío o mal formado, usa una fecha
+// por defecto razonable (hace 25 años) en vez de "hoy".
+function stringAFecha(valor: string): Date {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    const [y, m, d] = valor.split("-").map(Number);
+    const fecha = new Date(y, m - 1, d);
+    if (!isNaN(fecha.getTime())) return fecha;
+  }
+  const porDefecto = new Date();
+  porDefecto.setFullYear(porDefecto.getFullYear() - 25);
+  return porDefecto;
+}
+
+// Convierte un Date del picker de vuelta a "YYYY-MM-DD" para guardarlo
+// en el form (mismo formato que valida useCompletarPerfil).
+function fechaAString(fecha: Date): string {
+  const y = fecha.getFullYear();
+  const m = String(fecha.getMonth() + 1).padStart(2, "0");
+  const d = String(fecha.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+// Formato legible para mostrar en el selector (ej: "12 mar 1998")
+function formatearFechaVisible(valor: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return "";
+  return stringAFecha(valor).toLocaleDateString("es-CO", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 const NACIONALIDADES: { valor: Nacionalidad; bandera: string }[] = [
   { valor: "Colombia",  bandera: "🇨🇴" },
@@ -34,6 +69,17 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
   const { form, errores, cargando, actualizarCampo, guardar } = useCompletarPerfil();
   const [showTipoDoc, setShowTipoDoc] = useState(false);
   const [showNacionalidad, setShowNacionalidad] = useState(false);
+  const [showFechaPicker, setShowFechaPicker] = useState(false);
+
+  const handleCambiarFecha = (event: DateTimePickerEvent, fechaSeleccionada?: Date) => {
+    // En Android el picker es un diálogo nativo que se cierra solo;
+    // en iOS queda embebido, así que solo lo ocultamos al confirmar.
+    if (Platform.OS === "android") setShowFechaPicker(false);
+    if (event.type === "dismissed") return;
+    if (fechaSeleccionada) {
+      actualizarCampo("fechaNacimiento", fechaAString(fechaSeleccionada));
+    }
+  };
 
   const handleGuardar = () => {
     guardar(
@@ -79,13 +125,35 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
         onChangeText={v => actualizarCampo("telefono", v)}
         error={errores.telefono}
       />
-      <InputField
-        label={t("perfil.fechaNac")}
-        placeholder="YYYY-MM-DD"
-        value={form.fechaNacimiento}
-        onChangeText={v => actualizarCampo("fechaNacimiento", v)}
-        error={errores.fechaNacimiento}
-      />
+      <Text style={[s.label, { color: c.textSecondary }]}>{t("perfil.fechaNac")}</Text>
+      <TouchableOpacity
+        style={[s.selector, { borderColor: errores.fechaNacimiento ? "#EF4444" : c.border, backgroundColor: c.bgInput }]}
+        onPress={() => setShowFechaPicker(true)}
+      >
+        <Text style={[s.selectorText, { color: form.fechaNacimiento ? c.textPrimary : "#9CA3AF" }]}>
+          {form.fechaNacimiento ? formatearFechaVisible(form.fechaNacimiento) : t("perfil.seleccionar")}
+        </Text>
+        <Text style={{ color: c.textSecondary }}>📅</Text>
+      </TouchableOpacity>
+      {errores.fechaNacimiento && <Text style={s.error}>{errores.fechaNacimiento}</Text>}
+
+      {showFechaPicker && (
+        <DateTimePicker
+          value={stringAFecha(form.fechaNacimiento)}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          maximumDate={new Date()}
+          onChange={handleCambiarFecha}
+        />
+      )}
+      {showFechaPicker && Platform.OS === "ios" && (
+        <TouchableOpacity
+          style={[s.botonConfirmarFecha, { backgroundColor: c.primaryBg }]}
+          onPress={() => setShowFechaPicker(false)}
+        >
+          <Text style={s.botonConfirmarFechaTexto}>Listo</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Tipo de documento */}
       <Text style={[s.label, { color: c.textSecondary }]}>{t("perfil.tipoDocumento")}</Text>
@@ -200,5 +268,17 @@ const s = StyleSheet.create({
     color: "#EF4444",
     marginBottom: 8,
     marginTop: 2,
+  },
+  botonConfirmarFecha: {
+    alignSelf: "flex-end",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  botonConfirmarFechaTexto: {
+    color: "#1D4ED8",
+    fontWeight: "700",
+    fontSize: 13,
   },
 });

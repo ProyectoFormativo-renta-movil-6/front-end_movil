@@ -22,12 +22,16 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { IdiomaKey, IDIOMAS } from "@/modules/i18n";
 import { useIdioma, useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { usePerfil } from "@/modules/perfil/hooks/usePerfil";
 import { ModalCambiarCorreo } from "@/modules/perfil/components/ModalCambiarCorreo";
 import { FormCompletarPerfil } from "@/modules/perfil/components/FormCompletarPerfil";
 import { perfilStyles as styles } from "@/modules/perfil/styles/perfil.styles";
+import { useAuthStore } from "@/store/authStore";
+import { useUsuarioStore } from "@/store/usuarioStore";
+import { eliminarUsuarioDemo } from "@/mocks/usuariosDemo";
 
 export default function PerfilScreen() {
   const { t } = useTranslation();
@@ -36,6 +40,10 @@ export default function PerfilScreen() {
   const insets = useSafeAreaInsets();
   const [editando, setEditando] = useState(false);
   const [completando, setCompletando] = useState(false);
+
+  const authUsuario = useAuthStore((s) => s.usuario);
+  const cerrarSesionAuth = useAuthStore((s) => s.cerrarSesion);
+  const limpiarUsuario = useUsuarioStore((s) => s.limpiarUsuario);
 
   const {
     usuario,
@@ -104,8 +112,12 @@ export default function PerfilScreen() {
           text: t("perfil.confirmarCerrar"),
           style: "destructive",
           onPress: () => {
-            // RF43.9 — Cerrar sesión segura — se conecta al backend
-            console.log("Cerrar sesión");
+            // RF43.9 — Cerrar sesión segura
+            // En producción esto además invalida el token en el backend;
+            // por ahora limpiamos ambos stores locales y volvemos al login.
+            cerrarSesionAuth();
+            limpiarUsuario();
+            router.replace("/(auth)/login");
           },
         },
       ]
@@ -122,8 +134,16 @@ export default function PerfilScreen() {
           text: t("perfil.confirmarEliminar"),
           style: "destructive",
           onPress: () => {
-            // RF52 — Eliminar cuenta — se conecta al backend
-            console.log("Eliminar cuenta");
+            // RF52 — Eliminar cuenta
+            // En producción esto llama a DELETE /usuarios/:id contra el
+            // backend. Mientras tanto, con datos mock, quitamos al usuario
+            // de USUARIOS_DEMO (mocks/usuariosDemo.ts) para que ya no
+            // pueda volver a iniciar sesión, y limpiamos ambos stores.
+            const correo = authUsuario?.correo || usuario.correo;
+            if (correo) eliminarUsuarioDemo(correo);
+            cerrarSesionAuth();
+            limpiarUsuario();
+            router.replace("/(auth)/login");
           },
         },
       ]
