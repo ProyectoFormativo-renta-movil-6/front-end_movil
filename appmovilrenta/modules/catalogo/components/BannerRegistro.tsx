@@ -1,5 +1,7 @@
 // modules/catalogo/components/BannerRegistro.tsx
 
+import { GRADIENTES } from "@/constants/gradients";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -26,13 +28,21 @@ export function BannerRegistro({
 
         <View style={styles.botones}>
           <TouchableOpacity
-            style={styles.botonRegistro}
+            style={styles.botonRegistroWrap}
             onPress={() => {
               onCerrar();
               router.push("/(auth)/registro");
             }}
+            activeOpacity={0.85}
           >
-            <Text style={styles.botonRegistroTexto}>Registrarme</Text>
+            <LinearGradient
+              colors={GRADIENTES.boton.colors}
+              start={GRADIENTES.boton.start}
+              end={GRADIENTES.boton.end}
+              style={styles.botonRegistro}
+            >
+              <Text style={styles.botonRegistroTexto}>Registrarme</Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -94,8 +104,11 @@ const styles = StyleSheet.create({
     width: "100%",
     gap: 10,
   },
+  botonRegistroWrap: {
+    borderRadius: 12,
+    overflow: "hidden",
+  },
   botonRegistro: {
-    backgroundColor: "#2563EB",
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",

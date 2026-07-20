@@ -1,8 +1,10 @@
 // modules/reserva/components/ModalReservaRegistrada.tsx
 import React from "react";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { COLOR_MARCA, COLORES } from "../constants/reserva.constants";
+import { GRADIENTES, SOMBRA_BOTON_GRADIENTE } from "@/constants/gradients";
 
 interface Props {
   visible: boolean;
@@ -29,9 +31,16 @@ export default function ModalReservaRegistrada({ visible, onPagarWompi, onCerrar
           <Text style={styles.linkTexto}>Serás redirigido al checkout oficial de Wompi.</Text>
           <Text style={styles.subTexto}>Recibirás la confirmación de tu reserva cuando el pago sea exitoso.</Text>
 
-          <TouchableOpacity style={styles.botonWompi} onPress={onPagarWompi} activeOpacity={0.85}>
-            <Ionicons name="card-outline" size={16} color="#fff" />
-            <Text style={styles.botonWompiTexto}>Pagar con Wompi</Text>
+          <TouchableOpacity style={styles.botonWompiWrap} onPress={onPagarWompi} activeOpacity={0.85}>
+            <LinearGradient
+              colors={GRADIENTES.boton.colors}
+              start={GRADIENTES.boton.start}
+              end={GRADIENTES.boton.end}
+              style={styles.botonWompi}
+            >
+              <Ionicons name="card-outline" size={16} color="#fff" />
+              <Text style={styles.botonWompiTexto}>Pagar con Wompi</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
@@ -94,13 +103,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 16,
   },
+  botonWompiWrap: {
+    width: "100%",
+    borderRadius: 14,
+    ...SOMBRA_BOTON_GRADIENTE,
+  },
   botonWompi: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    width: "100%",
-    backgroundColor: COLOR_MARCA,
     borderRadius: 14,
     paddingVertical: 15,
   },

@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { useReservaStore } from "@/store/reservaStore";
+import { GRADIENTES } from "@/constants/gradients";
 import {
   BENEFICIOS_PROTECCION,
   BENEFICIOS_KILOMETRAJE,
@@ -175,10 +177,10 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
         <>
           <Text style={[styles.seccionLabel, { marginTop: 20 }]}>Tipo de kilómetraje</Text>
           <Text style={styles.infoGeneral}>{INFO_KILOMETRAJE_COLOMBIA}</Text>
-          <View style={styles.card}>
+          <View style={styles.kmFila}>
             {kmLimitado && (
               <TouchableOpacity
-                style={[styles.opcionCard, planes.tipoKilometraje === "limitado" && styles.opcionCardActiva]}
+                style={[styles.kmOpcionCard, planes.tipoKilometraje === "limitado" && styles.opcionCardActiva]}
                 onPress={() => actualizarPlanes({ tipoKilometraje: "limitado" })}
                 activeOpacity={0.8}
               >
@@ -213,7 +215,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
 
             {kmIlimitado && (
               <TouchableOpacity
-                style={[styles.opcionCard, planes.tipoKilometraje === "ilimitado" && styles.opcionCardActiva]}
+                style={[styles.kmOpcionCard, planes.tipoKilometraje === "ilimitado" && styles.opcionCardActiva]}
                 onPress={() => actualizarPlanes({ tipoKilometraje: "ilimitado" })}
                 activeOpacity={0.8}
               >
@@ -244,11 +246,13 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                 <ListaBeneficios beneficios={BENEFICIOS_KILOMETRAJE.ilimitado} />
               </TouchableOpacity>
             )}
-
-            {kmElegido && (
-              <FooterTotalTarjeta label="Total kilometraje" valor={totalKilometraje} />
-            )}
           </View>
+
+          {kmElegido && (
+            <View style={styles.card}>
+              <FooterTotalTarjeta label="Total kilometraje" valor={totalKilometraje} />
+            </View>
+          )}
         </>
       )}
 
@@ -337,8 +341,15 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
         </>
       )}
 
-      <TouchableOpacity style={styles.confirmarBtn} onPress={handleIrADatos} activeOpacity={0.85}>
-        <Text style={styles.confirmarBtnText}>Continuar</Text>
+      <TouchableOpacity style={styles.confirmarBtnWrap} onPress={handleIrADatos} activeOpacity={0.85}>
+        <LinearGradient
+          colors={GRADIENTES.boton.colors}
+          start={GRADIENTES.boton.start}
+          end={GRADIENTES.boton.end}
+          style={styles.confirmarBtn}
+        >
+          <Text style={styles.confirmarBtnText}>Continuar</Text>
+        </LinearGradient>
       </TouchableOpacity>
 
       <AlertModal
@@ -393,6 +404,18 @@ const styles = StyleSheet.create({
     borderColor: COLOR_MARCA,
     borderWidth: 1.5,
     backgroundColor: "#eef2fb",
+  },
+  kmFila: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 8,
+  },
+  kmOpcionCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORES.panelBorderStrong,
+    borderRadius: 10,
+    padding: 12,
   },
   opcionHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   opcionTitulo: { fontSize: 12.5, fontWeight: "700", color: COLORES.textSecondary },
@@ -466,14 +489,16 @@ const styles = StyleSheet.create({
   subtotalLabel: { fontSize: 12, fontWeight: "700", color: COLORES.textPrimary },
   subtotalValor: { fontSize: 13, fontWeight: "800", color: COLORES.textPrimary },
 
-  confirmarBtn: {
+  confirmarBtnWrap: {
     alignSelf: "center",
-    backgroundColor: COLOR_MARCA,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
     borderRadius: 8,
     marginTop: 16,
     marginBottom: 8,
+  },
+  confirmarBtn: {
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
   confirmarBtnText: { fontSize: 13, fontWeight: "700", color: "#FFFFFF" },
 });

@@ -45,9 +45,8 @@ export const loginStyles = StyleSheet.create({
     color: "#1E3A8A",
   },
 
-  // ── Header (azul) ──────────────────────────────────────────────
+  // ── Header (azul gradiente) ──────────────────────────────────────
   header: {
-    backgroundColor: "#1E3A8A",
     paddingHorizontal: 20,
     paddingTop: 22,
     paddingBottom: 20,

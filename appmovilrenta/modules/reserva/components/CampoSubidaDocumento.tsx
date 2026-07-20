@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: "center",
     backgroundColor: COLORES.panelBg,
+    width: "100%",
   },
   // Antes rojo — ahora se distingue con borde sólido (no dashed) y un
   // poco más grueso, usando el mismo azul de marca de siempre

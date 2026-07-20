@@ -1,11 +1,13 @@
 // modules/reserva/components/FlujoReserva.tsx
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { useReservaStore } from "@/store/reservaStore";
+import { GRADIENTES } from "@/constants/gradients";
 import { COLOR_MARCA, COLORES } from "../constants/reserva.constants";
 import VehiculoResumenCard from "./VehiculoResumenCard";
 import FormFechasLugar from "./FormFechasLugar";
@@ -88,7 +90,12 @@ export default function FlujoReserva({ vehiculo }: Props) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.headerAzul}>
+      <LinearGradient
+        colors={GRADIENTES.panel.colors}
+        start={GRADIENTES.panel.start}
+        end={GRADIENTES.panel.end}
+        style={styles.headerAzul}
+      >
         <Text style={styles.headerTitulo}>Reservar ahora</Text>
         <View style={styles.tabsWrapper}>
           <TabsSeccion
@@ -97,7 +104,7 @@ export default function FlujoReserva({ vehiculo }: Props) {
             tabsDeshabilitados={tabsDeshabilitados}
           />
         </View>
-      </View>
+      </LinearGradient>
 
       <View style={styles.scrollClip}>
         <ScrollView
@@ -115,8 +122,15 @@ export default function FlujoReserva({ vehiculo }: Props) {
               <Text style={[styles.seccionLabel, { marginTop: 20 }]}>Seleccionar fechas y lugar</Text>
               <FormFechasLugar vehiculo={vehiculo} />
 
-              <TouchableOpacity style={styles.continuarBtn} onPress={handleVerPlanes} activeOpacity={0.85}>
-                <Text style={styles.continuarBtnText}>Continuar</Text>
+              <TouchableOpacity style={styles.continuarBtnWrap} onPress={handleVerPlanes} activeOpacity={0.85}>
+                <LinearGradient
+                  colors={GRADIENTES.boton.colors}
+                  start={GRADIENTES.boton.start}
+                  end={GRADIENTES.boton.end}
+                  style={styles.continuarBtn}
+                >
+                  <Text style={styles.continuarBtnText}>Continuar</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </>
           )}
@@ -173,7 +187,6 @@ const styles = StyleSheet.create({
   },
   resumenBtnText: { fontSize: 12, fontWeight: "700", color: COLOR_MARCA },
   headerAzul: {
-    backgroundColor: COLOR_MARCA,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 16,
@@ -196,13 +209,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  continuarBtn: {
+  continuarBtnWrap: {
     alignSelf: "center",
-    backgroundColor: COLOR_MARCA,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  continuarBtn: {
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 8,
-    marginTop: 16,
   },
   continuarBtnText: { fontSize: 13, fontWeight: "700", color: "#FFFFFF" },
 

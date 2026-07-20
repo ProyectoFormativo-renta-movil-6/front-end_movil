@@ -114,6 +114,12 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 14,
   },
+  filaSubtarjetas: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 14,
+  },
+  subtarjetaFlex: { flex: 1 },
   nota: {
     flexDirection: "row",
     alignItems: "flex-start",

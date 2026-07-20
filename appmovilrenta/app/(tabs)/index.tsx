@@ -8,7 +8,9 @@ import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
 import { useAuthStore } from "@/store/authStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
+import { GRADIENTES } from "@/constants/gradients";
 import {
   ActivityIndicator,
   FlatList,
@@ -102,10 +104,18 @@ export default function InicioScreen() {
               <Text style={styles.loginBtnText}>Ingresar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.registerBtn}
+              style={styles.registerBtnWrap}
               onPress={() => router.push("/(auth)/registro")}
+              activeOpacity={0.85}
             >
-              <Text style={styles.registerBtnText}>Registro</Text>
+              <LinearGradient
+                colors={GRADIENTES.boton.colors}
+                start={GRADIENTES.boton.start}
+                end={GRADIENTES.boton.end}
+                style={styles.registerBtn}
+              >
+                <Text style={styles.registerBtnText}>Registro</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         ) : (
@@ -231,8 +241,15 @@ export default function InicioScreen() {
         <View style={styles.estadoCentro}>
           <Ionicons name="alert-circle-outline" size={48} color="#DC2626" />
           <Text style={styles.errorTexto}>{error}</Text>
-          <TouchableOpacity style={styles.accionBtn} onPress={limpiar}>
-            <Text style={styles.accionBtnText}>Reintentar</Text>
+          <TouchableOpacity style={styles.accionBtnWrap} onPress={limpiar} activeOpacity={0.85}>
+            <LinearGradient
+              colors={GRADIENTES.boton.colors}
+              start={GRADIENTES.boton.start}
+              end={GRADIENTES.boton.end}
+              style={styles.accionBtn}
+            >
+              <Text style={styles.accionBtnText}>Reintentar</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       ) : vehiculosFiltrados.length === 0 ? (
@@ -242,8 +259,15 @@ export default function InicioScreen() {
           <Text style={styles.estadoTexto}>
             Intenta cambiar o limpiar los filtros.
           </Text>
-          <TouchableOpacity style={styles.accionBtn} onPress={limpiar}>
-            <Text style={styles.accionBtnText}>Limpiar filtros</Text>
+          <TouchableOpacity style={styles.accionBtnWrap} onPress={limpiar} activeOpacity={0.85}>
+            <LinearGradient
+              colors={GRADIENTES.boton.colors}
+              start={GRADIENTES.boton.start}
+              end={GRADIENTES.boton.end}
+              style={styles.accionBtn}
+            >
+              <Text style={styles.accionBtnText}>Limpiar filtros</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       ) : (
@@ -362,15 +386,23 @@ export default function InicioScreen() {
                 <Text style={styles.alertBtnSecundarioText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.alertBtnPrimario}
+                style={styles.alertBtnPrimarioWrap}
                 onPress={() => {
                   setAlertaVisible(false);
                   router.push("/(auth)/registro");
                 }}
+                activeOpacity={0.85}
               >
-                <Text style={styles.alertBtnPrimarioText}>
-                  Ir a registrarse
-                </Text>
+                <LinearGradient
+                  colors={GRADIENTES.boton.colors}
+                  start={GRADIENTES.boton.start}
+                  end={GRADIENTES.boton.end}
+                  style={styles.alertBtnPrimario}
+                >
+                  <Text style={styles.alertBtnPrimarioText}>
+                    Ir a registrarse
+                  </Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </Pressable>
@@ -415,11 +447,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#2f4ea2",
   },
+  registerBtnWrap: {
+    borderRadius: 8,
+  },
   registerBtn: {
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: "#2f4ea2",
   },
   registerBtnText: {
     fontSize: 11,
@@ -593,11 +627,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
+  accionBtnWrap: {
+    borderRadius: 8,
+  },
   accionBtn: {
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 8,
-    backgroundColor: "#2f4ea2",
   },
   accionBtnText: {
     color: "#fff",
@@ -699,11 +735,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#6B7280",
   },
-  alertBtnPrimario: {
+  alertBtnPrimarioWrap: {
     flex: 1,
+    borderRadius: 10,
+  },
+  alertBtnPrimario: {
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: "#2f4ea2",
     alignItems: "center",
   },
   alertBtnPrimarioText: {

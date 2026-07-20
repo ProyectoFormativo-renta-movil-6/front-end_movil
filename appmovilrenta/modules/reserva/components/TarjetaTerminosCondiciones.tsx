@@ -1,6 +1,7 @@
 // modules/reserva/components/TarjetaTerminosCondiciones.tsx
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import {
   COLOR_MARCA,
@@ -8,6 +9,7 @@ import {
   PUNTOS_POLITICA,
   RESUMEN_POLITICAS_IMPORTANTES,
 } from "../constants/reserva.constants";
+import { GRADIENTES } from "@/constants/gradients";
 import { useReservaStore } from "@/store/reservaStore";
 
 export default function TarjetaTerminosCondiciones() {
@@ -40,10 +42,15 @@ export default function TarjetaTerminosCondiciones() {
 
       {verTerminos && (
         <View style={styles.panelTerminos}>
-          <View style={styles.panelHeader}>
+          <LinearGradient
+            colors={GRADIENTES.panel.colors}
+            start={GRADIENTES.panel.start}
+            end={GRADIENTES.panel.end}
+            style={styles.panelHeader}
+          >
             <Text style={styles.panelHeaderTitulo}>POLÍTICAS IMPORTANTES</Text>
             <Text style={styles.panelHeaderTexto}>{RESUMEN_POLITICAS_IMPORTANTES}</Text>
-          </View>
+          </LinearGradient>
 
           <View style={styles.panelCuerpo}>
             {PUNTOS_POLITICA.map((punto) => (
@@ -124,7 +131,6 @@ const styles = StyleSheet.create({
     borderColor: COLOR_MARCA,
   },
   panelHeader: {
-    backgroundColor: COLOR_MARCA,
     padding: 14,
   },
   panelHeaderTitulo: {

@@ -1,8 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GRADIENTES } from "@/constants/gradients";
 import { COLOR_MARCA, COLORES } from "@/modules/catalogo/constants/catalogo.constants";
 
 // Cuando el flujo completo de reserva esté terminado (protección + datos
@@ -37,11 +39,19 @@ export default function MisReservasScreen() {
             con fechas, lugar y estado de cada reserva.
           </Text>
           <TouchableOpacity
-            style={styles.vacioBtn}
+            style={styles.vacioBtnWrap}
             onPress={() => router.push("/(tabs)/catalogo")}
+            activeOpacity={0.85}
           >
-            <Ionicons name="car-sport-outline" size={16} color="#fff" />
-            <Text style={styles.vacioBtnText}>Explorar vehículos</Text>
+            <LinearGradient
+              colors={GRADIENTES.boton.colors}
+              start={GRADIENTES.boton.start}
+              end={GRADIENTES.boton.end}
+              style={styles.vacioBtn}
+            >
+              <Ionicons name="car-sport-outline" size={16} color="#fff" />
+              <Text style={styles.vacioBtnText}>Explorar vehículos</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       )}
@@ -90,11 +100,13 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     marginBottom: 22,
   },
+  vacioBtnWrap: {
+    borderRadius: 12,
+  },
   vacioBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: COLOR_MARCA,
     paddingHorizontal: 20,
     paddingVertical: 13,
     borderRadius: 12,

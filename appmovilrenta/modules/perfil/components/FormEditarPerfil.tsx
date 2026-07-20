@@ -6,6 +6,8 @@
  * RF50.6: Cancelar edición
  */
 import React from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { GRADIENTES } from "@/constants/gradients";
 import {
   ActivityIndicator,
   Platform,
@@ -108,15 +110,24 @@ export function FormEditarPerfil({
 
       {/* Botones */}
       <TouchableOpacity
-        style={[styles.btnGuardar, cargando && styles.btnGuardarDisabled]}
+        style={styles.btnGuardarWrap}
         onPress={onGuardar}
         activeOpacity={0.85}
         disabled={cargando}
       >
         {cargando ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <View style={[styles.btnGuardar, styles.btnGuardarDisabled]}>
+            <ActivityIndicator color="#FFFFFF" />
+          </View>
         ) : (
-          <Text style={styles.btnGuardarText}>{t('perfil.btnGuardar')}</Text>
+          <LinearGradient
+            colors={GRADIENTES.boton.colors}
+            start={GRADIENTES.boton.start}
+            end={GRADIENTES.boton.end}
+            style={styles.btnGuardar}
+          >
+            <Text style={styles.btnGuardarText}>{t('perfil.btnGuardar')}</Text>
+          </LinearGradient>
         )}
       </TouchableOpacity>
 
@@ -188,12 +199,14 @@ const styles = StyleSheet.create({
     color: "#1D4ED8",
     lineHeight: 18,
   },
+  btnGuardarWrap: {
+    borderRadius: 12,
+    marginBottom: 10,
+  },
   btnGuardar: {
-    backgroundColor: "#1D4ED8",
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: "center",
-    marginBottom: 10,
   },
   btnGuardarDisabled: { backgroundColor: "#93C5FD" },
   btnGuardarText: {

@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -13,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { Calendar, DateData } from "react-native-calendars";
+import { GRADIENTES } from "@/constants/gradients";
 import { CIUDADES, SUCURSALES_DATA } from "../constants/catalogo.constants";
 import { BusquedaForm } from "../types/catalogo.types";
 
@@ -357,14 +359,22 @@ export default function BuscadorCatalogo({
             </View>
 
             <TouchableOpacity
-              style={styles.buscarBtnGrande}
+              style={styles.buscarBtnGrandeWrap}
               onPress={() => {
                 setModalFormVisible(false);
                 onBuscar();
               }}
+              activeOpacity={0.85}
             >
-              <Ionicons name="search" size={18} color="#fff" />
-              <Text style={styles.buscarBtnGrandeTexto}>Buscar</Text>
+              <LinearGradient
+                colors={GRADIENTES.boton.colors}
+                start={GRADIENTES.boton.start}
+                end={GRADIENTES.boton.end}
+                style={styles.buscarBtnGrande}
+              >
+                <Ionicons name="search" size={18} color="#fff" />
+                <Text style={styles.buscarBtnGrandeTexto}>Buscar</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -510,15 +520,18 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 2,
   },
+  buscarBtnGrandeWrap: {
+    borderRadius: 12,
+    marginTop: 4,
+    overflow: "hidden",
+  },
   buscarBtnGrande: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#2f4ea2",
     borderRadius: 12,
     height: 48,
-    marginTop: 4,
   },
   buscarBtnGrandeTexto: { color: "#fff", fontSize: 14, fontWeight: "700" },
   modalOverlayInterno: {

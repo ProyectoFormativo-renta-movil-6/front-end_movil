@@ -2,8 +2,10 @@
 
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { memo, useState } from "react";
 import { useReservaStore } from "@/store/reservaStore";
+import { GRADIENTES } from "@/constants/gradients";
 import { DatosFechasLugar } from "@/modules/reserva/types/reserva.types";
 import {
   Image,
@@ -223,14 +225,29 @@ function VehiculoCard({
 
             <TouchableOpacity
               style={[
-                styles.reservarBtn,
+                styles.reservarBtnWrap,
                 !estadoDisponible && styles.reservarBtnDisabled,
               ]}
               onPress={handleReservar}
               disabled={!estadoDisponible}
+              activeOpacity={0.85}
             >
-              <Ionicons name="car-sport-outline" size={16} color="#fff" />
-              <Text style={styles.reservarBtnText}>RESERVAR AHORA</Text>
+              {estadoDisponible ? (
+                <LinearGradient
+                  colors={GRADIENTES.boton.colors}
+                  start={GRADIENTES.boton.start}
+                  end={GRADIENTES.boton.end}
+                  style={styles.reservarBtn}
+                >
+                  <Ionicons name="car-sport-outline" size={16} color="#fff" />
+                  <Text style={styles.reservarBtnText}>RESERVAR AHORA</Text>
+                </LinearGradient>
+              ) : (
+                <View style={styles.reservarBtn}>
+                  <Ionicons name="car-sport-outline" size={16} color="#fff" />
+                  <Text style={styles.reservarBtnText}>RESERVAR AHORA</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -376,17 +393,20 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   precioDia: { fontSize: 14, fontWeight: "400", color: COLORES.textSoft },
+  reservarBtnWrap: {
+    borderRadius: 12,
+    marginBottom: 8,
+    overflow: "hidden",
+  },
   reservarBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#2f4ea2",
     borderRadius: 12,
     paddingVertical: 14,
-    marginBottom: 8,
   },
-  reservarBtnDisabled: { backgroundColor: COLORES.paginationDisabledBg },
+  reservarBtnDisabled: { backgroundColor: COLORES.paginationDisabledBg, borderRadius: 12 },
   reservarBtnText: {
     color: "#fff",
     fontSize: 13,

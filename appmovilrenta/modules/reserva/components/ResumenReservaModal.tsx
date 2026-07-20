@@ -1,10 +1,12 @@
 // modules/reserva/components/ResumenReservaModal.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { useReservaStore } from "@/store/reservaStore";
+import { GRADIENTES } from "@/constants/gradients";
 import {
   COLOR_MARCA, COLORES,
   METODOS_PAGO, PORCENTAJE_CARGOS_ADMINISTRATIVOS, PORCENTAJE_IVA,
@@ -132,11 +134,16 @@ export default function ResumenReservaModal({
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.cardMaestra}>
-            <View style={styles.vehiculoBanner}>
+            <LinearGradient
+              colors={GRADIENTES.panel.colors}
+              start={GRADIENTES.panel.start}
+              end={GRADIENTES.panel.end}
+              style={styles.vehiculoBanner}
+            >
               <Text style={styles.vehiculoBannerLabel}>GRUPO</Text>
               <Text style={styles.vehiculoBannerNombre}>{vehiculo.nombre}</Text>
               <Text style={styles.vehiculoBannerSub}>{vehiculo.categoria ?? "Económico"} — {vehiculo.transmision}</Text>
-            </View>
+            </LinearGradient>
 
             {!seccionFechasCompleta ? (
               // Aún no se ha completado fechas + lugar + método de pago
@@ -377,7 +384,16 @@ export default function ResumenReservaModal({
 
         {modo === "resumen" && (
           <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
-            <TouchableOpacity style={styles.cerrarBtn} onPress={cerrar}><Text style={styles.cerrarBtnText}>Cerrar</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.cerrarBtnWrap} onPress={cerrar} activeOpacity={0.85}>
+              <LinearGradient
+                colors={GRADIENTES.boton.colors}
+                start={GRADIENTES.boton.start}
+                end={GRADIENTES.boton.end}
+                style={styles.cerrarBtn}
+              >
+                <Text style={styles.cerrarBtnText}>Cerrar</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -407,12 +423,13 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: 16, paddingBottom: 24 },
 
   cardMaestra: { backgroundColor: COLORES.panelBg, borderRadius: 16, borderWidth: 1, borderColor: COLORES.panelBorderStrong, overflow: "hidden", marginBottom: 8 },
-  vehiculoBanner: { backgroundColor: COLOR_MARCA, padding: 14 },
+  vehiculoBanner: { padding: 14 },
   vehiculoBannerLabel: { fontSize: 10, fontWeight: "700", color: "rgba(255,255,255,0.75)", letterSpacing: 0.4 },
   vehiculoBannerNombre: { fontSize: 16, fontWeight: "800", color: "#fff", marginTop: 4 },
   vehiculoBannerSub: { fontSize: 12, fontWeight: "600", color: "rgba(255,255,255,0.85)", marginTop: 4 },
 
   footer: { borderTopWidth: 1, borderTopColor: COLORES.panelBorder, paddingHorizontal: 16, paddingTop: 12 },
-  cerrarBtn: { backgroundColor: COLOR_MARCA, borderRadius: 12, paddingVertical: 14, alignItems: "center" },
+  cerrarBtnWrap: { borderRadius: 12 },
+  cerrarBtn: { borderRadius: 12, paddingVertical: 14, alignItems: "center" },
   cerrarBtnText: { color: "#fff", fontSize: 14, fontWeight: "800" },
 });

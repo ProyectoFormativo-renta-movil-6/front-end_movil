@@ -4,6 +4,7 @@ import { AlertModal } from "@/components/ui/AlertModal";
 import { InputField } from "@/components/ui/InputField";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { GRADIENTES } from "@/constants/gradients";
 import { SocialAuthButtons } from "@/modules/auth/components/SocialAuthButtons";
 import { useLogin } from "@/modules/auth/hooks/useAuth";
 import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
@@ -11,6 +12,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useUsuarioStore } from "@/store/usuarioStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -136,8 +138,14 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* HEADER AZUL */}
-            <View style={styles.header}>
+            {/* HEADER AZUL GRADIENTE */}
+            <LinearGradient
+              colors={GRADIENTES.heroOscuro.colors}
+              locations={GRADIENTES.heroOscuro.locations}
+              start={GRADIENTES.heroOscuro.start}
+              end={GRADIENTES.heroOscuro.end}
+              style={styles.header}
+            >
               <View style={styles.marcaWrapper}>
                 <Text style={styles.marca}>Drivique</Text>
                 <Text style={styles.marcaTagline}>
@@ -180,7 +188,7 @@ export default function LoginScreen() {
                   </Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </LinearGradient>
 
             {/* CUERPO CON CARD FLOTANTE */}
             <View style={styles.cuerpo}>

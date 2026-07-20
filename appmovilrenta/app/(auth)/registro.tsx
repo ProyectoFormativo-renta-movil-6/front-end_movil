@@ -9,6 +9,7 @@ import {
   Platform,
   Modal,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +21,7 @@ import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { SocialAuthButtons } from '@/modules/auth/components/SocialAuthButtons';
 import { PasswordRequirements } from '@/modules/auth/components/PasswordRequirements';
 import { registroStyles as styles } from '@/modules/auth/styles/registro.styles';
+import { GRADIENTES } from '@/constants/gradients';
 
 export default function RegistroScreen() {
   const { t } = useTranslation();
@@ -58,11 +60,18 @@ export default function RegistroScreen() {
         <Text style={[exitoS.titulo, { color: c.textPrimary }]}>{t('auth.registro.exitoTitulo')}</Text>
         <Text style={[exitoS.msg, { color: c.textSecondary }]}>{t('auth.registro.exitoMsg')}</Text>
         <TouchableOpacity
-          style={exitoS.btn}
+          style={exitoS.btnWrap}
           onPress={() => router.replace('/(auth)/login')}
           activeOpacity={0.85}
         >
-          <Text style={exitoS.btnTexto}>{t('auth.registro.exitoBtn')} →</Text>
+          <LinearGradient
+            colors={GRADIENTES.boton.colors}
+            start={GRADIENTES.boton.start}
+            end={GRADIENTES.boton.end}
+            style={exitoS.btn}
+          >
+            <Text style={exitoS.btnTexto}>{t('auth.registro.exitoBtn')} →</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     );
@@ -70,11 +79,17 @@ export default function RegistroScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: '#1D4ED8' }]}
+      style={[styles.flex, { backgroundColor: '#1e3a8a' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* ── Header azul ─────────────────────────────────────── */}
-      <View style={[newS.header, { paddingTop: insets.top + 12 }]}>
+      {/* ── Header azul gradiente ───────────────────────────── */}
+      <LinearGradient
+        colors={GRADIENTES.heroOscuro.colors}
+        locations={GRADIENTES.heroOscuro.locations}
+        start={GRADIENTES.heroOscuro.start}
+        end={GRADIENTES.heroOscuro.end}
+        style={[newS.header, { paddingTop: insets.top + 12 }]}
+      >
         <TouchableOpacity
           onPress={() => router.canGoBack() ? router.back() : router.replace('/(auth)/login')}
           style={newS.backBtn}
@@ -83,7 +98,7 @@ export default function RegistroScreen() {
         </TouchableOpacity>
         <Text style={newS.titulo}>{t('auth.registro.titulo')}</Text>
         <Text style={newS.subtitulo}>{t('auth.registro.subtitulo')}</Text>
-      </View>
+      </LinearGradient>
 
       {/* ── Sheet blanca ────────────────────────────────────── */}
       <View style={[newS.sheet, { backgroundColor: c.bg }]}>
@@ -187,10 +202,18 @@ export default function RegistroScreen() {
               <Text style={styles.modalTexto}>{t('auth.registro.tc6Texto')}</Text>
             </ScrollView>
             <TouchableOpacity
-              style={styles.modalBotonAceptar}
+              style={styles.modalBotonAceptarWrap}
               onPress={() => setModalTerminos(false)}
+              activeOpacity={0.85}
             >
-              <Text style={styles.modalBotonAceptarTexto}>{t('auth.registro.modalAceptar')}</Text>
+              <LinearGradient
+                colors={GRADIENTES.boton.colors}
+                start={GRADIENTES.boton.start}
+                end={GRADIENTES.boton.end}
+                style={styles.modalBotonAceptar}
+              >
+                <Text style={styles.modalBotonAceptarTexto}>{t('auth.registro.modalAceptar')}</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -268,8 +291,10 @@ const exitoS = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 32,
   },
+  btnWrap: {
+    borderRadius: 12,
+  },
   btn: {
-    backgroundColor: '#1D4ED8',
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 12,

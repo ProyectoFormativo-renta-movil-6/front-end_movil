@@ -6,6 +6,7 @@
 
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import {
   COLOR_MARCA,
@@ -13,6 +14,7 @@ import {
   ICONOS_SERVICIOS,
   ICONO_SERVICIO_DEFECTO,
 } from "../constants/reserva.constants";
+import { GRADIENTES } from "@/constants/gradients";
 
 // ---------- Helpers de formato ----------
 
@@ -168,7 +170,16 @@ export function FilaBotonesEdicion({ onVolver, onActualizar }: { onVolver: () =>
   return (
     <View style={styles.filaBotones}>
       <TouchableOpacity style={styles.volverBtn} onPress={onVolver}><Text style={styles.volverBtnText}>Volver</Text></TouchableOpacity>
-      <TouchableOpacity style={styles.actualizarBtn} onPress={onActualizar}><Text style={styles.actualizarBtnText}>Actualizar</Text></TouchableOpacity>
+      <TouchableOpacity style={styles.actualizarBtnWrap} onPress={onActualizar} activeOpacity={0.85}>
+        <LinearGradient
+          colors={GRADIENTES.boton.colors}
+          start={GRADIENTES.boton.start}
+          end={GRADIENTES.boton.end}
+          style={styles.actualizarBtn}
+        >
+          <Text style={styles.actualizarBtnText}>Actualizar</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -209,7 +220,8 @@ export const styles = StyleSheet.create({
 
   volverBtn: { flex: 1, borderWidth: 1.5, borderColor: COLORES.panelBorderStrong, borderRadius: 12, paddingVertical: 13, alignItems: "center" },
   volverBtnText: { fontSize: 13, fontWeight: "800", color: COLORES.textSecondary },
-  actualizarBtn: { flex: 1, backgroundColor: COLOR_MARCA, borderRadius: 12, paddingVertical: 13, alignItems: "center" },
+  actualizarBtnWrap: { flex: 1, borderRadius: 12 },
+  actualizarBtn: { borderRadius: 12, paddingVertical: 13, alignItems: "center" },
   actualizarBtnText: { fontSize: 13, fontWeight: "800", color: "#fff" },
 
   label: { fontSize: 10, fontWeight: "700", color: COLORES.textMuted, letterSpacing: 0.3, marginBottom: 8, marginTop: 4 },

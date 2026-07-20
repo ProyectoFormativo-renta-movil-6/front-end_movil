@@ -230,10 +230,12 @@ export const registroStyles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 8,
   },
-  modalBotonAceptar: {
+  modalBotonAceptarWrap: {
     marginHorizontal: 24,
     marginTop: 16,
-    backgroundColor: '#1D4ED8',
+    borderRadius: 12,
+  },
+  modalBotonAceptar: {
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
