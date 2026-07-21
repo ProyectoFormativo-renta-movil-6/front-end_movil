@@ -40,7 +40,7 @@ import { Moneda } from "@/utils/monedaUtils";
 export default function PerfilScreen() {
   const { t } = useTranslation();
   const { idiomaActual, cambiarIdioma, temaActual, cambiarTema } = useIdioma();
-  const { monedaActual, cambiarMoneda, tasaUSD } = useMoneda();
+  const { monedaActual, cambiarMoneda } = useMoneda();
   const c = useTemaColores();
   const insets = useSafeAreaInsets();
   const [editando, setEditando] = useState(false);
@@ -200,9 +200,6 @@ export default function PerfilScreen() {
 
       <View style={[configStyles.filaLabel, { marginTop: 16 }]}>
         <Text style={[configStyles.label, { color: c.textPrimary }]}>💱 {t("config.moneda")}</Text>
-        <Text style={[configStyles.monedaSub, { color: c.textMuted }]}>
-          {t("config.monedaSub")} · 1 USD ≈ ${Math.round(tasaUSD).toLocaleString("es-CO")} COP
-        </Text>
       </View>
       <View style={configStyles.temaRow}>
         <TouchableOpacity

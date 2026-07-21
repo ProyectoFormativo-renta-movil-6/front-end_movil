@@ -2,10 +2,10 @@ import { AlertModal } from "@/components/ui/AlertModal";
 import BuscadorCatalogo from "@/modules/catalogo/components/BuscadorCatalogo";
 import FiltrosCatalogo from "@/modules/catalogo/components/FiltrosCatalogo";
 import VehiculoCard from "@/modules/catalogo/components/VehiculoCard";
-import { COLORES } from "@/modules/catalogo/constants/catalogo.constants";
 import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
 import { useFavoritos } from "@/modules/catalogo/hooks/useFavoritos";
 import { useAuthStore } from "@/store/authStore";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -69,11 +69,13 @@ function ListFooter({
   totalPaginas,
   onAnterior,
   onSiguiente,
+  c,
 }: {
   paginaActual: number;
   totalPaginas: number;
   onAnterior: () => void;
   onSiguiente: () => void;
+  c: ReturnType<typeof useTemaColores>;
 }) {
   if (totalPaginas <= 1) return null;
   return (
@@ -81,7 +83,7 @@ function ListFooter({
       <TouchableOpacity
         style={[
           styles.paginaBtn,
-          paginaActual === 1 && styles.paginaBtnDisabled,
+          paginaActual === 1 && [styles.paginaBtnDisabled, { backgroundColor: c.bgInput }],
         ]}
         onPress={onAnterior}
         disabled={paginaActual === 1}
@@ -90,26 +92,26 @@ function ListFooter({
         <Ionicons
           name="arrow-back"
           size={16}
-          color={paginaActual === 1 ? "#CBD5E1" : "#1E40AF"}
+          color={paginaActual === 1 ? c.textMuted : "#1E40AF"}
         />
         <Text
           style={[
             styles.paginaBtnText,
-            paginaActual === 1 && styles.paginaBtnTextDisabled,
+            paginaActual === 1 && [styles.paginaBtnTextDisabled, { color: c.textMuted }],
           ]}
         >
           Anterior
         </Text>
       </TouchableOpacity>
 
-      <Text style={styles.paginaInfoTexto}>
+      <Text style={[styles.paginaInfoTexto, { color: c.textSecondary }]}>
         {paginaActual} / {totalPaginas}
       </Text>
 
       <TouchableOpacity
         style={[
           styles.paginaBtn,
-          paginaActual === totalPaginas && styles.paginaBtnDisabled,
+          paginaActual === totalPaginas && [styles.paginaBtnDisabled, { backgroundColor: c.bgInput }],
         ]}
         onPress={onSiguiente}
         disabled={paginaActual === totalPaginas}
@@ -118,7 +120,7 @@ function ListFooter({
         <Text
           style={[
             styles.paginaBtnText,
-            paginaActual === totalPaginas && styles.paginaBtnTextDisabled,
+            paginaActual === totalPaginas && [styles.paginaBtnTextDisabled, { color: c.textMuted }],
           ]}
         >
           Siguiente
@@ -126,7 +128,7 @@ function ListFooter({
         <Ionicons
           name="arrow-forward"
           size={16}
-          color={paginaActual === totalPaginas ? "#CBD5E1" : "#1E40AF"}
+          color={paginaActual === totalPaginas ? c.textMuted : "#1E40AF"}
         />
       </TouchableOpacity>
     </View>
@@ -135,6 +137,7 @@ function ListFooter({
 
 export default function Catalogo() {
   const insets = useSafeAreaInsets();
+  const c = useTemaColores();
   const usuario = useAuthStore((state) => state.usuario);
   const [textBusqueda, setTextBusqueda] = useState("");
   const [modalFormVisible, setModalFormVisible] = useState(false);
@@ -267,14 +270,14 @@ export default function Catalogo() {
   const inicialUsuario = nombreUsuario.charAt(0).toUpperCase();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
       <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#ffffff"
+        barStyle={c.oscuro ? "light-content" : "dark-content"}
+        backgroundColor={c.bgHeader}
         translucent={true}
       />
 
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Drivique</Text>
         </View>
@@ -284,7 +287,7 @@ export default function Catalogo() {
             onPress={irAPerfil}
             activeOpacity={0.7}
           >
-            <Text style={styles.headerUsuarioTexto} numberOfLines={1}>
+            <Text style={[styles.headerUsuarioTexto, { color: c.textSecondary }]} numberOfLines={1}>
               Bienvenido, {nombreUsuario}
             </Text>
             <View style={styles.headerAvatar}>
@@ -323,20 +326,21 @@ export default function Catalogo() {
         setModalFormVisible={setModalFormVisible}
       />
 
-      <View style={styles.controlsBar}>
+      <View style={[styles.controlsBar, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
         <TouchableOpacity
-          style={[styles.filtrosBtn, filtrosActivos && styles.filtrosBtnActivo]}
+          style={[styles.filtrosBtn, { backgroundColor: c.bgInput }, filtrosActivos && styles.filtrosBtnActivo]}
           onPress={() => setFiltrosVisible(true)}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Ionicons
               name="options-outline"
               size={16}
-              color={filtrosActivos ? "#fff" : COLORES.textSecondary}
+              color={filtrosActivos ? "#fff" : c.textSecondary}
             />
             <Text
               style={[
                 styles.filtrosBtnText,
+                { color: c.textSecondary },
                 filtrosActivos && styles.filtrosBtnTextActivo,
               ]}
             >
@@ -346,14 +350,14 @@ export default function Catalogo() {
         </TouchableOpacity>
 
         <View style={styles.controlsRight}>
-          <Text style={styles.contadorText}>
+          <Text style={[styles.contadorText, { color: c.textSecondary }]}>
             {vehiculosAMostrar.length} vehiculos
           </Text>
           <TouchableOpacity
-            style={styles.ordenBtn}
+            style={[styles.ordenBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}
             onPress={() => setOrdenVisible(!ordenVisible)}
           >
-            <Text style={styles.ordenBtnText} numberOfLines={1}>
+            <Text style={[styles.ordenBtnText, { color: c.textPrimary }]} numberOfLines={1}>
               {ordenLabel} ▼
             </Text>
           </TouchableOpacity>
@@ -361,13 +365,13 @@ export default function Catalogo() {
       </View>
 
       {ordenVisible && (
-        <View style={styles.ordenDropdown}>
+        <View style={[styles.ordenDropdown, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           {ORDEN_OPCIONES.map((op) => (
             <TouchableOpacity
               key={op.valor}
               style={[
                 styles.ordenOpcion,
-                filtros.orden === op.valor && styles.ordenOpcionActiva,
+                filtros.orden === op.valor && { backgroundColor: c.primaryBg },
               ]}
               onPress={() => {
                 setFiltro("orden", op.valor);
@@ -377,6 +381,7 @@ export default function Catalogo() {
               <Text
                 style={[
                   styles.ordenOpcionText,
+                  { color: c.textPrimary },
                   filtros.orden === op.valor && styles.ordenOpcionTextActiva,
                 ]}
               >
@@ -416,8 +421,8 @@ export default function Catalogo() {
           ListEmptyComponent={
             soloFavoritos ? (
               <View style={styles.estadoCentro}>
-                <Ionicons name="heart-outline" size={48} color="#CBD5E1" />
-                <Text style={styles.emptyText}>
+                <Ionicons name="heart-outline" size={48} color={c.textMuted} />
+                <Text style={[styles.emptyText, { color: c.textMuted }]}>
                   Aún no tienes favoritos guardados
                 </Text>
               </View>
@@ -429,6 +434,7 @@ export default function Catalogo() {
               totalPaginas={totalPaginas}
               onAnterior={paginaAnterior}
               onSiguiente={paginaSiguiente}
+              c={c}
             />
           )}
         />

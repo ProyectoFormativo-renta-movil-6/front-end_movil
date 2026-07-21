@@ -90,37 +90,54 @@ export function DateField({
 
   // ── Web: input tipo fecha nativo del navegador ─────────────────────────
   if (Platform.OS === "web") {
+    // El texto interno que dibuja el navegador dentro de un
+    // <input type="date"> (día/mes/año) NO siempre respeta la propiedad
+    // CSS "color" — en varios navegadores (Chrome/Edge incluidos) ese
+    // texto se pinta solo según "color-scheme", ignorando por completo
+    // cualquier color que le pongamos. Eso es lo que causaba el bug:
+    // en modo claro el texto podía salir en blanco sobre fondo blanco.
+    //
+    // Solución: dejamos el <input> nativo ahí (para que siga abriendo el
+    // calendario del navegador al hacer click), pero le hacemos el texto
+    // transparente y dibujamos NOSOTROS el valor encima con un <Text>
+    // normal de React Native, que sí respeta el color del tema al 100%.
     return (
       <View style={s.wrap}>
         <Text style={[s.label, { color: c.textSecondary }]}>{label}</Text>
-        {/* Elemento HTML nativo — válido en el build web (react-native-web) */}
-        {React.createElement("input", {
-          type: "date",
-          value: value || "",
-          max: maximumDate ? fechaAString(maximumDate) : undefined,
-          min: minimumDate ? fechaAString(minimumDate) : undefined,
-          onChange: (e: any) => onChange(e.target.value),
-          style: {
-            border: `1px solid ${error ? "#EF4444" : c.border}`,
-            backgroundColor: c.bgInput,
-            color: c.textPrimary,
-            borderRadius: 10,
-            padding: "13px 14px",
-            fontSize: 14,
-            fontFamily: "inherit",
-            outline: "none",
-            width: "100%",
-            boxSizing: "border-box",
-            // Antes: "auto" — dejaba que el navegador eligiera el color
-            // del texto/ícono del calendario según el modo del SISTEMA
-            // operativo. Si el usuario tenía el celular/PC en modo
-            // oscuro pero la app en modo CLARO, el navegador pintaba el
-            // valor y el ícono en blanco sobre el fondo claro del input,
-            // haciéndolos invisibles. Ahora se fija según el tema real
-            // de la app.
-            colorScheme: c.oscuro ? "dark" : "light",
-          },
-        })}
+        <View style={{ position: "relative", justifyContent: "center" }}>
+          {/* Elemento HTML nativo — capta el click y abre el calendario,
+              pero su texto queda invisible a propósito (ver arriba). */}
+          {React.createElement("input", {
+            type: "date",
+            value: value || "",
+            max: maximumDate ? fechaAString(maximumDate) : undefined,
+            min: minimumDate ? fechaAString(minimumDate) : undefined,
+            onChange: (e: any) => onChange(e.target.value),
+            style: {
+              border: `1px solid ${error ? "#EF4444" : c.border}`,
+              backgroundColor: c.bgInput,
+              color: "transparent",
+              WebkitTextFillColor: "transparent",
+              caretColor: "transparent",
+              borderRadius: 10,
+              padding: "13px 14px",
+              fontSize: 14,
+              fontFamily: "inherit",
+              outline: "none",
+              width: "100%",
+              boxSizing: "border-box",
+              // Ayuda a que el ícono del calendario y el popup emergente
+              // del navegador combinen con el tema de la app.
+              colorScheme: c.oscuro ? "dark" : "light",
+            },
+          })}
+          {/* Nuestro propio texto, siempre visible, encima del input */}
+          <View pointerEvents="none" style={s.webOverlay}>
+            <Text style={[s.selectorText, { color: value ? c.textPrimary : c.textMuted }]} numberOfLines={1}>
+              {value ? formatearFechaVisible(value) : placeholder}
+            </Text>
+          </View>
+        </View>
         {error ? <Text style={s.error}>{error}</Text> : null}
       </View>
     );
@@ -166,6 +183,14 @@ export function DateField({
 const s = StyleSheet.create({
   wrap: { marginBottom: 4 },
   label: { fontSize: 13, fontWeight: "600", marginBottom: 6 },
+  webOverlay: {
+    position: "absolute",
+    left: 14,
+    right: 36,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+  },
   selector: {
     flexDirection: "row",
     justifyContent: "space-between",
