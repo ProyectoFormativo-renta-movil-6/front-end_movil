@@ -3,18 +3,22 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
-import { COLOR_MARCA, COLORES, TAMANO_MAXIMO_ARCHIVO_BYTES } from "../constants/reserva.constants";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { COLOR_MARCA, TAMANO_MAXIMO_ARCHIVO_BYTES } from "../constants/reserva.constants";
 import { useReservaStore } from "@/store/reservaStore";
 import CampoSubidaDocumento from "./CampoSubidaDocumento";
 
 export default function TarjetaVerificacionDocumental() {
   const documentos = useReservaStore((s) => s.documentos);
   const actualizarDocumento = useReservaStore((s) => s.actualizarDocumento);
+  const c = useTemaColores();
 
   const [errorCedula, setErrorCedula] = useState("");
   const [errorLicencia, setErrorLicencia] = useState("");
   const [cargandoCedula, setCargandoCedula] = useState(false);
   const [cargandoLicencia, setCargandoLicencia] = useState(false);
+
+  const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
 
   const seleccionarArchivo = async (
     llave: "cedulaFrente" | "licenciaConduccion",
@@ -50,9 +54,9 @@ export default function TarjetaVerificacionDocumental() {
   return (
     <View>
       {/* Título fuera de la tarjeta, mismo patrón que "Datos personales" */}
-      <Text style={styles.seccionLabel}>Verificación Documental Obligatoria</Text>
+      <Text style={[styles.seccionLabel, { color: c.textMuted }]}>Verificación Documental Obligatoria</Text>
 
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: c.bgCard }]}>
         {/* Cédula arriba, licencia abajo — apiladas, no lado a lado */}
         <View style={styles.columnaSubtarjetas}>
           <CampoSubidaDocumento
@@ -76,9 +80,9 @@ export default function TarjetaVerificacionDocumental() {
         </View>
 
         {/* Nota: dentro de la tarjeta, pero FUERA de las subtarjetas */}
-        <View style={styles.nota}>
-          <Ionicons name="information-circle-outline" size={18} color={COLOR_MARCA} style={styles.notaIcono} />
-          <Text style={styles.notaTexto}>
+        <View style={[styles.nota, { backgroundColor: c.primaryBg, borderColor: c.border }]}>
+          <Ionicons name="information-circle-outline" size={18} color={primaryAccent} style={styles.notaIcono} />
+          <Text style={[styles.notaTexto, { color: c.textSecondary }]}>
             La verificación de tus documentos será realizada de forma manual por el personal de la sucursal al
             momento de la entrega del carro. Asegúrate de que las fotos/escaneos dentro del PDF sean nítidos.
           </Text>
@@ -92,13 +96,11 @@ const styles = StyleSheet.create({
   seccionLabel: {
     fontSize: 12,
     fontWeight: "800",
-    color: COLORES.textMuted,
     letterSpacing: 0.3,
     textTransform: "uppercase",
     marginBottom: 8,
   },
   card: {
-    backgroundColor: COLORES.panelBg,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -108,8 +110,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  // Antes "filaSubtarjetas" con flexDirection: row — ahora en columna,
-  // cédula arriba y licencia abajo
   columnaSubtarjetas: {
     gap: 12,
     marginBottom: 14,
@@ -124,9 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 8,
-    backgroundColor: "#eef2fb",
     borderWidth: 1,
-    borderColor: "#c7d5f5",
     borderRadius: 12,
     padding: 12,
   },
@@ -134,7 +132,6 @@ const styles = StyleSheet.create({
   notaTexto: {
     flex: 1,
     fontSize: 11.5,
-    color: COLORES.textSecondary,
     lineHeight: 16,
   },
 });

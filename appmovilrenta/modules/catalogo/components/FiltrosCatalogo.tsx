@@ -10,10 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import {
   CATEGORIAS,
   CIUDADES_FILTRO,
-  COLORES,
   COMBUSTIBLES,
   SUCURSALES,
   TRANSMISIONES,
@@ -36,17 +36,29 @@ function Chip({
   label,
   activo,
   onPress,
+  c,
 }: {
   label: string;
   activo: boolean;
   onPress: () => void;
+  c: ReturnType<typeof useTemaColores>;
 }) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.chip, activo && styles.chipActivo]}
+      style={[
+        styles.chip,
+        { backgroundColor: c.bgInput },
+        activo && { backgroundColor: c.oscuro ? "#3B82F6" : "#2f4ea2" },
+      ]}
     >
-      <Text style={[styles.chipText, activo && styles.chipTextoActivo]}>
+      <Text
+        style={[
+          styles.chipText,
+          { color: c.textSecondary },
+          activo && { color: "#FFFFFF" },
+        ]}
+      >
         {label}
       </Text>
     </TouchableOpacity>
@@ -56,13 +68,15 @@ function Chip({
 function Seccion({
   label,
   children,
+  c,
 }: {
   label: string;
   children: React.ReactNode;
+  c: ReturnType<typeof useTemaColores>;
 }) {
   return (
-    <View style={styles.seccion}>
-      <Text style={styles.seccionLabel}>{label}</Text>
+    <View style={[styles.seccion, { borderBottomColor: c.border }]}>
+      <Text style={[styles.seccionLabel, { color: c.textSecondary }]}>{label}</Text>
       {children}
     </View>
   );
@@ -82,6 +96,9 @@ export default function FiltrosCatalogo({
   totalFavoritos,
 }: Props) {
   const [dropdownAbierto, setDropdownAbierto] = useState<DropdownAbierto>(null);
+  const c = useTemaColores();
+
+  const primaryAccent = c.oscuro ? "#60A5FA" : "#2f4ea2";
 
   const catLabels: Record<string, string> = {
     Todos: "Todas las categorías",
@@ -116,11 +133,11 @@ export default function FiltrosCatalogo({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Filtros</Text>
+      <SafeAreaView style={[styles.container, { backgroundColor: c.bg }]}>
+        <View style={[styles.header, { borderBottomColor: c.border }]}>
+          <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Filtros</Text>
           <TouchableOpacity onPress={limpiar}>
-            <Text style={styles.limpiarBtn}>Limpiar filtros</Text>
+            <Text style={[styles.limpiarBtn, { color: primaryAccent }]}>Limpiar filtros</Text>
           </TouchableOpacity>
         </View>
 
@@ -130,11 +147,12 @@ export default function FiltrosCatalogo({
           showsVerticalScrollIndicator={false}
         >
           {usuario && (
-            <Seccion label="FAVORITOS">
+            <Seccion label="FAVORITOS" c={c}>
               <TouchableOpacity
                 style={[
                   styles.favoritoBtn,
-                  soloFavoritos && styles.favoritoBtnActivo,
+                  { backgroundColor: c.primaryBg, borderColor: c.border },
+                  soloFavoritos && { backgroundColor: c.oscuro ? "#3B82F6" : "#2f4ea2", borderColor: c.oscuro ? "#3B82F6" : "#2f4ea2" },
                 ]}
                 onPress={onToggleSoloFavoritos}
                 activeOpacity={0.8}
@@ -142,24 +160,25 @@ export default function FiltrosCatalogo({
                 <Ionicons
                   name="heart"
                   size={15}
-                  color={soloFavoritos ? "#fff" : COLORES.accentText}
+                  color={soloFavoritos ? "#fff" : primaryAccent}
                 />
                 <Text
                   style={[
                     styles.favoritoBtnText,
-                    soloFavoritos && styles.favoritoBtnTextActivo,
+                    { color: primaryAccent },
+                    soloFavoritos && { color: "#fff" },
                   ]}
                 >
                   Mis Favoritos
                 </Text>
                 {totalFavoritos > 0 && (
                   <View
-                    style={[styles.badge, soloFavoritos && styles.badgeActivo]}
+                    style={[styles.badge, { backgroundColor: primaryAccent }, soloFavoritos && { backgroundColor: "rgba(255,255,255,0.3)" }]}
                   >
                     <Text
                       style={[
                         styles.badgeText,
-                        soloFavoritos && styles.badgeTextActivo,
+                        soloFavoritos && { color: "#fff" },
                       ]}
                     >
                       {totalFavoritos}
@@ -170,7 +189,7 @@ export default function FiltrosCatalogo({
             </Seccion>
           )}
 
-          <Seccion label="CATEGORÍA">
+          <Seccion label="CATEGORÍA" c={c}>
             <View style={styles.chipsRow}>
               {CATEGORIAS.map((cat) => (
                 <Chip
@@ -178,43 +197,46 @@ export default function FiltrosCatalogo({
                   label={catLabels[cat] ?? cat}
                   activo={filtros.categoria === cat}
                   onPress={() => setFiltro("categoria", cat)}
+                  c={c}
                 />
               ))}
             </View>
           </Seccion>
 
-          <Seccion label="CIUDAD">
+          <Seccion label="CIUDAD" c={c}>
             <TouchableOpacity
-              style={styles.selectorBtn}
+              style={[styles.selectorBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}
               onPress={() => toggleDropdown("ciudad")}
             >
-              <Text style={styles.selectorText}>{filtros.ciudad}</Text>
-              <Text style={styles.selectorArrow}>
+              <Text style={[styles.selectorText, { color: c.textPrimary }]}>{filtros.ciudad}</Text>
+              <Text style={[styles.selectorArrow, { color: c.textSecondary }]}>
                 {dropdownAbierto === "ciudad" ? "▲" : "▼"}
               </Text>
             </TouchableOpacity>
             {dropdownAbierto === "ciudad" && (
-              <View style={styles.dropdownList}>
+              <View style={[styles.dropdownList, { backgroundColor: c.bgCard, borderColor: c.border }]}>
                 <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
-                  {CIUDADES_FILTRO.map((c) => (
+                  {CIUDADES_FILTRO.map((item) => (
                     <TouchableOpacity
-                      key={c}
+                      key={item}
                       style={[
                         styles.dropdownItem,
-                        filtros.ciudad === c && styles.dropdownItemActivo,
+                        { borderBottomColor: c.borderLight },
+                        filtros.ciudad === item && { backgroundColor: c.primaryBg },
                       ]}
                       onPress={() => {
-                        setFiltro("ciudad", c);
+                        setFiltro("ciudad", item);
                         setDropdownAbierto(null);
                       }}
                     >
                       <Text
                         style={[
                           styles.dropdownItemText,
-                          filtros.ciudad === c && styles.dropdownItemTextActivo,
+                          { color: c.textPrimary },
+                          filtros.ciudad === item && { color: primaryAccent, fontWeight: "700" },
                         ]}
                       >
-                        {c}
+                        {item}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -223,27 +245,28 @@ export default function FiltrosCatalogo({
             )}
           </Seccion>
 
-          <Seccion label="SUCURSAL">
+          <Seccion label="SUCURSAL" c={c}>
             <TouchableOpacity
-              style={styles.selectorBtn}
+              style={[styles.selectorBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}
               onPress={() => toggleDropdown("sucursal")}
             >
-              <Text style={styles.selectorText} numberOfLines={1}>
+              <Text style={[styles.selectorText, { color: c.textPrimary }]} numberOfLines={1}>
                 {filtros.sucursal}
               </Text>
-              <Text style={styles.selectorArrow}>
+              <Text style={[styles.selectorArrow, { color: c.textSecondary }]}>
                 {dropdownAbierto === "sucursal" ? "▲" : "▼"}
               </Text>
             </TouchableOpacity>
             {dropdownAbierto === "sucursal" && (
-              <View style={styles.dropdownList}>
+              <View style={[styles.dropdownList, { backgroundColor: c.bgCard, borderColor: c.border }]}>
                 <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
                   {SUCURSALES.map((s) => (
                     <TouchableOpacity
                       key={s}
                       style={[
                         styles.dropdownItem,
-                        filtros.sucursal === s && styles.dropdownItemActivo,
+                        { borderBottomColor: c.borderLight },
+                        filtros.sucursal === s && { backgroundColor: c.primaryBg },
                       ]}
                       onPress={() => {
                         setFiltro("sucursal", s);
@@ -253,8 +276,8 @@ export default function FiltrosCatalogo({
                       <Text
                         style={[
                           styles.dropdownItemText,
-                          filtros.sucursal === s &&
-                            styles.dropdownItemTextActivo,
+                          { color: c.textPrimary },
+                          filtros.sucursal === s && { color: primaryAccent, fontWeight: "700" },
                         ]}
                         numberOfLines={1}
                       >
@@ -267,12 +290,12 @@ export default function FiltrosCatalogo({
             )}
           </Seccion>
 
-          <Seccion label="PRECIO POR DÍA (COP)">
+          <Seccion label="PRECIO POR DÍA (COP)" c={c}>
             <View style={styles.precioRow}>
               <TextInput
-                style={styles.precioInput}
+                style={[styles.precioInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }]}
                 placeholder="Mín"
-                placeholderTextColor={COLORES.textMuted}
+                placeholderTextColor={c.textMuted}
                 keyboardType="numeric"
                 value={filtros.precioMin}
                 onChangeText={(v) =>
@@ -280,9 +303,9 @@ export default function FiltrosCatalogo({
                 }
               />
               <TextInput
-                style={styles.precioInput}
+                style={[styles.precioInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }]}
                 placeholder="Máx"
-                placeholderTextColor={COLORES.textMuted}
+                placeholderTextColor={c.textMuted}
                 keyboardType="numeric"
                 value={filtros.precioMax}
                 onChangeText={(v) =>
@@ -292,7 +315,7 @@ export default function FiltrosCatalogo({
             </View>
           </Seccion>
 
-          <Seccion label="TRANSMISIÓN">
+          <Seccion label="TRANSMISIÓN" c={c}>
             <View style={styles.chipsRow}>
               {TRANSMISIONES.map((tr) => (
                 <Chip
@@ -300,27 +323,29 @@ export default function FiltrosCatalogo({
                   label={transLabels[tr] ?? tr}
                   activo={filtros.transmision === tr}
                   onPress={() => setFiltro("transmision", tr)}
+                  c={c}
                 />
               ))}
             </View>
           </Seccion>
 
-          <Seccion label="COMBUSTIBLE">
+          <Seccion label="COMBUSTIBLE" c={c}>
             <View style={styles.chipsRow}>
-              {COMBUSTIBLES.map((c) => (
+              {COMBUSTIBLES.map((comb) => (
                 <Chip
-                  key={c}
-                  label={fuelLabels[c] ?? c}
-                  activo={filtros.combustible === c}
-                  onPress={() => setFiltro("combustible", c)}
+                  key={comb}
+                  label={fuelLabels[comb] ?? comb}
+                  activo={filtros.combustible === comb}
+                  onPress={() => setFiltro("combustible", comb)}
+                  c={c}
                 />
               ))}
             </View>
           </Seccion>
         </ScrollView>
 
-        <View style={styles.footerBtn}>
-          <TouchableOpacity style={styles.aplicarBtn} onPress={onClose}>
+        <View style={[styles.footerBtn, { borderTopColor: c.border, backgroundColor: c.bgCard }]}>
+          <TouchableOpacity style={[styles.aplicarBtn, { backgroundColor: c.oscuro ? "#3B82F6" : "#2f4ea2" }]} onPress={onClose}>
             <Text style={styles.aplicarBtnText}>Aplicar filtros</Text>
           </TouchableOpacity>
         </View>
@@ -330,7 +355,7 @@ export default function FiltrosCatalogo({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORES.panelBg },
+  container: { flex: 1, backgroundColor: "#fff" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -338,22 +363,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORES.panelBorder,
+    borderBottomColor: "#E5E7EB",
   },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: COLORES.textPrimary },
-  limpiarBtn: { fontSize: 13, fontWeight: "700", color: COLORES.accentText },
+  headerTitle: { fontSize: 18, fontWeight: "800", color: "#111827" },
+  limpiarBtn: { fontSize: 13, fontWeight: "700", color: "#2f4ea2" },
   scroll: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 8 },
   seccion: {
     marginBottom: 22,
     paddingBottom: 22,
     borderBottomWidth: 1,
-    borderBottomColor: COLORES.panelBorder,
+    borderBottomColor: "#E5E7EB",
   },
   seccionLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: COLORES.textSecondary,
+    color: "#6B7280",
     textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: 10,
@@ -363,31 +388,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: COLORES.chipBg,
+    backgroundColor: "#F3F4F6",
     marginBottom: 4,
   },
-  chipActivo: { backgroundColor: COLORES.chipActiveBg },
-  chipText: { fontSize: 13, fontWeight: "600", color: COLORES.chipText },
-  chipTextoActivo: { color: COLORES.chipActiveText },
+  chipActivo: { backgroundColor: "#2f4ea2" },
+  chipText: { fontSize: 13, fontWeight: "600", color: "#374151" },
+  chipTextoActivo: { color: "#fff" },
   selectorBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1.5,
-    borderColor: COLORES.inputBorder,
+    borderColor: "#D1D5DB",
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 11,
-    backgroundColor: COLORES.inputBg,
+    backgroundColor: "#F9FAFB",
   },
-  selectorText: { fontSize: 13, color: COLORES.inputText, flex: 1 },
-  selectorArrow: { fontSize: 11, color: COLORES.textSecondary, marginLeft: 8 },
+  selectorText: { fontSize: 13, color: "#374151", flex: 1 },
+  selectorArrow: { fontSize: 11, color: "#6B7280", marginLeft: 8 },
   dropdownList: {
     marginTop: 4,
     borderWidth: 1,
-    borderColor: COLORES.inputBorder,
+    borderColor: "#D1D5DB",
     borderRadius: 10,
-    backgroundColor: COLORES.panelBg,
+    backgroundColor: "#fff",
     overflow: "hidden",
   },
   dropdownScroll: { maxHeight: 220 },
@@ -395,31 +420,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 11,
     borderBottomWidth: 1,
-    borderBottomColor: COLORES.panelBorder,
+    borderBottomColor: "#F3F4F6",
   },
-  dropdownItemActivo: { backgroundColor: COLORES.accentBgSoft },
-  dropdownItemText: { fontSize: 13, color: COLORES.inputText },
-  dropdownItemTextActivo: { color: COLORES.accentText, fontWeight: "700" },
+  dropdownItemActivo: { backgroundColor: "#EEF2FF" },
+  dropdownItemText: { fontSize: 13, color: "#374151" },
+  dropdownItemTextActivo: { color: "#2f4ea2", fontWeight: "700" },
   precioRow: { flexDirection: "row", gap: 10 },
   precioInput: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: COLORES.inputBorder,
+    borderColor: "#D1D5DB",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 13,
-    color: COLORES.inputText,
-    backgroundColor: COLORES.inputBg,
+    color: "#374151",
+    backgroundColor: "#F9FAFB",
   },
   footerBtn: {
     padding: 16,
     paddingBottom: 24,
     borderTopWidth: 1,
-    borderTopColor: COLORES.panelBorder,
+    borderTopColor: "#E5E7EB",
   },
   aplicarBtn: {
-    backgroundColor: COLORES.accentText,
+    backgroundColor: "#2f4ea2",
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
@@ -433,18 +458,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: COLORES.accentBgSoft,
+    backgroundColor: "#EEF2FF",
     borderWidth: 1.5,
-    borderColor: COLORES.accentBorder,
+    borderColor: "#BFDBFE",
   },
   favoritoBtnActivo: {
-    backgroundColor: COLORES.chipActiveBg,
-    borderColor: COLORES.chipActiveBg,
+    backgroundColor: "#2f4ea2",
+    borderColor: "#2f4ea2",
   },
-  favoritoBtnText: { fontSize: 13, fontWeight: "700", color: COLORES.accentText },
+  favoritoBtnText: { fontSize: 13, fontWeight: "700", color: "#2f4ea2" },
   favoritoBtnTextActivo: { color: "#fff" },
   badge: {
-    backgroundColor: COLORES.accentText,
+    backgroundColor: "#2f4ea2",
     borderRadius: 10,
     minWidth: 20,
     height: 20,

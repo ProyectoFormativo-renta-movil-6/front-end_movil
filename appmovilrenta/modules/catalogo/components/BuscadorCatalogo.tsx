@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { Calendar, DateData } from "react-native-calendars";
 import { GRADIENTES } from "@/constants/gradients";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { CIUDADES, SUCURSALES_DATA } from "../constants/catalogo.constants";
 import { BusquedaForm } from "../types/catalogo.types";
 
@@ -26,7 +27,11 @@ function formatFechaDisplay(dateStr: string): string {
   return `${d}/${m}/${y}`;
 }
 
-function getMarkedDates(inicio: string, fin: string) {
+function getMarkedDates(inicio: string, fin: string, oscuro: boolean) {
+  const mainColor = oscuro ? "#3B82F6" : "#2f4ea2";
+  const midColor = oscuro ? "#1E3A8A" : "#BFDBFE";
+  const midTextColor = oscuro ? "#DBEAFE" : "#1e3a8a";
+
   if (!inicio) return {};
 
   if (!fin) {
@@ -34,7 +39,7 @@ function getMarkedDates(inicio: string, fin: string) {
       [inicio]: {
         startingDay: true,
         endingDay: true,
-        color: "#2f4ea2",
+        color: mainColor,
         textColor: "#fff",
       },
     };
@@ -49,8 +54,8 @@ function getMarkedDates(inicio: string, fin: string) {
     const esInicio = dateStr === inicio;
     const esFin = dateStr === fin;
     marked[dateStr] = {
-      color: esInicio || esFin ? "#2f4ea2" : "#BFDBFE",
-      textColor: esInicio || esFin ? "#fff" : "#1e3a8a",
+      color: esInicio || esFin ? mainColor : midColor,
+      textColor: esInicio || esFin ? "#fff" : midTextColor,
       startingDay: esInicio,
       endingDay: esFin,
     };
@@ -88,6 +93,7 @@ export default function BuscadorCatalogo({
   onPressRestringida,
 }: Props) {
   const [pickerOpen, setPickerOpen] = useState<PickerField>(null);
+  const c = useTemaColores();
 
   const ciudadSeleccionada = form.lugarRecogida;
   const sucursalSeleccionada = form.lugarDevolucion;
@@ -168,19 +174,21 @@ export default function BuscadorCatalogo({
 
   const hoyISO = new Date().toISOString().split("T")[0];
 
+  const primaryAccent = c.oscuro ? "#60A5FA" : "#2f4ea2";
+
   return (
-    <View style={styles.containerGeneral}>
-      <View style={styles.barraInput}>
+    <View style={[styles.containerGeneral, { backgroundColor: c.bgHeader }]}>
+      <View style={[styles.barraInput, { backgroundColor: c.bgInput, borderColor: c.border }]}>
         <Ionicons
           name="search-outline"
           size={18}
-          color="#9CA3AF"
+          color={c.textMuted}
           style={styles.searchIcon}
         />
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, { color: c.textPrimary }]}
           placeholder="Buscar por marca o modelo..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={c.textMuted}
           value={textBusqueda}
           onChangeText={setTextBusqueda}
         />
@@ -189,8 +197,9 @@ export default function BuscadorCatalogo({
       <TouchableOpacity
         style={[
           styles.fechasBarraBtn,
-          disabled && styles.fechasBarraBtnDisabled,
-          tieneBusquedaActiva && styles.fechasBarraBtnActiva,
+          { backgroundColor: c.bgInput, borderColor: c.border },
+          disabled && { backgroundColor: c.oscuro ? "#1F2937" : "#F3F4F6" },
+          tieneBusquedaActiva && { borderColor: c.oscuro ? "#3B82F6" : "#BFDBFE", backgroundColor: c.primaryBg },
         ]}
         activeOpacity={0.7}
         onPress={handlePressFechas}
@@ -205,20 +214,21 @@ export default function BuscadorCatalogo({
           }
           size={16}
           color={
-            disabled ? "#9CA3AF" : tieneBusquedaActiva ? "#2f4ea2" : "#9CA3AF"
+            disabled ? c.textMuted : tieneBusquedaActiva ? primaryAccent : c.textMuted
           }
           style={{ marginRight: 8 }}
         />
         <Text
           style={[
             styles.fechasBarraBtnText,
-            tieneBusquedaActiva && styles.fechasBarraBtnTextActivo,
+            { color: c.textMuted },
+            tieneBusquedaActiva && { color: primaryAccent, fontWeight: "600" },
           ]}
           numberOfLines={1}
         >
           {fechaBtnLabel}
         </Text>
-        <Ionicons name="chevron-forward" size={14} color="#C4C9D4" />
+        <Ionicons name="chevron-forward" size={14} color={c.textMuted} />
       </TouchableOpacity>
 
       <Modal
@@ -226,15 +236,15 @@ export default function BuscadorCatalogo({
         animationType="slide"
         onRequestClose={() => setModalFormVisible(false)}
       >
-        <SafeAreaView style={styles.modalFormContainer}>
-          <View style={styles.modalFormHeader}>
+        <SafeAreaView style={[styles.modalFormContainer, { backgroundColor: c.bg }]}>
+          <View style={[styles.modalFormHeader, { borderBottomColor: c.border }]}>
             <TouchableOpacity onPress={() => setModalFormVisible(false)}>
-              <Ionicons name="arrow-back" size={24} color="#1f2937" />
+              <Ionicons name="arrow-back" size={24} color={c.textPrimary} />
             </TouchableOpacity>
-            <Text style={styles.modalFormTitle}>Consultar Disponibilidad</Text>
+            <Text style={[styles.modalFormTitle, { color: c.textPrimary }]}>Consultar Disponibilidad</Text>
             {tieneBusquedaActiva ? (
               <TouchableOpacity onPress={limpiarFormulario}>
-                <Text style={styles.txtLimpiarModal}>Limpiar</Text>
+                <Text style={[styles.txtLimpiarModal, { color: primaryAccent }]}>Limpiar</Text>
               </TouchableOpacity>
             ) : (
               <View style={{ width: 45 }} />
@@ -244,31 +254,33 @@ export default function BuscadorCatalogo({
           <View style={styles.modalFormBody}>
             <View style={styles.row}>
               <View style={styles.field}>
-                <Text style={styles.label}>CIUDAD</Text>
+                <Text style={[styles.label, { color: c.textSecondary }]}>CIUDAD</Text>
                 <TouchableOpacity
-                  style={styles.selector}
+                  style={[styles.selector, { backgroundColor: c.bgInput, borderColor: c.border }]}
                   onPress={() => setPickerOpen("ciudad")}
                 >
-                  <Ionicons name="location-outline" size={14} color="#2f4ea2" />
+                  <Ionicons name="location-outline" size={14} color={primaryAccent} />
                   <Text
                     style={[
                       styles.selectorText,
-                      !ciudadSeleccionada && styles.placeholder,
+                      { color: c.textPrimary },
+                      !ciudadSeleccionada && { color: c.textMuted },
                     ]}
                     numberOfLines={1}
                   >
                     {ciudadSeleccionada || "Selecciona ciudad"}
                   </Text>
-                  <Ionicons name="chevron-down" size={12} color="#9CA3AF" />
+                  <Ionicons name="chevron-down" size={12} color={c.textMuted} />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.field}>
-                <Text style={styles.label}>SUCURSAL</Text>
+                <Text style={[styles.label, { color: c.textSecondary }]}>SUCURSAL</Text>
                 <TouchableOpacity
                   style={[
                     styles.selector,
-                    !ciudadSeleccionada && styles.selectorDisabled,
+                    { backgroundColor: c.bgInput, borderColor: c.border },
+                    !ciudadSeleccionada && { backgroundColor: c.oscuro ? "#1F2937" : "#F3F4F6", opacity: 0.6 },
                   ]}
                   onPress={abrirPickerSucursal}
                   disabled={!ciudadSeleccionada}
@@ -276,12 +288,13 @@ export default function BuscadorCatalogo({
                   <Ionicons
                     name="business-outline"
                     size={14}
-                    color={ciudadSeleccionada ? "#2f4ea2" : "#C4C9D4"}
+                    color={ciudadSeleccionada ? primaryAccent : c.textMuted}
                   />
                   <Text
                     style={[
                       styles.selectorText,
-                      !sucursalSeleccionada && styles.placeholder,
+                      { color: c.textPrimary },
+                      !sucursalSeleccionada && { color: c.textMuted },
                     ]}
                     numberOfLines={1}
                   >
@@ -289,20 +302,21 @@ export default function BuscadorCatalogo({
                       ? "Selecciona ciudad primero"
                       : sucursalSeleccionada || "Selecciona sucursal"}
                   </Text>
-                  <Ionicons name="chevron-down" size={12} color="#9CA3AF" />
+                  <Ionicons name="chevron-down" size={12} color={c.textMuted} />
                 </TouchableOpacity>
               </View>
             </View>
 
             <View style={styles.row}>
               <View style={styles.field}>
-                <Text style={styles.label}>FECHA RECOGIDA</Text>
-                <View style={styles.dateBtn}>
-                  <Ionicons name="calendar-outline" size={14} color="#2f4ea2" />
+                <Text style={[styles.label, { color: c.textSecondary }]}>FECHA RECOGIDA</Text>
+                <View style={[styles.dateBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}>
+                  <Ionicons name="calendar-outline" size={14} color={primaryAccent} />
                   <Text
                     style={[
                       styles.dateBtnText,
-                      !form.fechaInicio && styles.placeholder,
+                      { color: c.textPrimary },
+                      !form.fechaInicio && { color: c.textMuted },
                     ]}
                   >
                     {form.fechaInicio
@@ -313,13 +327,14 @@ export default function BuscadorCatalogo({
               </View>
 
               <View style={styles.field}>
-                <Text style={styles.label}>FECHA DEVOLUCIÓN</Text>
-                <View style={styles.dateBtn}>
-                  <Ionicons name="calendar-outline" size={14} color="#2f4ea2" />
+                <Text style={[styles.label, { color: c.textSecondary }]}>FECHA DEVOLUCIÓN</Text>
+                <View style={[styles.dateBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}>
+                  <Ionicons name="calendar-outline" size={14} color={primaryAccent} />
                   <Text
                     style={[
                       styles.dateBtnText,
-                      !form.fechaFin && styles.placeholder,
+                      { color: c.textPrimary },
+                      !form.fechaFin && { color: c.textMuted },
                     ]}
                   >
                     {form.fechaFin
@@ -330,28 +345,29 @@ export default function BuscadorCatalogo({
               </View>
             </View>
 
-            <View style={styles.calendarioContainer}>
+            <View style={[styles.calendarioContainer, { borderColor: c.border, backgroundColor: c.bgCard }]}>
               <Calendar
+                key={c.oscuro ? "dark-cal" : "light-cal"}
                 minDate={hoyISO}
                 onDayPress={onDayPress}
                 markingType="period"
-                markedDates={getMarkedDates(form.fechaInicio, form.fechaFin)}
+                markedDates={getMarkedDates(form.fechaInicio, form.fechaFin, c.oscuro)}
                 firstDay={1}
                 enableSwipeMonths
                 theme={{
-                  backgroundColor: "#ffffff",
-                  calendarBackground: "#ffffff",
-                  todayTextColor: "#2f4ea2",
-                  todayBackgroundColor: "#EFF6FF",
-                  arrowColor: "#2f4ea2",
-                  monthTextColor: "#111827",
+                  backgroundColor: c.bgCard,
+                  calendarBackground: c.bgCard,
+                  todayTextColor: primaryAccent,
+                  todayBackgroundColor: c.primaryBg,
+                  arrowColor: primaryAccent,
+                  monthTextColor: c.textPrimary,
                   textMonthFontWeight: "700",
                   textMonthFontSize: 15,
-                  textSectionTitleColor: "#6B7280",
+                  textSectionTitleColor: c.textSecondary,
                   textDayHeaderFontWeight: "600",
                   textDayHeaderFontSize: 11,
-                  dayTextColor: "#1F2937",
-                  textDisabledColor: "#D1D5DB",
+                  dayTextColor: c.textPrimary,
+                  textDisabledColor: c.textMuted,
                   textDayFontSize: 13,
                   textDayFontWeight: "500",
                 }}
@@ -381,18 +397,18 @@ export default function BuscadorCatalogo({
 
         <Modal visible={!!pickerOpen} animationType="fade" transparent>
           <View style={styles.modalOverlayInterno}>
-            <View style={styles.modalInternoContenedor}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
+            <View style={[styles.modalInternoContenedor, { backgroundColor: c.bgCard }]}>
+              <View style={[styles.modalHeader, { borderBottomColor: c.border }]}>
+                <Text style={[styles.modalTitle, { color: c.textPrimary }]}>
                   {pickerOpen === "ciudad"
                     ? "Selecciona ciudad"
                     : "Selecciona sucursal"}
                 </Text>
                 <TouchableOpacity
-                  style={styles.modalCloseBtn}
+                  style={[styles.modalCloseBtn, { backgroundColor: c.bgInput }]}
                   onPress={() => setPickerOpen(null)}
                 >
-                  <Ionicons name="close" size={20} color="#374151" />
+                  <Ionicons name="close" size={20} color={c.textPrimary} />
                 </TouchableOpacity>
               </View>
               <FlatList
@@ -402,7 +418,8 @@ export default function BuscadorCatalogo({
                   <TouchableOpacity
                     style={[
                       styles.puntoItem,
-                      currentSelected === item && styles.puntoItemActivo,
+                      { borderBottomColor: c.borderLight },
+                      currentSelected === item && { backgroundColor: c.primaryBg },
                     ]}
                     onPress={() => selectPunto(item)}
                   >
@@ -413,12 +430,13 @@ export default function BuscadorCatalogo({
                           : "business-outline"
                       }
                       size={16}
-                      color={currentSelected === item ? "#2f4ea2" : "#9CA3AF"}
+                      color={currentSelected === item ? primaryAccent : c.textMuted}
                     />
                     <Text
                       style={[
                         styles.puntoText,
-                        currentSelected === item && styles.puntoTextActivo,
+                        { color: c.textPrimary },
+                        currentSelected === item && { color: primaryAccent, fontWeight: "700" },
                       ]}
                     >
                       {item}
@@ -536,7 +554,7 @@ const styles = StyleSheet.create({
   buscarBtnGrandeTexto: { color: "#fff", fontSize: 14, fontWeight: "700" },
   modalOverlayInterno: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     padding: 24,
   },

@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLOR_MARCA, COLORES } from "../constants/reserva.constants";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { COLOR_MARCA } from "../constants/reserva.constants";
 
 interface Opcion {
   id: string;
@@ -25,26 +26,42 @@ export default function CampoSelectorLista({
   placeholder = "Seleccionar",
 }: Props) {
   const [abierto, setAbierto] = useState(false);
+  const c = useTemaColores();
   const opcionActual = opciones.find((o) => o.id === valorSeleccionado);
+  const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
 
   return (
     <View style={styles.contenedor}>
-      <Text style={styles.selectLabel}>{etiqueta}</Text>
+      <Text style={[styles.selectLabel, { color: c.textSecondary }]}>{etiqueta}</Text>
 
-      <TouchableOpacity style={styles.selectBox} onPress={() => setAbierto(true)} activeOpacity={0.8}>
-        <Text style={[styles.selectValue, !opcionActual && styles.placeholder]} numberOfLines={1}>
+      <TouchableOpacity
+        style={[
+          styles.selectBox,
+          { backgroundColor: c.bgInput, borderColor: primaryAccent },
+        ]}
+        onPress={() => setAbierto(true)}
+        activeOpacity={0.8}
+      >
+        <Text
+          style={[
+            styles.selectValue,
+            { color: c.textPrimary },
+            !opcionActual && { color: c.textMuted, fontWeight: "400" },
+          ]}
+          numberOfLines={1}
+        >
           {opcionActual?.label ?? placeholder}
         </Text>
-        <Ionicons name="chevron-down" size={14} color={COLOR_MARCA} />
+        <Ionicons name="chevron-down" size={14} color={primaryAccent} />
       </TouchableOpacity>
 
       <Modal visible={abierto} animationType="slide" transparent onRequestClose={() => setAbierto(false)}>
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setAbierto(false)}>
-          <View style={styles.sheet} onStartShouldSetResponder={() => true}>
-            <View style={styles.header}>
-              <Text style={styles.headerTitulo}>{etiqueta}</Text>
+          <View style={[styles.sheet, { backgroundColor: c.bgCard }]} onStartShouldSetResponder={() => true}>
+            <View style={[styles.header, { borderBottomColor: c.border }]}>
+              <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>{etiqueta}</Text>
               <TouchableOpacity onPress={() => setAbierto(false)}>
-                <Ionicons name="close" size={22} color={COLORES.textSecondary} />
+                <Ionicons name="close" size={22} color={c.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -55,21 +72,31 @@ export default function CampoSelectorLista({
                 const activo = item.id === valorSeleccionado;
                 return (
                   <TouchableOpacity
-                    style={[styles.opcion, activo && styles.opcionActiva]}
+                    style={[
+                      styles.opcion,
+                      { borderBottomColor: c.borderLight },
+                      activo && { backgroundColor: c.primaryBg },
+                    ]}
                     onPress={() => {
                       onSeleccionar(item.id);
                       setAbierto(false);
                     }}
                   >
-                    <Text style={[styles.opcionText, activo && styles.opcionTextActiva]}>
+                    <Text
+                      style={[
+                        styles.opcionText,
+                        { color: c.textPrimary },
+                        activo && { color: primaryAccent, fontWeight: "700" },
+                      ]}
+                    >
                       {item.label}
                     </Text>
-                    {activo && <Ionicons name="checkmark" size={16} color={COLOR_MARCA} />}
+                    {activo && <Ionicons name="checkmark" size={16} color={primaryAccent} />}
                   </TouchableOpacity>
                 );
               }}
               ListEmptyComponent={
-                <Text style={styles.emptyText}>No hay opciones disponibles</Text>
+                <Text style={[styles.emptyText, { color: c.textMuted }]}>No hay opciones disponibles</Text>
               }
             />
           </View>
@@ -85,29 +112,24 @@ const styles = StyleSheet.create({
   selectLabel: {
     fontSize: 10,
     fontWeight: "700",
-    color: COLORES.textSecondary,
     letterSpacing: 0.3,
     textTransform: "uppercase",
     marginBottom: 8,
   },
-  // Borde azul de marca fijo, igual que "input" en FormDatosPersonales.tsx
   selectBox: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1.3,
-    borderColor: COLOR_MARCA,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 9,
-    backgroundColor: "#fafbfd",
   },
-  selectValue: { fontSize: 11, fontWeight: "600", color: COLORES.textPrimary, flex: 1, marginRight: 6 },
-  placeholder: { color: COLORES.textMuted, fontWeight: "400" },
+  selectValue: { fontSize: 11, fontWeight: "600", flex: 1, marginRight: 6 },
+  placeholder: { fontWeight: "400" },
 
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
   sheet: {
-    backgroundColor: COLORES.panelBg,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: "70%",
@@ -119,9 +141,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORES.panelBorder,
   },
-  headerTitulo: { fontSize: 15, fontWeight: "800", color: COLORES.textPrimary },
+  headerTitulo: { fontSize: 15, fontWeight: "800" },
   opcion: {
     flexDirection: "row",
     alignItems: "center",
@@ -129,10 +150,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORES.panelBorder,
   },
-  opcionActiva: { backgroundColor: "#eef2fb" },
-  opcionText: { fontSize: 13, fontWeight: "600", color: COLORES.textPrimary },
-  opcionTextActiva: { color: "#0c447c", fontWeight: "700" },
-  emptyText: { fontSize: 12, color: COLORES.textMuted, textAlign: "center", padding: 20 },
+  opcionText: { fontSize: 13, fontWeight: "600" },
+  emptyText: { fontSize: 12, textAlign: "center", padding: 20 },
 });

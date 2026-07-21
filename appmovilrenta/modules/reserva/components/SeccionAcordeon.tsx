@@ -9,7 +9,8 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLOR_MARCA, COLORES } from "../constants/reserva.constants";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { COLOR_MARCA } from "../constants/reserva.constants";
 
 if (
   Platform.OS === "android" &&
@@ -37,33 +38,51 @@ export default function SeccionAcordeon({
   onToggle,
   children,
 }: Props) {
+  const c = useTemaColores();
+
   const handleToggle = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     onToggle();
   };
 
+  const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
+
   return (
-    <View style={[styles.container, abierto && styles.containerAbierto]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: c.bgCard, borderColor: c.border },
+        abierto && { borderColor: primaryAccent },
+      ]}
+    >
       <TouchableOpacity style={styles.header} onPress={handleToggle} activeOpacity={0.7}>
-        <View style={[styles.iconoWrap, completo && styles.iconoWrapCompleto]}>
+        <View
+          style={[
+            styles.iconoWrap,
+            { backgroundColor: c.primaryBg },
+            completo && styles.iconoWrapCompleto,
+          ]}
+        >
           <Ionicons
             name={completo ? "checkmark" : icono}
             size={16}
-            color={completo ? "#fff" : COLOR_MARCA}
+            color={completo ? "#fff" : primaryAccent}
           />
         </View>
 
         <View style={{ flex: 1 }}>
-          <Text style={styles.titulo}>{titulo}</Text>
+          <Text style={[styles.titulo, { color: c.textPrimary }]}>{titulo}</Text>
           {!abierto && resumen && (
-            <Text style={styles.resumen} numberOfLines={1}>{resumen}</Text>
+            <Text style={[styles.resumen, { color: c.textSecondary }]} numberOfLines={1}>
+              {resumen}
+            </Text>
           )}
         </View>
 
         <Ionicons
           name={abierto ? "chevron-up" : "chevron-down"}
           size={18}
-          color={COLORES.textMuted}
+          color={c.textMuted}
         />
       </TouchableOpacity>
 
@@ -75,14 +94,9 @@ export default function SeccionAcordeon({
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: COLORES.panelBorderStrong,
     borderRadius: 14,
     marginBottom: 10,
-    backgroundColor: COLORES.panelBg,
     overflow: "hidden",
-  },
-  containerAbierto: {
-    borderColor: COLOR_MARCA,
   },
   header: {
     flexDirection: "row",
@@ -94,14 +108,13 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 8,
-    backgroundColor: "#eef2fb",
     alignItems: "center",
     justifyContent: "center",
   },
   iconoWrapCompleto: {
     backgroundColor: "#16a34a",
   },
-  titulo: { fontSize: 13, fontWeight: "700", color: COLORES.textPrimary },
-  resumen: { fontSize: 11, color: COLORES.textMuted, marginTop: 2 },
+  titulo: { fontSize: 13, fontWeight: "700" },
+  resumen: { fontSize: 11, marginTop: 2 },
   contenido: { paddingHorizontal: 14, paddingBottom: 14 },
 });

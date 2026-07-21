@@ -5,16 +5,17 @@ import { Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/authStore";
 import { AlertModal } from "@/components/ui/AlertModal";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
-function TabIcon({ name, focused }: { name: IoniconName; focused: boolean }) {
+function TabIcon({ name, focused, c }: { name: IoniconName; focused: boolean; c: ReturnType<typeof useTemaColores> }) {
   return (
-    <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
+    <View style={[styles.iconWrap, focused && { backgroundColor: c.primaryBg }]}>
       <Ionicons
         name={focused ? name : (`${name}-outline` as IoniconName)}
         size={22}
-        color={focused ? "#2f4ea2" : "#9CA3AF"}
+        color={focused ? (c.oscuro ? "#60A5FA" : "#2f4ea2") : c.textMuted}
       />
     </View>
   );
@@ -24,29 +25,32 @@ export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const usuario = useAuthStore((s) => s.usuario);
   const [alertVisible, setAlertVisible] = useState(false);
+  const c = useTemaColores();
 
   const tabBarHeight =
     Platform.OS === "android" ? 58 + insets.bottom : 60 + insets.bottom;
+
+  const activeColor = c.oscuro ? "#60A5FA" : "#2f4ea2";
 
   return (
     <>
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: "#2f4ea2",
-          tabBarInactiveTintColor: "#9CA3AF",
+          tabBarActiveTintColor: activeColor,
+          tabBarInactiveTintColor: c.textMuted,
           tabBarStyle: {
-            backgroundColor: "#FFFFFF",
-            borderTopColor: "#E5E7EB",
+            backgroundColor: c.bgCard,
+            borderTopColor: c.border,
             borderTopWidth: 1,
             height: tabBarHeight,
             paddingBottom:
               Platform.OS === "android" ? insets.bottom + 4 : insets.bottom + 8,
             paddingTop: 6,
             elevation: 12,
-            shadowColor: "#000",
+            shadowColor: c.oscuro ? "#000" : "#000",
             shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.06,
+            shadowOpacity: c.oscuro ? 0.3 : 0.06,
             shadowRadius: 8,
           },
           tabBarLabelStyle: {
@@ -60,7 +64,7 @@ export default function TabLayout() {
           name="catalogo"
           options={{
             title: "Inicio",
-            tabBarIcon: ({ focused }) => <TabIcon name="car" focused={focused} />,
+            tabBarIcon: ({ focused }) => <TabIcon name="car" focused={focused} c={c} />,
           }}
         />
 
@@ -73,7 +77,7 @@ export default function TabLayout() {
           options={{
             title: "Mis reservas",
             tabBarIcon: ({ focused }) => (
-              <TabIcon name="receipt" focused={focused} />
+              <TabIcon name="receipt" focused={focused} c={c} />
             ),
           }}
           listeners={{
@@ -91,7 +95,7 @@ export default function TabLayout() {
           options={{
             title: "Perfil",
             tabBarIcon: ({ focused }) => (
-              <TabIcon name="person" focused={focused} />
+              <TabIcon name="person" focused={focused} c={c} />
             ),
           }}
         />
@@ -100,7 +104,7 @@ export default function TabLayout() {
           options={{
             title: "Explorar",
             tabBarIcon: ({ focused }) => (
-              <TabIcon name="compass" focused={focused} />
+              <TabIcon name="compass" focused={focused} c={c} />
             ),
           }}
         />
@@ -151,8 +155,5 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-  },
-  iconWrapActive: {
-    backgroundColor: "#EEF2FF",
   },
 });

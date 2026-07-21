@@ -7,8 +7,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { useReservaStore } from "@/store/reservaStore";
 import { GRADIENTES } from "@/constants/gradients";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import {
-  COLOR_MARCA, COLORES,
+  COLOR_MARCA,
   METODOS_PAGO, PORCENTAJE_CARGOS_ADMINISTRATIVOS, PORCENTAJE_IVA,
   RECARGO_LOGISTICO, formatHoraAmPm,
 } from "../constants/reserva.constants";
@@ -29,15 +30,9 @@ interface Props {
   vehiculo: Vehiculo;
   onCerrar: () => void;
   mostrarPlanes?: boolean;
-  // Fechas, lugar y método de pago del tab 1 ya completos. Mientras
-  // sea false, el modal no muestra ninguna tarjeta editable — solo
-  // un mensaje pidiendo terminar ese tab primero.
   seccionFechasCompleta?: boolean;
 }
 
-// Las 3 tarjetas del resumen comparten un solo patrón: modo "resumen"
-// (solo lectura + botón Editar) o su modo "editarX" correspondiente
-// (campos editables + Volver/Actualizar). Nunca sales del modal.
 type Modo = "resumen" | "editarPago" | "editarFechas" | "editarPlanes";
 
 export default function ResumenReservaModal({
@@ -48,9 +43,8 @@ export default function ResumenReservaModal({
   seccionFechasCompleta = false,
 }: Props) {
   const insets = useSafeAreaInsets();
-  // Nos suscribimos al store de moneda para re-renderizar el desglose de
-  // precios cuando cambie COP↔USD o llegue una tasa nueva.
   useMonedaStore();
+  const c = useTemaColores();
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const actualizarFechasLugar = useReservaStore((s) => s.actualizarFechasLugar);
   const planes = useReservaStore((s) => s.planes);
@@ -63,6 +57,8 @@ export default function ResumenReservaModal({
   const [draftPago, setDraftPago] = useState(fechasLugar);
   const [draftFechas, setDraftFechas] = useState(fechasLugar);
   const [draftPlanes, setDraftPlanes] = useState(planes);
+
+  const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
 
   const nombreSucursal = vehiculo.sucursal ?? "";
   const ciudadInfo = nombreSucursal
@@ -130,16 +126,16 @@ export default function ResumenReservaModal({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={cerrar} presentationStyle="pageSheet">
-      <View style={[styles.container, { paddingTop: insets.top || 16 }]}>
+      <View style={[styles.container, { backgroundColor: c.bg, paddingTop: insets.top || 16 }]}>
         <View style={styles.header}>
-          <Text style={styles.headerTitulo}>{titulos[modo]}</Text>
+          <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>{titulos[modo]}</Text>
           <TouchableOpacity onPress={cerrar} hitSlop={10}>
-            <Ionicons name="close" size={22} color={COLORES.textMuted} />
+            <Ionicons name="close" size={22} color={c.textMuted} />
           </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.cardMaestra}>
+          <View style={[styles.cardMaestra, { backgroundColor: c.bgCard, borderColor: c.border }]}>
             <LinearGradient
               colors={GRADIENTES.panel.colors}
               start={GRADIENTES.panel.start}
@@ -152,14 +148,12 @@ export default function ResumenReservaModal({
             </LinearGradient>
 
             {!seccionFechasCompleta ? (
-              // Aún no se ha completado fechas + lugar + método de pago
-              // en el primer paso — no hay nada que resumir todavía.
-              <View style={piezas.subcard}>
+              <View style={[piezas.subcard, { borderTopColor: c.border }]}>
                 <View style={piezas.rowGap}>
-                  <Ionicons name="information-circle-outline" size={14} color={COLOR_MARCA} />
-                  <Text style={piezas.subcardTitulo}>Resumen no disponible aún</Text>
+                  <Ionicons name="information-circle-outline" size={14} color={primaryAccent} />
+                  <Text style={[piezas.subcardTitulo, { color: c.textMuted }]}>Resumen no disponible aún</Text>
                 </View>
-                <Text style={[piezas.bloqueSub, { marginTop: 8 }]}>
+                <Text style={[piezas.bloqueSub, { color: c.textSecondary, marginTop: 8 }]}>
                   Completa las fechas, el lugar y el método de pago en el primer paso para ver aquí el
                   resumen de tu reserva.
                 </Text>
@@ -168,7 +162,7 @@ export default function ResumenReservaModal({
               <>
                 {/* PAGO Y LUGAR */}
                 {modo === "resumen" || modo === "editarPago" ? (
-                  <View style={piezas.subcard}>
+                  <View style={[piezas.subcard, { borderTopColor: c.border }]}>
                     {modo !== "editarPago" ? (
                       <>
                         <SubcardHeader icono="card-outline" titulo="Pago y lugar" onEditar={() => { setDraftPago(fechasLugar); setModo("editarPago"); }} />
@@ -179,25 +173,25 @@ export default function ResumenReservaModal({
                     ) : (
                       <View>
                         <SubcardHeaderEditando icono="card-outline" titulo="Pago y lugar" />
-                        <Text style={[piezas.label, { marginTop: 12 }]}>¿CÓMO PAGAS?</Text>
+                        <Text style={[piezas.label, { color: c.textMuted, marginTop: 12 }]}>¿CÓMO PAGAS?</Text>
                         <View style={piezas.filaDosCols}>
                           {METODOS_PAGO.map((m) => (
-                            <TouchableOpacity key={m.id} style={[piezas.metodoCard, draftPago.metodoPago === m.id && piezas.metodoCardActivo]} onPress={() => { setDraftPago((p) => ({ ...p, metodoPago: m.id })); if (m.id === "efectivo") setAlertaEfectivoVisible(true); }}>
-                              <Text style={piezas.metodoTitulo}>{m.titulo}</Text>
-                              <Text style={piezas.metodoDesc}>{m.descripcion}</Text>
+                            <TouchableOpacity key={m.id} style={[piezas.metodoCard, { backgroundColor: c.bgInput, borderColor: c.border }, draftPago.metodoPago === m.id && { borderColor: primaryAccent, borderWidth: 1.5, backgroundColor: c.primaryBg }]} onPress={() => { setDraftPago((p) => ({ ...p, metodoPago: m.id })); if (m.id === "efectivo") setAlertaEfectivoVisible(true); }}>
+                              <Text style={[piezas.metodoTitulo, { color: c.textPrimary }]}>{m.titulo}</Text>
+                              <Text style={[piezas.metodoDesc, { color: c.textMuted }]}>{m.descripcion}</Text>
                             </TouchableOpacity>
                           ))}
                         </View>
 
-                        <Text style={piezas.label}>¿DÓNDE LO RECOGES Y DEVUELVES?</Text>
+                        <Text style={[piezas.label, { color: c.textMuted }]}>¿DÓNDE LO RECOGES Y DEVUELVES?</Text>
                         <View style={piezas.filaDosCols}>
-                          <TouchableOpacity style={piezas.selectBox} onPress={() => setModalLugar("retiro")}>
-                            <Text style={piezas.selectLabel}>RECOGES</Text>
-                            <Text style={piezas.selectValue} numberOfLines={1}>{labelLugar(opcionesEntrega(draftPago.metodoPago === "wompi"), draftPago.lugarRetiro)}</Text>
+                          <TouchableOpacity style={[piezas.selectBox, { backgroundColor: c.bgInput, borderColor: c.border }]} onPress={() => setModalLugar("retiro")}>
+                            <Text style={[piezas.selectLabel, { color: c.textMuted }]}>RECOGES</Text>
+                            <Text style={[piezas.selectValue, { color: c.textPrimary }]} numberOfLines={1}>{labelLugar(opcionesEntrega(draftPago.metodoPago === "wompi"), draftPago.lugarRetiro)}</Text>
                           </TouchableOpacity>
-                          <TouchableOpacity style={piezas.selectBox} onPress={() => setModalLugar("devolucion")}>
-                            <Text style={piezas.selectLabel}>DEVUELVES</Text>
-                            <Text style={piezas.selectValue} numberOfLines={1}>{labelLugar(opcionesDevolucion(draftPago.metodoPago === "wompi"), draftPago.lugarDevolucion)}</Text>
+                          <TouchableOpacity style={[piezas.selectBox, { backgroundColor: c.bgInput, borderColor: c.border }]} onPress={() => setModalLugar("devolucion")}>
+                            <Text style={[piezas.selectLabel, { color: c.textMuted }]}>DEVUELVES</Text>
+                            <Text style={[piezas.selectValue, { color: c.textPrimary }]} numberOfLines={1}>{labelLugar(opcionesDevolucion(draftPago.metodoPago === "wompi"), draftPago.lugarDevolucion)}</Text>
                           </TouchableOpacity>
                         </View>
 
@@ -209,7 +203,7 @@ export default function ResumenReservaModal({
 
                 {/* FECHAS Y HORAS */}
                 {modo === "resumen" || modo === "editarFechas" ? (
-                  <View style={piezas.subcard}>
+                  <View style={[piezas.subcard, { borderTopColor: c.border }]}>
                     {modo !== "editarFechas" ? (
                       <>
                         <SubcardHeader icono="calendar-outline" titulo="Fechas y horas" onEditar={() => { setDraftFechas(fechasLugar); setModo("editarFechas"); }} />
@@ -219,19 +213,19 @@ export default function ResumenReservaModal({
                     ) : (
                       <View>
                         <SubcardHeaderEditando icono="calendar-outline" titulo="Fechas y horas" />
-                        <Text style={[piezas.label, { marginTop: 12 }]}>¿A QUÉ HORA?</Text>
+                        <Text style={[piezas.label, { color: c.textMuted, marginTop: 12 }]}>¿A QUÉ HORA?</Text>
                         <View style={piezas.filaDosCols}>
-                          <TouchableOpacity style={piezas.selectBox} onPress={() => setHoraVisible("retiro")}>
-                            <Text style={piezas.selectLabel}>RETIRAS</Text>
-                            <Text style={piezas.selectValue}>{draftFechas.horaRetiro ? formatHoraAmPm(draftFechas.horaRetiro) : "Seleccionar"}</Text>
+                          <TouchableOpacity style={[piezas.selectBox, { backgroundColor: c.bgInput, borderColor: c.border }]} onPress={() => setHoraVisible("retiro")}>
+                            <Text style={[piezas.selectLabel, { color: c.textMuted }]}>RETIRAS</Text>
+                            <Text style={[piezas.selectValue, { color: c.textPrimary }]}>{draftFechas.horaRetiro ? formatHoraAmPm(draftFechas.horaRetiro) : "Seleccionar"}</Text>
                           </TouchableOpacity>
-                          <TouchableOpacity style={piezas.selectBox} onPress={() => setHoraVisible("devolucion")}>
-                            <Text style={piezas.selectLabel}>DEVUELVES</Text>
-                            <Text style={piezas.selectValue}>{draftFechas.horaDevolucion ? formatHoraAmPm(draftFechas.horaDevolucion) : "Seleccionar"}</Text>
+                          <TouchableOpacity style={[piezas.selectBox, { backgroundColor: c.bgInput, borderColor: c.border }]} onPress={() => setHoraVisible("devolucion")}>
+                            <Text style={[piezas.selectLabel, { color: c.textMuted }]}>DEVUELVES</Text>
+                            <Text style={[piezas.selectValue, { color: c.textPrimary }]}>{draftFechas.horaDevolucion ? formatHoraAmPm(draftFechas.horaDevolucion) : "Seleccionar"}</Text>
                           </TouchableOpacity>
                         </View>
 
-                        <Text style={piezas.label}>¿QUÉ DÍAS?</Text>
+                        <Text style={[piezas.label, { color: c.textMuted }]}>¿QUÉ DÍAS?</Text>
                         <CalendarioRango
                           vehiculo={vehiculo}
                           fechaRetiro={draftFechas.fechaRetiro}
@@ -247,7 +241,7 @@ export default function ResumenReservaModal({
 
                 {/* PLANES Y SERVICIOS */}
                 {mostrarPlanes && (modo === "resumen" || modo === "editarPlanes") ? (
-                  <View style={piezas.subcard}>
+                  <View style={[piezas.subcard, { borderTopColor: c.border }]}>
                     {modo !== "editarPlanes" ? (
                       <>
                         <SubcardHeader icono="shield-checkmark-outline" titulo="Planes y servicios" onEditar={() => { setDraftPlanes(planes); setModo("editarPlanes"); }} />
@@ -261,7 +255,7 @@ export default function ResumenReservaModal({
 
                         {seguros.length > 0 && (
                           <>
-                            <Text style={[piezas.label, { marginTop: 12 }]}>PROTECCIÓN</Text>
+                            <Text style={[piezas.label, { color: c.textMuted, marginTop: 12 }]}>PROTECCIÓN</Text>
                             {seguros.map((s) => (
                               <OpcionCard key={s.nombre} titulo={s.nombre} desc={`${fmt(s.precio)} / día`} activo={draftPlanes.proteccion === s.nombre} onPress={() => setDraftPlanes((p) => ({ ...p, proteccion: s.nombre }))} />
                             ))}
@@ -270,7 +264,7 @@ export default function ResumenReservaModal({
 
                         {(kmLimitado || kmIlimitado) && (
                           <>
-                            <Text style={piezas.label}>TIPO DE KILOMETRAJE</Text>
+                            <Text style={[piezas.label, { color: c.textMuted }]}>TIPO DE KILOMETRAJE</Text>
                             {kmLimitado && (
                               <OpcionCard titulo="Kilómetro limitado" desc={`Incluye ${kmLimitado.km} km por día · ${fmt(kmLimitado.precio)} / día`} activo={draftPlanes.tipoKilometraje === "limitado"} onPress={() => setDraftPlanes((p) => ({ ...p, tipoKilometraje: "limitado" }))} />
                             )}
@@ -282,7 +276,7 @@ export default function ResumenReservaModal({
 
                         {servicios.length > 0 && (
                           <>
-                            <Text style={piezas.label}>SERVICIOS ADICIONALES</Text>
+                            <Text style={[piezas.label, { color: c.textMuted }]}>SERVICIOS ADICIONALES</Text>
                             {servicios.map((s) => {
                               const activo = draftPlanes.serviciosSeleccionados.includes(s.nombre);
                               return (
@@ -313,20 +307,20 @@ export default function ResumenReservaModal({
 
                 {/* DESGLOSE — formato tipo "oferta", completo */}
                 {modo === "resumen" && (
-                  <View style={piezas.subcard}>
+                  <View style={[piezas.subcard, { borderTopColor: c.border }]}>
                     {fechasCompletas ? (
                       <>
                         <View style={piezas.rowGap}>
-                          <Ionicons name="receipt-outline" size={14} color={COLOR_MARCA} />
-                          <Text style={piezas.subcardTitulo}>Oferta {vehiculo.categoria ?? "Estándar"}</Text>
+                          <Ionicons name="receipt-outline" size={14} color={primaryAccent} />
+                          <Text style={[piezas.subcardTitulo, { color: c.textMuted }]}>Oferta {vehiculo.categoria ?? "Estándar"}</Text>
                         </View>
 
                         <View style={piezas.desgloseCabecera}>
-                          <Text style={piezas.desgloseCabeceraLabel}></Text>
-                          <Text style={piezas.desgloseCabeceraTotal}>Total</Text>
+                          <Text style={[piezas.desgloseCabeceraLabel, { color: c.textMuted }]}></Text>
+                          <Text style={[piezas.desgloseCabeceraTotal, { color: c.textMuted }]}>Total</Text>
                         </View>
 
-                        <Text style={piezas.desgloseSeccionTitulo}>Diarias</Text>
+                        <Text style={[piezas.desgloseSeccionTitulo, { color: c.textPrimary }]}>Diarias</Text>
                         <LineaPrecio
                           label={`${desglose.dias} día${desglose.dias > 1 ? "s" : ""} × ${fmt(vehiculo.precio)}`}
                           valor={fmt(desglose.diarias)}
@@ -335,8 +329,8 @@ export default function ResumenReservaModal({
 
                         {desglose.proteccion > 0 && (
                           <>
-                            <Text style={piezas.desgloseSeccionTitulo}>Protecciones</Text>
-                            <Text style={piezas.desgloseSubtexto}>{planes.proteccion}</Text>
+                            <Text style={[piezas.desgloseSeccionTitulo, { color: c.textPrimary }]}>Protecciones</Text>
+                            <Text style={[piezas.desgloseSubtexto, { color: c.textSecondary }]}>{planes.proteccion}</Text>
                             <LineaPrecio
                               label={`${desglose.dias} día${desglose.dias > 1 ? "s" : ""} × ${fmt(seguroElegido?.precio ?? 0)}`}
                               valor={fmt(desglose.proteccion)}
@@ -347,7 +341,7 @@ export default function ResumenReservaModal({
 
                         {desglose.kilometraje > 0 && (
                           <>
-                            <Text style={piezas.desgloseSeccionTitulo}>Kilometraje — {labelKm}</Text>
+                            <Text style={[piezas.desgloseSeccionTitulo, { color: c.textPrimary }]}>Kilometraje — {labelKm}</Text>
                             <LineaPrecio
                               label={`${desglose.dias} día${desglose.dias > 1 ? "s" : ""} × ${fmt(kmElegido?.precio ?? 0)}`}
                               valor={fmt(desglose.kilometraje)}
@@ -358,12 +352,12 @@ export default function ResumenReservaModal({
 
                         {desglose.servAdic > 0 && (
                           <>
-                            <Text style={piezas.desgloseSeccionTitulo}>Servicios adicionales</Text>
+                            <Text style={[piezas.desgloseSeccionTitulo, { color: c.textPrimary }]}>Servicios adicionales</Text>
                             <LineaPrecio label={serviciosTexto} valor={fmt(desglose.servAdic)} destacado />
                           </>
                         )}
 
-                        <View style={piezas.desgloseDivisor} />
+                        <View style={[piezas.desgloseDivisor, { backgroundColor: c.border }]} />
 
                         <LineaPrecio label={`Cargos Administrativos (${fmtPct(PORCENTAJE_CARGOS_ADMINISTRATIVOS)})`} valor={fmt(desglose.cargos)} />
                         <LineaPrecio label="Subtotal Reserva" valor={fmt(desglose.subtotal - desglose.iva)} destacado />
@@ -371,16 +365,16 @@ export default function ResumenReservaModal({
                         <LineaPrecio label={`IVA (${fmtPct(PORCENTAJE_IVA)})`} valor={fmt(desglose.iva)} />
                       </>
                     ) : (
-                      <Text style={piezas.bloqueSub}>Selecciona las fechas de retiro y devolución para ver el precio estimado.</Text>
+                      <Text style={[piezas.bloqueSub, { color: c.textMuted }]}>Selecciona las fechas de retiro y devolución para ver el precio estimado.</Text>
                     )}
                   </View>
                 )}
 
                 {modo === "resumen" && fechasCompletas && (
-                  <View style={piezas.totalBlock}>
-                    <Text style={piezas.totalLabelChica}>TOTAL FINAL</Text>
-                    <Text style={piezas.totalValorGrande}>{fmt(desglose.total)}</Text>
-                    <Text style={piezas.totalNota}>*Valor total incluye impuestos</Text>
+                  <View style={[piezas.totalBlock, { backgroundColor: c.primaryBg, borderTopColor: c.border }]}>
+                    <Text style={[piezas.totalLabelChica, { color: primaryAccent }]}>TOTAL FINAL</Text>
+                    <Text style={[piezas.totalValorGrande, { color: c.textPrimary }]}>{fmt(desglose.total)}</Text>
+                    <Text style={[piezas.totalNota, { color: c.textMuted }]}>*Valor total incluye impuestos</Text>
                   </View>
                 )}
               </>
@@ -389,7 +383,7 @@ export default function ResumenReservaModal({
         </ScrollView>
 
         {modo === "resumen" && (
-          <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
+          <View style={[styles.footer, { borderTopColor: c.border, paddingBottom: insets.bottom + 12 }]}>
             <TouchableOpacity style={styles.cerrarBtnWrap} onPress={cerrar} activeOpacity={0.85}>
               <LinearGradient
                 colors={GRADIENTES.boton.colors}
@@ -431,18 +425,18 @@ export default function ResumenReservaModal({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORES.pageBg },
+  container: { flex: 1, backgroundColor: "#fff" },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingBottom: 14 },
-  headerTitulo: { fontSize: 16, fontWeight: "800", color: COLORES.textPrimary },
+  headerTitulo: { fontSize: 16, fontWeight: "800", color: "#111827" },
   scrollContent: { paddingHorizontal: 16, paddingBottom: 24 },
 
-  cardMaestra: { backgroundColor: COLORES.panelBg, borderRadius: 16, borderWidth: 1, borderColor: COLORES.panelBorderStrong, overflow: "hidden", marginBottom: 8 },
+  cardMaestra: { backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: "#E5E7EB", overflow: "hidden", marginBottom: 8 },
   vehiculoBanner: { padding: 14 },
   vehiculoBannerLabel: { fontSize: 10, fontWeight: "700", color: "rgba(255,255,255,0.75)", letterSpacing: 0.4 },
   vehiculoBannerNombre: { fontSize: 16, fontWeight: "800", color: "#fff", marginTop: 4 },
   vehiculoBannerSub: { fontSize: 12, fontWeight: "600", color: "rgba(255,255,255,0.85)", marginTop: 4 },
 
-  footer: { borderTopWidth: 1, borderTopColor: COLORES.panelBorder, paddingHorizontal: 16, paddingTop: 12 },
+  footer: { borderTopWidth: 1, borderTopColor: "#E5E7EB", paddingHorizontal: 16, paddingTop: 12 },
   cerrarBtnWrap: { borderRadius: 12 },
   cerrarBtn: { borderRadius: 12, paddingVertical: 14, alignItems: "center" },
   cerrarBtnText: { color: "#fff", fontSize: 14, fontWeight: "800" },

@@ -3,7 +3,8 @@ import React from "react";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { COLOR_MARCA, COLORES } from "../constants/reserva.constants";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { COLOR_MARCA } from "../constants/reserva.constants";
 import { GRADIENTES, SOMBRA_BOTON_GRADIENTE } from "@/constants/gradients";
 
 interface Props {
@@ -13,23 +14,26 @@ interface Props {
 }
 
 export default function ModalReservaRegistrada({ visible, onPagarWompi, onCerrar }: Props) {
+  const c = useTemaColores();
+  const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCerrar}>
       <View style={styles.overlay}>
-        <View style={styles.card}>
-          <View style={styles.iconoWrap}>
-            <Ionicons name="checkmark-circle" size={40} color={COLOR_MARCA} />
+        <View style={[styles.card, { backgroundColor: c.bgCard }]}>
+          <View style={[styles.iconoWrap, { backgroundColor: c.primaryBg }]}>
+            <Ionicons name="checkmark-circle" size={40} color={primaryAccent} />
           </View>
 
-          <Text style={styles.titulo}>Reserva Registrada</Text>
+          <Text style={[styles.titulo, { color: c.textPrimary }]}>Reserva Registrada</Text>
 
-          <Text style={styles.descripcion}>
+          <Text style={[styles.descripcion, { color: c.textSecondary }]}>
             Tu reserva quedó guardada como pendiente. Para confirmarla, completa el pago digital
             seguro con Wompi (Pruebas).
           </Text>
 
-          <Text style={styles.linkTexto}>Serás redirigido al checkout oficial de Wompi.</Text>
-          <Text style={styles.subTexto}>Recibirás la confirmación de tu reserva cuando el pago sea exitoso.</Text>
+          <Text style={[styles.linkTexto, { color: primaryAccent }]}>Serás redirigido al checkout oficial de Wompi.</Text>
+          <Text style={[styles.subTexto, { color: c.textMuted }]}>Recibirás la confirmación de tu reserva cuando el pago sea exitoso.</Text>
 
           <TouchableOpacity style={styles.botonWompiWrap} onPress={onPagarWompi} activeOpacity={0.85}>
             <LinearGradient
@@ -59,7 +63,6 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 340,
-    backgroundColor: COLORES.panelBg,
     borderRadius: 24,
     paddingHorizontal: 24,
     paddingTop: 28,
@@ -70,7 +73,6 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: "#eef2fb",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
@@ -78,13 +80,11 @@ const styles = StyleSheet.create({
   titulo: {
     fontSize: 19,
     fontWeight: "800",
-    color: COLORES.textPrimary,
     marginBottom: 10,
     textAlign: "center",
   },
   descripcion: {
     fontSize: 13,
-    color: COLORES.textSecondary,
     textAlign: "center",
     lineHeight: 18,
     marginBottom: 14,
@@ -92,13 +92,11 @@ const styles = StyleSheet.create({
   linkTexto: {
     fontSize: 12.5,
     fontWeight: "700",
-    color: COLOR_MARCA,
     textAlign: "center",
     marginBottom: 4,
   },
   subTexto: {
     fontSize: 11.5,
-    color: COLORES.textMuted,
     textAlign: "center",
     marginBottom: 20,
     lineHeight: 16,
