@@ -5,16 +5,22 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORES } from "../constants/catalogo.constants";
 import { Vehiculo } from "../types/catalogo.types";
+import { useMonedaStore } from "@/store/monedaStore";
+import { formatCurrency } from "@/utils/monedaUtils";
 
 interface Props {
   vehiculo: Vehiculo;
 }
 
 function formatPrecio(precio: number): string {
-  return `$${precio.toLocaleString("es-CO")}`;
+  const { monedaActual, tasaUSD } = useMonedaStore.getState();
+  return formatCurrency(precio, monedaActual, tasaUSD);
 }
 
 export default function VehiculoDetalles({ vehiculo }: Props) {
+  // Nos suscribimos al store de moneda para re-renderizar los precios
+  // cuando cambie COP↔USD o llegue una tasa nueva.
+  useMonedaStore();
   const tarifas = vehiculo.tarifas ?? {};
   const seguros = vehiculo.seguros ?? [];
 

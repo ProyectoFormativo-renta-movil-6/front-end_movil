@@ -283,6 +283,9 @@ export default {
     placeholderTelefono: 'e.g. +1 555 123 4567',
     notaCamposNoEditables: 'Document, date of birth and nationality are not editable. To change them, contact support.',
     btnGuardar: '✓  Save changes',
+    invitadoTitulo: 'You are in guest mode',
+    invitadoSub: 'Sign up to save your data, see your history and manage your bookings',
+    registrateYa: 'Sign up now',
     verIntro: 'View introduction',
     verIntroSub: 'Watch the onboarding tutorial again',
     cambiosGuardados: '✅ Changes saved',
@@ -312,5 +315,7 @@ export default {
     tema: 'Theme',
     claro: '☀️ Light',
     oscuro: '🌙 Dark',
+    moneda: 'Currency',
+    monedaSub: 'Prices are shown in the selected currency',
   },
 }

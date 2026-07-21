@@ -15,10 +15,17 @@ import {
   ICONO_SERVICIO_DEFECTO,
 } from "../constants/reserva.constants";
 import { GRADIENTES } from "@/constants/gradients";
+import { useMonedaStore } from "@/store/monedaStore";
+import { formatCurrency } from "@/utils/monedaUtils";
 
 // ---------- Helpers de formato ----------
 
-export const fmt = (n: number) => `$${Math.round(n).toLocaleString("es-CO")}`;
+// Los montos siempre llegan en COP; fmt los muestra según la moneda
+// activa (COP o USD) leída del store en el momento de la llamada.
+export const fmt = (n: number) => {
+  const { monedaActual, tasaUSD } = useMonedaStore.getState();
+  return formatCurrency(n, monedaActual, tasaUSD);
+};
 export const fmtPct = (n: number) => `${Math.round(n * 100)}%`;
 
 export const fechaCorta = (f: string | null) =>
@@ -143,6 +150,9 @@ export function ServicioRow({
   activo: boolean;
   onPress: () => void;
 }) {
+  // Nos suscribimos al store de moneda para re-renderizar el precio
+  // cuando cambie COP↔USD o llegue una tasa nueva.
+  useMonedaStore();
   const icono = ICONOS_SERVICIOS[nombre] ?? ICONO_SERVICIO_DEFECTO;
   return (
     <TouchableOpacity style={[styles.servicioCard, activo && styles.opcionCardActiva]} onPress={onPress} activeOpacity={0.8}>

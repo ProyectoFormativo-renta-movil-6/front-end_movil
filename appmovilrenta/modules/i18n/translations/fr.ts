@@ -283,6 +283,9 @@ export default {
     placeholderTelefono: 'Ex : +33 6 12 34 56 78',
     notaCamposNoEditables: 'Document, date de naissance et nationalité ne sont pas modifiables. Pour les changer, contactez le support.',
     btnGuardar: '✓  Enregistrer',
+    invitadoTitulo: 'Vous êtes en mode invité',
+    invitadoSub: 'Inscrivez-vous pour sauvegarder vos données, voir votre historique et gérer vos réservations',
+    registrateYa: "S'inscrire maintenant",
     verIntro: 'Voir l\'introduction',
     verIntroSub: 'Revoir le tutoriel de démarrage',
     cambiosGuardados: '✅ Modifications enregistrées',
@@ -312,5 +315,7 @@ export default {
     tema: 'Thème',
     claro: '☀️ Clair',
     oscuro: '🌙 Sombre',
+    moneda: 'Devise',
+    monedaSub: 'Les prix sont affichés dans la devise choisie',
   },
 }

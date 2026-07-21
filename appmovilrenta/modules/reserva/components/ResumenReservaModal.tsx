@@ -22,6 +22,7 @@ import {
   SubcardHeader, SubcardHeaderEditando, FilaDato, OpcionCard, ServicioRow, LineaPrecio, FilaBotonesEdicion,
   styles as piezas,
 } from "./ResumenReservaModal.piezas";
+import { useMonedaStore } from "@/store/monedaStore";
 
 interface Props {
   visible: boolean;
@@ -47,6 +48,9 @@ export default function ResumenReservaModal({
   seccionFechasCompleta = false,
 }: Props) {
   const insets = useSafeAreaInsets();
+  // Nos suscribimos al store de moneda para re-renderizar el desglose de
+  // precios cuando cambie COP↔USD o llegue una tasa nueva.
+  useMonedaStore();
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const actualizarFechasLugar = useReservaStore((s) => s.actualizarFechasLugar);
   const planes = useReservaStore((s) => s.planes);

@@ -9,6 +9,8 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { COLORES } from "../constants/reserva.constants";
+import { useMonedaStore } from "@/store/monedaStore";
+import { formatCurrency } from "@/utils/monedaUtils";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -24,7 +26,8 @@ function getSafeImages(vehiculo: Vehiculo): string[] {
 }
 
 function formatPrecio(precio: number): string {
-  return `$${precio.toLocaleString("es-CO")}`;
+  const { monedaActual, tasaUSD } = useMonedaStore.getState();
+  return formatCurrency(precio, monedaActual, tasaUSD);
 }
 
 interface CaracteristicaItem {
@@ -33,6 +36,9 @@ interface CaracteristicaItem {
 }
 
 export default function VehiculoResumenCard({ vehiculo }: Props) {
+  // Nos suscribimos al store de moneda para re-renderizar los precios
+  // cuando cambie COP↔USD o llegue una tasa nueva.
+  useMonedaStore();
   const [fotoActiva, setFotoActiva] = useState(0);
   const imagenes = getSafeImages(vehiculo);
 

@@ -283,6 +283,9 @@ export default {
     placeholderTelefono: 'Ex: +55 11 91234-5678',
     notaCamposNoEditables: 'Documento, data de nascimento e nacionalidade não são editáveis. Para alterá-los, entre em contato com o suporte.',
     btnGuardar: '✓  Salvar alterações',
+    invitadoTitulo: 'Você está no modo convidado',
+    invitadoSub: 'Cadastre-se para salvar seus dados, ver seu histórico e gerenciar suas reservas',
+    registrateYa: 'Cadastre-se agora',
     verIntro: 'Ver introdução',
     verIntroSub: 'Rever o tutorial inicial',
     cambiosGuardados: '✅ Alterações salvas',
@@ -312,5 +315,7 @@ export default {
     tema: 'Tema',
     claro: '☀️ Claro',
     oscuro: '🌙 Escuro',
+    moneda: 'Moeda',
+    monedaSub: 'Os preços são exibidos na moeda selecionada',
   },
 }

@@ -20,6 +20,8 @@ import {
 import { COLORES } from "../constants/catalogo.constants";
 import { Vehiculo } from "../types/catalogo.types";
 import VehiculoDetalles from "./VehiculoDetalles";
+import { useMonedaStore } from "@/store/monedaStore";
+import { formatCurrency } from "@/utils/monedaUtils";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -42,7 +44,8 @@ function getSafeImages(vehiculo: Vehiculo): string[] {
 }
 
 function formatPrecio(precio: number): string {
-  return `$${precio.toLocaleString("es-CO")}`;
+  const { monedaActual, tasaUSD } = useMonedaStore.getState();
+  return formatCurrency(precio, monedaActual, tasaUSD);
 }
 
 function Estrella({ llena }: { llena: boolean }) {
@@ -63,6 +66,9 @@ function VehiculoCard({
   onToggleFavorito,
   datosPrecarga,
 }: Props) {
+  // Nos suscribimos al store de moneda para re-renderizar los precios
+  // cuando cambie COP↔USD o llegue una tasa nueva.
+  useMonedaStore();
   const [fotoActiva, setFotoActiva] = useState(0);
   const [verDetalles, setVerDetalles] = useState(false);
   const [cardWidth, setCardWidth] = useState(0);

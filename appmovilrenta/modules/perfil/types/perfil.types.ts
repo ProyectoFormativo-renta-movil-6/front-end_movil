@@ -25,6 +25,7 @@ export interface FormEditarPerfil {
   nombres: string;
   apellidos: string;
   telefono: string;
+  fechaNacimiento: string;
 }
 
 export interface FormCompletarPerfil {
@@ -47,6 +48,7 @@ export interface ErroresPerfil {
   nombres?: string;
   apellidos?: string;
   telefono?: string;
+  fechaNacimiento?: string;
 }
 
 export interface ErroresCompletarPerfil {

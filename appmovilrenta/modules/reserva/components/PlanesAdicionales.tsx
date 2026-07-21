@@ -15,6 +15,8 @@ import {
   INFO_KILOMETRAJE_COLOMBIA,
 } from "../constants/reserva.constants";
 import { AlertModal } from "../../../components/ui/AlertModal";
+import { useMonedaStore } from "@/store/monedaStore";
+import { formatCurrency } from "@/utils/monedaUtils";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -22,7 +24,8 @@ interface Props {
 }
 
 function formatPrecio(precio: number): string {
-  return `$${Math.round(precio).toLocaleString("es-CO")}`;
+  const { monedaActual, tasaUSD } = useMonedaStore.getState();
+  return formatCurrency(precio, monedaActual, tasaUSD);
 }
 
 function calcularDias(fechaRetiro: string | null, fechaDevolucion: string | null): number {
@@ -70,6 +73,9 @@ function FooterTotalTarjeta({ label, valor }: { label: string; valor: number }) 
 }
 
 export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
+  // Nos suscribimos al store de moneda para re-renderizar los precios
+  // cuando cambie COP↔USD o llegue una tasa nueva.
+  useMonedaStore();
   const planes = useReservaStore((s) => s.planes);
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const actualizarPlanes = useReservaStore((s) => s.actualizarPlanes);

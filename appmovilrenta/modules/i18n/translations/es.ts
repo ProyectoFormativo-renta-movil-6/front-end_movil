@@ -313,6 +313,9 @@ export default {
     btnGuardar: '✓  Guardar cambios',
     verIntro: 'Ver introducción',
     verIntroSub: 'Volver a ver el tutorial inicial',
+    invitadoTitulo: 'Estás en modo invitado',
+    invitadoSub: 'Regístrate para guardar tus datos, ver tu historial y gestionar tus reservas',
+    registrateYa: 'Regístrate ya',
   },
   // Tabs
   tabs: {
@@ -327,5 +330,7 @@ export default {
     tema: 'Tema',
     claro: '☀️ Claro',
     oscuro: '🌙 Oscuro',
+    moneda: 'Moneda',
+    monedaSub: 'Los precios se muestran en la moneda elegida',
   },
 }
