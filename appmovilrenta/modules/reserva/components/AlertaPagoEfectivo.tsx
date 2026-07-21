@@ -8,6 +8,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { AlertModal } from "@/components/ui/AlertModal";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 
 interface Props {
   visible: boolean;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function AlertaPagoEfectivo({ visible, nombreSucursal, ciudad, direccion, onCerrar }: Props) {
+  const c = useTemaColores();
   return (
     <AlertModal
       visible={visible}
@@ -27,14 +29,14 @@ export function AlertaPagoEfectivo({ visible, nombreSucursal, ciudad, direccion,
       onCerrar={onCerrar}
       botones={[{ texto: "Cerrar", onPress: onCerrar, variante: "primario" }]}
       contenido={
-        <View style={s.caja}>
-          <Text style={s.nombreSucursal}>{nombreSucursal}</Text>
-          <Text style={s.fila}>
-            <Text style={s.etiqueta}>Ciudad: </Text>
+        <View style={[s.caja, { backgroundColor: c.primaryBg }]}>
+          <Text style={[s.nombreSucursal, { color: c.textPrimary }]}>{nombreSucursal}</Text>
+          <Text style={[s.fila, { color: c.textSecondary }]}>
+            <Text style={[s.etiqueta, { color: c.textSecondary }]}>Ciudad: </Text>
             {ciudad ?? "Sin definir"}
           </Text>
-          <Text style={s.fila}>
-            <Text style={s.etiqueta}>Dirección: </Text>
+          <Text style={[s.fila, { color: c.textSecondary }]}>
+            <Text style={[s.etiqueta, { color: c.textSecondary }]}>Dirección: </Text>
             {direccion ?? "Sin definir"}
           </Text>
         </View>
@@ -46,7 +48,6 @@ export function AlertaPagoEfectivo({ visible, nombreSucursal, ciudad, direccion,
 const s = StyleSheet.create({
   caja: {
     width: "100%",
-    backgroundColor: "#EFF6FF",
     borderRadius: 12,
     padding: 14,
     marginBottom: 20,
@@ -54,16 +55,13 @@ const s = StyleSheet.create({
   nombreSucursal: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#1E3A8A",
     marginBottom: 6,
   },
   fila: {
     fontSize: 13,
-    color: "#1F2937",
     lineHeight: 19,
   },
   etiqueta: {
     fontWeight: "700",
-    color: "#1F2937",
   },
 });

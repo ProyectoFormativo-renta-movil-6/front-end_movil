@@ -22,6 +22,7 @@ import { Vehiculo } from "../types/catalogo.types";
 import VehiculoDetalles from "./VehiculoDetalles";
 import { useMonedaStore } from "@/store/monedaStore";
 import { formatCurrency } from "@/utils/monedaUtils";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -69,6 +70,7 @@ function VehiculoCard({
   // Nos suscribimos al store de moneda para re-renderizar los precios
   // cuando cambie COP↔USD o llegue una tasa nueva.
   useMonedaStore();
+  const c = useTemaColores();
   const [fotoActiva, setFotoActiva] = useState(0);
   const [verDetalles, setVerDetalles] = useState(false);
   const [cardWidth, setCardWidth] = useState(0);
@@ -106,9 +108,9 @@ function VehiculoCard({
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
       <View
-        style={styles.imagenContainer}
+        style={[styles.imagenContainer, { backgroundColor: c.bgInput }]}
         onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
       >
         {cardWidth > 0 && imagenes.length > 0 ? (
@@ -162,11 +164,11 @@ function VehiculoCard({
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.favBtn} onPress={handleFavorito}>
+        <TouchableOpacity style={[styles.favBtn, { backgroundColor: c.bgCard }]} onPress={handleFavorito}>
           <Ionicons
             name={esFavorito ? "heart" : "heart-outline"}
             size={18}
-            color={esFavorito ? COLORES.accentText : "#6B7280"}
+            color={esFavorito ? COLORES.accentText : c.textMuted}
           />
         </TouchableOpacity>
 
@@ -199,21 +201,21 @@ function VehiculoCard({
               </View>
             </View>
 
-            <Text style={styles.nombre}>{vehiculo.nombre}</Text>
+            <Text style={[styles.nombre, { color: c.textPrimary }]}>{vehiculo.nombre}</Text>
 
             <View style={styles.infoRow}>
               <View style={styles.infoItem}>
                 <Ionicons name="settings-outline" size={14} color="#2f4ea2" />
-                <Text style={styles.infoText}>{vehiculo.transmision}</Text>
+                <Text style={[styles.infoText, { color: c.textSecondary }]}>{vehiculo.transmision}</Text>
               </View>
-              <View style={styles.infoSeparador} />
+              <View style={[styles.infoSeparador, { backgroundColor: c.border }]} />
               <View style={styles.infoItem}>
                 <MaterialCommunityIcons
                   name="gas-station-outline"
                   size={14}
                   color="#2f4ea2"
                 />
-                <Text style={styles.infoText}>{vehiculo.combustible}</Text>
+                <Text style={[styles.infoText, { color: c.textSecondary }]}>{vehiculo.combustible}</Text>
               </View>
             </View>
 
@@ -221,18 +223,18 @@ function VehiculoCard({
               {estrellas.map((llena, i) => (
                 <Estrella key={i} llena={llena} />
               ))}
-              <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+              <Text style={[styles.ratingText, { color: c.textSecondary }]}>{rating.toFixed(1)}</Text>
             </View>
 
             <Text style={styles.precio}>
               {formatPrecio(vehiculo.precio)}
-              <Text style={styles.precioDia}> /dia</Text>
+              <Text style={[styles.precioDia, { color: c.textMuted }]}> /dia</Text>
             </Text>
 
             <TouchableOpacity
               style={[
                 styles.reservarBtnWrap,
-                !estadoDisponible && styles.reservarBtnDisabled,
+                !estadoDisponible && [styles.reservarBtnDisabled, { backgroundColor: c.bgInput }],
               ]}
               onPress={handleReservar}
               disabled={!estadoDisponible}

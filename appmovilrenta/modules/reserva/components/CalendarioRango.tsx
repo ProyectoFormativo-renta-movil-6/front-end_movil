@@ -3,7 +3,8 @@ import { Alert, StyleSheet, Text, View } from "react-native";
 import { Calendar, DateData } from "react-native-calendars";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { getDisponibilidadVehiculo } from "@/modules/catalogo/constants/catalogo.constants";
-import { COLOR_MARCA, COLORES } from "../constants/reserva.constants";
+import { COLOR_MARCA } from "../constants/reserva.constants";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -33,6 +34,7 @@ export default function CalendarioRango({
   fechaDevolucion,
   onCambiarFechas,
 }: Props) {
+  const c = useTemaColores();
   // La disponibilidad ya no viene embebida en el vehículo — se calcula
   // a partir de RESERVAS_MOCK (mocks/reservas.json) según su id.
   const ocupados = useMemo(() => {
@@ -125,7 +127,7 @@ export default function CalendarioRango({
   }, [ocupados, fechaRetiro, fechaDevolucion]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderColor: c.border, backgroundColor: c.bgCard }]}>
       <Calendar
         current={hoy}
         minDate={hoy}
@@ -133,8 +135,13 @@ export default function CalendarioRango({
         markedDates={markedDates}
         onDayPress={handleDayPress}
         theme={{
+          calendarBackground: c.bgCard,
+          dayTextColor: c.textPrimary,
+          monthTextColor: c.textPrimary,
+          textDisabledColor: c.textMuted,
           todayTextColor: COLOR_MARCA,
-          arrowColor: COLORES.textSecondary,
+          arrowColor: c.textSecondary,
+          textSectionTitleColor: c.textMuted,
           textDayFontSize: 13,
           textMonthFontSize: 14,
           textMonthFontWeight: "700",
@@ -146,19 +153,19 @@ export default function CalendarioRango({
       <View style={styles.leyenda}>
         <View style={styles.leyendaItem}>
           <View style={[styles.dot, { backgroundColor: COLOR_DISPONIBLE }]} />
-          <Text style={styles.leyendaText}>Disponible</Text>
+          <Text style={[styles.leyendaText, { color: c.textSecondary }]}>Disponible</Text>
         </View>
         <View style={styles.leyendaItem}>
           <View style={[styles.dot, { backgroundColor: COLOR_RESERVADO }]} />
-          <Text style={styles.leyendaText}>Reservado</Text>
+          <Text style={[styles.leyendaText, { color: c.textSecondary }]}>Reservado</Text>
         </View>
         <View style={styles.leyendaItem}>
           <View style={[styles.dot, { backgroundColor: COLOR_MANTENIMIENTO }]} />
-          <Text style={styles.leyendaText}>Mantenimiento</Text>
+          <Text style={[styles.leyendaText, { color: c.textSecondary }]}>Mantenimiento</Text>
         </View>
         <View style={styles.leyendaItem}>
           <View style={[styles.dot, { backgroundColor: COLOR_MARCA }]} />
-          <Text style={styles.leyendaText}>Seleccionado</Text>
+          <Text style={[styles.leyendaText, { color: c.textSecondary }]}>Seleccionado</Text>
         </View>
       </View>
     </View>
@@ -168,10 +175,8 @@ export default function CalendarioRango({
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: COLORES.panelBorderStrong,
     borderRadius: 14,
     padding: 8,
-    backgroundColor: COLORES.panelBg,
   },
   calendar: { borderRadius: 10 },
   leyenda: {
@@ -184,5 +189,5 @@ const styles = StyleSheet.create({
   },
   leyendaItem: { flexDirection: "row", alignItems: "center", gap: 5 },
   dot: { width: 7, height: 7, borderRadius: 4 },
-  leyendaText: { fontSize: 10, color: COLORES.textSecondary },
+  leyendaText: { fontSize: 10 },
 });

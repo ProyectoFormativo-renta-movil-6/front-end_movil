@@ -7,6 +7,7 @@ import { COLORES } from "../constants/catalogo.constants";
 import { Vehiculo } from "../types/catalogo.types";
 import { useMonedaStore } from "@/store/monedaStore";
 import { formatCurrency } from "@/utils/monedaUtils";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -21,6 +22,7 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
   // Nos suscribimos al store de moneda para re-renderizar los precios
   // cuando cambie COP↔USD o llegue una tasa nueva.
   useMonedaStore();
+  const c = useTemaColores();
   const tarifas = vehiculo.tarifas ?? {};
   const seguros = vehiculo.seguros ?? [];
 
@@ -81,16 +83,16 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
 
   return (
     <View style={{ marginTop: 4 }}>
-      <Text style={styles.nombre}>{vehiculo.nombre}</Text>
+      <Text style={[styles.nombre, { color: c.textPrimary }]}>{vehiculo.nombre}</Text>
 
       {filas.length > 0 && (
         <View style={styles.caracteristicasGrid}>
           {filas.map((fila, fi) => (
             <View key={fi} style={styles.caracteristicasFila}>
               {fila.map((item, ci) => (
-                <View key={ci} style={styles.caracteristicaChip}>
+                <View key={ci} style={[styles.caracteristicaChip, { backgroundColor: c.bgInput, borderColor: c.border }]}>
                   {item.icono}
-                  <Text style={styles.caracteristicaChipText}>
+                  <Text style={[styles.caracteristicaChipText, { color: c.textSecondary }]}>
                     {item.label}
                   </Text>
                 </View>
@@ -103,25 +105,25 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
         </View>
       )}
 
-      <View style={styles.seccionDetalle}>
+      <View style={[styles.seccionDetalle, { backgroundColor: c.oscuro ? "#0F2A1C" : "#f4fbf7", borderColor: c.oscuro ? "#1F4D34" : "#ccf1dc" }]}>
         <View style={styles.seccionDetalleHeader}>
-          <Ionicons name="cash-outline" size={14} color="#137333" />
-          <Text style={styles.seccionDetalleTitulo}>TARIFAS</Text>
+          <Ionicons name="cash-outline" size={14} color="#22C55E" />
+          <Text style={[styles.seccionDetalleTitulo, { color: "#22C55E" }]}>TARIFAS</Text>
         </View>
         {tarifas.kmLimitado && (
           <View style={styles.tarifaRow}>
-            <Text style={styles.tarifaLabel}>
+            <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>
               Km limitado ({tarifas.kmLimitado.km} km/dia)
             </Text>
-            <Text style={styles.tarifaValor}>
+            <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>
               {formatPrecio(tarifas.kmLimitado.precio)}
             </Text>
           </View>
         )}
         {tarifas.kmIlimitado && (
           <View style={styles.tarifaRow}>
-            <Text style={styles.tarifaLabel}>Km ilimitado</Text>
-            <Text style={styles.tarifaValor}>
+            <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>Km ilimitado</Text>
+            <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>
               {formatPrecio(tarifas.kmIlimitado.precio)}
             </Text>
           </View>
@@ -131,20 +133,20 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
       <View
         style={[
           styles.seccionDetalle,
-          { backgroundColor: "#f0f4ff", borderColor: "#ccd9ff" },
+          { backgroundColor: c.oscuro ? "#131B33" : "#f0f4ff", borderColor: c.oscuro ? "#28345C" : "#ccd9ff" },
         ]}
       >
         <View style={styles.seccionDetalleHeader}>
-          <Ionicons name="shield-checkmark-outline" size={14} color="#1e40af" />
-          <Text style={[styles.seccionDetalleTitulo, { color: "#1e40af" }]}>
+          <Ionicons name="shield-checkmark-outline" size={14} color="#5B8DEF" />
+          <Text style={[styles.seccionDetalleTitulo, { color: "#5B8DEF" }]}>
             SEGUROS
           </Text>
         </View>
         {seguros.length > 0 ? (
           seguros.map((seg, i) => (
             <View key={i} style={styles.tarifaRow}>
-              <Text style={styles.tarifaLabel}>{seg.nombre}</Text>
-              <Text style={styles.tarifaValor}>
+              <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>{seg.nombre}</Text>
+              <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>
                 {formatPrecio(seg.precio)}/dia
               </Text>
             </View>
@@ -152,12 +154,12 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
         ) : (
           <>
             <View style={styles.tarifaRow}>
-              <Text style={styles.tarifaLabel}>Proteccion Obligatoria</Text>
-              <Text style={styles.tarifaValor}>$29.000/dia</Text>
+              <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>Proteccion Obligatoria</Text>
+              <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>$29.000/dia</Text>
             </View>
             <View style={styles.tarifaRow}>
-              <Text style={styles.tarifaLabel}>Proteccion Total</Text>
-              <Text style={styles.tarifaValor}>$67.000/dia</Text>
+              <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>Proteccion Total</Text>
+              <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>$67.000/dia</Text>
             </View>
           </>
         )}

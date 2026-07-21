@@ -9,7 +9,6 @@ import {
   BENEFICIOS_PROTECCION,
   BENEFICIOS_KILOMETRAJE,
   COLOR_MARCA,
-  COLORES,
   ICONOS_SERVICIOS,
   ICONO_SERVICIO_DEFECTO,
   INFO_KILOMETRAJE_COLOMBIA,
@@ -17,6 +16,9 @@ import {
 import { AlertModal } from "../../../components/ui/AlertModal";
 import { useMonedaStore } from "@/store/monedaStore";
 import { formatCurrency } from "@/utils/monedaUtils";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+
+type Tema = ReturnType<typeof useTemaColores>;
 
 interface Props {
   vehiculo: Vehiculo;
@@ -37,22 +39,22 @@ function calcularDias(fechaRetiro: string | null, fechaDevolucion: string | null
   return dias > 0 ? dias : 1;
 }
 
-function IconoBeneficio({ tipo }: { tipo: "check" | "warning" | "cross" }) {
+function IconoBeneficio({ tipo, c }: { tipo: "check" | "warning" | "cross"; c: Tema }) {
   if (tipo === "check") return <Ionicons name="checkmark-circle" size={13} color={COLOR_MARCA} />;
-  if (tipo === "warning") return <Ionicons name="alert-circle" size={13} color={COLORES.textSecondary} />;
-  return <Ionicons name="close-circle-outline" size={13} color={COLORES.textMuted} />;
+  if (tipo === "warning") return <Ionicons name="alert-circle" size={13} color={c.textSecondary} />;
+  return <Ionicons name="close-circle-outline" size={13} color={c.textMuted} />;
 }
 
 // Lista de beneficios reutilizable — mismo bloque visual usado en
 // Protección, Kilometraje limitado y Kilometraje ilimitado.
-function ListaBeneficios({ beneficios }: { beneficios: { tipo: "check" | "warning" | "cross"; texto: string }[] }) {
+function ListaBeneficios({ beneficios, c }: { beneficios: { tipo: "check" | "warning" | "cross"; texto: string }[]; c: Tema }) {
   if (beneficios.length === 0) return null;
   return (
     <View style={styles.beneficiosLista}>
       {beneficios.map((b, i) => (
         <View key={i} style={styles.beneficioFila}>
-          <IconoBeneficio tipo={b.tipo} />
-          <Text style={[styles.beneficioTexto, b.tipo === "cross" && styles.beneficioTextoTachado]}>
+          <IconoBeneficio tipo={b.tipo} c={c} />
+          <Text style={[styles.beneficioTexto, { color: c.textSecondary }, b.tipo === "cross" && [styles.beneficioTextoTachado, { color: c.textMuted }]]}>
             {b.texto}
           </Text>
         </View>
@@ -63,10 +65,10 @@ function ListaBeneficios({ beneficios }: { beneficios: { tipo: "check" | "warnin
 
 // Footer de total al final de cada tarjeta (Protección / Kilometraje /
 // Servicios). Mismo bloque visual en las tres, solo cambia el label.
-function FooterTotalTarjeta({ label, valor }: { label: string; valor: number }) {
+function FooterTotalTarjeta({ label, valor, c }: { label: string; valor: number; c: Tema }) {
   return (
-    <View style={styles.footerTotalTarjeta}>
-      <Text style={styles.footerTotalLabel}>{label}</Text>
+    <View style={[styles.footerTotalTarjeta, { borderTopColor: c.border }]}>
+      <Text style={[styles.footerTotalLabel, { color: c.textSecondary }]}>{label}</Text>
       <Text style={styles.footerTotalValor}>{formatPrecio(valor)}</Text>
     </View>
   );
@@ -76,6 +78,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
   // Nos suscribimos al store de moneda para re-renderizar los precios
   // cuando cambie COP↔USD o llegue una tasa nueva.
   useMonedaStore();
+  const c = useTemaColores();
   const planes = useReservaStore((s) => s.planes);
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const actualizarPlanes = useReservaStore((s) => s.actualizarPlanes);
@@ -138,8 +141,8 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
       {/* --- PROTECCIÓN --- */}
       {seguros.length > 0 && (
         <>
-          <Text style={styles.seccionLabel}>Elige tu protección</Text>
-          <View style={styles.card}>
+          <Text style={[styles.seccionLabel, { color: c.textMuted }]}>Elige tu protección</Text>
+          <View style={[styles.card, { backgroundColor: c.bgCard }]}>
             {seguros.map((seguro) => {
               const activo = planes.proteccion === seguro.nombre;
               const beneficios = BENEFICIOS_PROTECCION[seguro.nombre] ?? [];
@@ -147,32 +150,32 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
               return (
                 <TouchableOpacity
                   key={seguro.nombre}
-                  style={[styles.opcionCard, activo && styles.opcionCardActiva]}
+                  style={[styles.opcionCard, { borderColor: c.border }, activo && [styles.opcionCardActiva, { backgroundColor: c.primaryBg }]]}
                   onPress={() => actualizarPlanes({ proteccion: seguro.nombre })}
                   activeOpacity={0.8}
                 >
                   <View style={styles.opcionHeaderRow}>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.opcionTitulo, activo && styles.opcionTituloActiva]}>
+                      <Text style={[styles.opcionTitulo, { color: c.textSecondary }, activo && styles.opcionTituloActiva]}>
                         {seguro.nombre}
                       </Text>
-                      <Text style={[styles.opcionDesc, activo && styles.opcionDescActiva]}>
+                      <Text style={[styles.opcionDesc, { color: c.textMuted }, activo && styles.opcionDescActiva]}>
                         {formatPrecio(seguro.precio)} / día · {formatPrecio(seguro.precio * dias)} en {dias}{" "}
                         {dias === 1 ? "día" : "días"}
                       </Text>
                     </View>
-                    <View style={[styles.radio, activo && styles.radioActivo]}>
+                    <View style={[styles.radio, { borderColor: c.border }, activo && styles.radioActivo]}>
                       {activo && <View style={styles.radioPunto} />}
                     </View>
                   </View>
 
-                  <ListaBeneficios beneficios={beneficios} />
+                  <ListaBeneficios beneficios={beneficios} c={c} />
                 </TouchableOpacity>
               );
             })}
 
             {seguroElegido && (
-              <FooterTotalTarjeta label="Total protección" valor={totalProteccion} />
+              <FooterTotalTarjeta label="Total protección" valor={totalProteccion} c={c} />
             )}
           </View>
         </>
@@ -181,12 +184,12 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
       {/* --- TIPO DE KILÓMETROS --- */}
       {(kmLimitado || kmIlimitado) && (
         <>
-          <Text style={[styles.seccionLabel, { marginTop: 20 }]}>Tipo de kilómetraje</Text>
-          <Text style={styles.infoGeneral}>{INFO_KILOMETRAJE_COLOMBIA}</Text>
+          <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>Tipo de kilómetraje</Text>
+          <Text style={[styles.infoGeneral, { color: c.textMuted }]}>{INFO_KILOMETRAJE_COLOMBIA}</Text>
           <View style={styles.kmFila}>
             {kmLimitado && (
               <TouchableOpacity
-                style={[styles.kmOpcionCard, planes.tipoKilometraje === "limitado" && styles.opcionCardActiva]}
+                style={[styles.kmOpcionCard, { borderColor: c.border }, planes.tipoKilometraje === "limitado" && [styles.opcionCardActiva, { backgroundColor: c.primaryBg }]]}
                 onPress={() => actualizarPlanes({ tipoKilometraje: "limitado" })}
                 activeOpacity={0.8}
               >
@@ -195,6 +198,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                     <Text
                       style={[
                         styles.opcionTitulo,
+                        { color: c.textSecondary },
                         planes.tipoKilometraje === "limitado" && styles.opcionTituloActiva,
                       ]}
                     >
@@ -203,6 +207,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                     <Text
                       style={[
                         styles.opcionDesc,
+                        { color: c.textMuted },
                         planes.tipoKilometraje === "limitado" && styles.opcionDescActiva,
                       ]}
                     >
@@ -210,18 +215,18 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                       {kmLimitado.excedente ? ` · excedente ${formatPrecio(kmLimitado.excedente)}/km` : ""}
                     </Text>
                   </View>
-                  <View style={[styles.radio, planes.tipoKilometraje === "limitado" && styles.radioActivo]}>
+                  <View style={[styles.radio, { borderColor: c.border }, planes.tipoKilometraje === "limitado" && styles.radioActivo]}>
                     {planes.tipoKilometraje === "limitado" && <View style={styles.radioPunto} />}
                   </View>
                 </View>
 
-                <ListaBeneficios beneficios={BENEFICIOS_KILOMETRAJE.limitado} />
+                <ListaBeneficios beneficios={BENEFICIOS_KILOMETRAJE.limitado} c={c} />
               </TouchableOpacity>
             )}
 
             {kmIlimitado && (
               <TouchableOpacity
-                style={[styles.kmOpcionCard, planes.tipoKilometraje === "ilimitado" && styles.opcionCardActiva]}
+                style={[styles.kmOpcionCard, { borderColor: c.border }, planes.tipoKilometraje === "ilimitado" && [styles.opcionCardActiva, { backgroundColor: c.primaryBg }]]}
                 onPress={() => actualizarPlanes({ tipoKilometraje: "ilimitado" })}
                 activeOpacity={0.8}
               >
@@ -230,6 +235,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                     <Text
                       style={[
                         styles.opcionTitulo,
+                        { color: c.textSecondary },
                         planes.tipoKilometraje === "ilimitado" && styles.opcionTituloActiva,
                       ]}
                     >
@@ -238,25 +244,26 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                     <Text
                       style={[
                         styles.opcionDesc,
+                        { color: c.textMuted },
                         planes.tipoKilometraje === "ilimitado" && styles.opcionDescActiva,
                       ]}
                     >
                       Sin restricción de distancia · {formatPrecio(kmIlimitado.precio)} / día
                     </Text>
                   </View>
-                  <View style={[styles.radio, planes.tipoKilometraje === "ilimitado" && styles.radioActivo]}>
+                  <View style={[styles.radio, { borderColor: c.border }, planes.tipoKilometraje === "ilimitado" && styles.radioActivo]}>
                     {planes.tipoKilometraje === "ilimitado" && <View style={styles.radioPunto} />}
                   </View>
                 </View>
 
-                <ListaBeneficios beneficios={BENEFICIOS_KILOMETRAJE.ilimitado} />
+                <ListaBeneficios beneficios={BENEFICIOS_KILOMETRAJE.ilimitado} c={c} />
               </TouchableOpacity>
             )}
           </View>
 
           {kmElegido && (
-            <View style={styles.card}>
-              <FooterTotalTarjeta label="Total kilometraje" valor={totalKilometraje} />
+            <View style={[styles.card, { backgroundColor: c.bgCard }]}>
+              <FooterTotalTarjeta label="Total kilometraje" valor={totalKilometraje} c={c} />
             </View>
           )}
         </>
@@ -265,9 +272,9 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
       {/* --- SERVICIOS ADICIONALES (opcionales) --- */}
       {todosLosServicios.length > 0 && (
         <>
-          <Text style={[styles.seccionLabel, { marginTop: 20 }]}>Servicios adicionales</Text>
-          <View style={styles.card}>
-            <Text style={styles.serviciosSub}>Elige uno, varios o ninguno.</Text>
+          <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>Servicios adicionales</Text>
+          <View style={[styles.card, { backgroundColor: c.bgCard }]}>
+            <Text style={[styles.serviciosSub, { color: c.textMuted }]}>Elige uno, varios o ninguno.</Text>
 
             {todosLosServicios.map((servicio) => {
               const seleccionado = planes.serviciosSeleccionados.includes(servicio.nombre);
@@ -276,33 +283,33 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
               return (
                 <TouchableOpacity
                   key={servicio.nombre}
-                  style={[styles.servicioCard, seleccionado && styles.opcionCardActiva]}
+                  style={[styles.servicioCard, { borderColor: c.border }, seleccionado && [styles.opcionCardActiva, { backgroundColor: c.primaryBg }]]}
                   onPress={() => toggleServicioAdicional(servicio.nombre)}
                   activeOpacity={0.8}
                 >
                   <Ionicons
                     name={seleccionado ? "checkbox" : "square-outline"}
                     size={18}
-                    color={seleccionado ? COLOR_MARCA : COLORES.textMuted}
+                    color={seleccionado ? COLOR_MARCA : c.textMuted}
                   />
                   <Ionicons
                     name={icono as any}
                     size={14}
-                    color={seleccionado ? COLOR_MARCA : COLORES.textMuted}
+                    color={seleccionado ? COLOR_MARCA : c.textMuted}
                     style={{ marginLeft: 8, marginRight: 8 }}
                   />
-                  <Text style={[styles.servicioNombre, seleccionado && styles.opcionTituloActiva]} numberOfLines={2}>
+                  <Text style={[styles.servicioNombre, { color: c.textSecondary }, seleccionado && styles.opcionTituloActiva]} numberOfLines={2}>
                     {servicio.nombre}
                   </Text>
                   {servicio.precio > 0 && (
-                    <Text style={styles.servicioPrecio}>{formatPrecio(servicio.precio)}/día</Text>
+                    <Text style={[styles.servicioPrecio, { color: c.textMuted }]}>{formatPrecio(servicio.precio)}/día</Text>
                   )}
                 </TouchableOpacity>
               );
             })}
 
             {totalServicios > 0 && (
-              <FooterTotalTarjeta label="Total servicios adicionales" valor={totalServicios} />
+              <FooterTotalTarjeta label="Total servicios adicionales" valor={totalServicios} c={c} />
             )}
           </View>
         </>
@@ -314,33 +321,33 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
           no aparecer vacía apenas se entra al tab. --- */}
       {totalPlanes > 0 && (
         <>
-          <Text style={[styles.seccionLabel, { marginTop: 20 }]}>Resumen de planes</Text>
-          <View style={styles.card}>
+          <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>Resumen de planes</Text>
+          <View style={[styles.card, { backgroundColor: c.bgCard }]}>
             <View style={styles.resumenSubcard}>
               {seguroElegido && (
                 <View style={styles.lineaPrecio}>
-                  <Text style={styles.lineaLabel}>Protección — {seguroElegido.nombre}</Text>
-                  <Text style={styles.lineaValor}>{formatPrecio(totalProteccion)}</Text>
+                  <Text style={[styles.lineaLabel, { color: c.textSecondary }]}>Protección — {seguroElegido.nombre}</Text>
+                  <Text style={[styles.lineaValor, { color: c.textPrimary }]}>{formatPrecio(totalProteccion)}</Text>
                 </View>
               )}
               {kmElegido && (
                 <View style={styles.lineaPrecio}>
-                  <Text style={styles.lineaLabel}>
+                  <Text style={[styles.lineaLabel, { color: c.textSecondary }]}>
                     Kilometraje — {planes.tipoKilometraje === "limitado" ? "Limitado" : "Ilimitado"}
                   </Text>
-                  <Text style={styles.lineaValor}>{formatPrecio(totalKilometraje)}</Text>
+                  <Text style={[styles.lineaValor, { color: c.textPrimary }]}>{formatPrecio(totalKilometraje)}</Text>
                 </View>
               )}
               {totalServicios > 0 && (
                 <View style={styles.lineaPrecio}>
-                  <Text style={styles.lineaLabel}>Servicios adicionales</Text>
-                  <Text style={styles.lineaValor}>{formatPrecio(totalServicios)}</Text>
+                  <Text style={[styles.lineaLabel, { color: c.textSecondary }]}>Servicios adicionales</Text>
+                  <Text style={[styles.lineaValor, { color: c.textPrimary }]}>{formatPrecio(totalServicios)}</Text>
                 </View>
               )}
 
-              <View style={styles.subtotalBox}>
-                <Text style={styles.subtotalLabel}>Total planes ({dias} {dias === 1 ? "día" : "días"})</Text>
-                <Text style={styles.subtotalValor}>{formatPrecio(totalPlanes)}</Text>
+              <View style={[styles.subtotalBox, { backgroundColor: c.primaryBg }]}>
+                <Text style={[styles.subtotalLabel, { color: c.textPrimary }]}>Total planes ({dias} {dias === 1 ? "día" : "días"})</Text>
+                <Text style={[styles.subtotalValor, { color: c.textPrimary }]}>{formatPrecio(totalPlanes)}</Text>
               </View>
             </View>
           </View>
@@ -374,7 +381,6 @@ const styles = StyleSheet.create({
   seccionLabel: {
     fontSize: 12,
     fontWeight: "800",
-    color: COLORES.textMuted,
     letterSpacing: 0.3,
     textTransform: "uppercase",
     marginBottom: 8,
@@ -382,13 +388,11 @@ const styles = StyleSheet.create({
 
   infoGeneral: {
     fontSize: 10.5,
-    color: COLORES.textMuted,
     lineHeight: 15,
     marginBottom: 10,
   },
 
   card: {
-    backgroundColor: COLORES.panelBg,
     borderRadius: 16,
     padding: 16,
     marginBottom: 4,
@@ -401,7 +405,6 @@ const styles = StyleSheet.create({
 
   opcionCard: {
     borderWidth: 1,
-    borderColor: COLORES.panelBorderStrong,
     borderRadius: 10,
     padding: 12,
     marginBottom: 8,
@@ -409,7 +412,6 @@ const styles = StyleSheet.create({
   opcionCardActiva: {
     borderColor: COLOR_MARCA,
     borderWidth: 1.5,
-    backgroundColor: "#eef2fb",
   },
   kmFila: {
     flexDirection: "row",
@@ -419,22 +421,20 @@ const styles = StyleSheet.create({
   kmOpcionCard: {
     flex: 1,
     borderWidth: 1,
-    borderColor: COLORES.panelBorderStrong,
     borderRadius: 10,
     padding: 12,
   },
   opcionHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  opcionTitulo: { fontSize: 12.5, fontWeight: "700", color: COLORES.textSecondary },
-  opcionTituloActiva: { color: "#0c447c" },
-  opcionDesc: { fontSize: 10.5, color: COLORES.textMuted, marginTop: 4 },
-  opcionDescActiva: { color: "#185fa5" },
+  opcionTitulo: { fontSize: 12.5, fontWeight: "700" },
+  opcionTituloActiva: { color: "#3B82F6" },
+  opcionDesc: { fontSize: 10.5, marginTop: 4 },
+  opcionDescActiva: { color: "#60A5FA" },
 
   radio: {
     width: 16,
     height: 16,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: COLORES.panelBorderStrong,
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 8,
@@ -444,23 +444,22 @@ const styles = StyleSheet.create({
 
   beneficiosLista: { gap: 5, marginTop: 10 },
   beneficioFila: { flexDirection: "row", alignItems: "flex-start", gap: 6 },
-  beneficioTexto: { flex: 1, fontSize: 10.5, color: COLORES.textSecondary, lineHeight: 15 },
-  beneficioTextoTachado: { color: COLORES.textMuted, textDecorationLine: "line-through" },
+  beneficioTexto: { flex: 1, fontSize: 10.5, lineHeight: 15 },
+  beneficioTextoTachado: { textDecorationLine: "line-through" },
 
-  serviciosSub: { fontSize: 10, color: COLORES.textMuted, marginBottom: 8 },
+  serviciosSub: { fontSize: 10, marginBottom: 8 },
 
   servicioCard: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: COLORES.panelBorderStrong,
     borderRadius: 10,
     paddingVertical: 9,
     paddingHorizontal: 10,
     marginBottom: 8,
   },
-  servicioNombre: { flex: 1, fontSize: 11.5, fontWeight: "600", color: COLORES.textSecondary },
-  servicioPrecio: { fontSize: 10.5, fontWeight: "700", color: COLORES.textMuted, marginLeft: 6 },
+  servicioNombre: { flex: 1, fontSize: 11.5, fontWeight: "600" },
+  servicioPrecio: { fontSize: 10.5, fontWeight: "700", marginLeft: 6 },
 
   // Footer de total al final de cada tarjeta (Protección / Kilometraje
   // / Servicios) — línea separada arriba, label + valor destacado.
@@ -471,29 +470,27 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: COLORES.panelBorderStrong,
   },
-  footerTotalLabel: { fontSize: 12, fontWeight: "700", color: COLORES.textSecondary },
+  footerTotalLabel: { fontSize: 12, fontWeight: "700" },
   footerTotalValor: { fontSize: 14.5, fontWeight: "800", color: COLOR_MARCA },
 
   // Subtarjeta de resumen final (mismo lenguaje visual del desglose
   // en ResumenReservaModal: lineaPrecio + subtotalBox).
   resumenSubcard: {},
   lineaPrecio: { flexDirection: "row", justifyContent: "space-between", marginTop: 8 },
-  lineaLabel: { fontSize: 12, color: COLORES.textSecondary, flex: 1, marginRight: 8 },
-  lineaValor: { fontSize: 12, fontWeight: "700", color: COLORES.textPrimary },
+  lineaLabel: { fontSize: 12, flex: 1, marginRight: 8 },
+  lineaValor: { fontSize: 12, fontWeight: "700" },
   subtotalBox: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#F1F5FB",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginTop: 12,
   },
-  subtotalLabel: { fontSize: 12, fontWeight: "700", color: COLORES.textPrimary },
-  subtotalValor: { fontSize: 13, fontWeight: "800", color: COLORES.textPrimary },
+  subtotalLabel: { fontSize: 12, fontWeight: "700" },
+  subtotalValor: { fontSize: 13, fontWeight: "800" },
 
   confirmarBtnWrap: {
     alignSelf: "center",

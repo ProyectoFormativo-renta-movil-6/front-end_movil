@@ -11,6 +11,7 @@ import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { COLORES } from "../constants/reserva.constants";
 import { useMonedaStore } from "@/store/monedaStore";
 import { formatCurrency } from "@/utils/monedaUtils";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -39,6 +40,7 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
   // Nos suscribimos al store de moneda para re-renderizar los precios
   // cuando cambie COP↔USD o llegue una tasa nueva.
   useMonedaStore();
+  const c = useTemaColores();
   const [fotoActiva, setFotoActiva] = useState(0);
   const imagenes = getSafeImages(vehiculo);
 
@@ -80,8 +82,8 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.imagenPrincipal}>
+    <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+      <View style={[styles.imagenPrincipal, { backgroundColor: c.bgInput }]}>
         {imagenes.length > 0 ? (
           <>
             <Image
@@ -120,13 +122,13 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
         </View>
       )}
 
-      <View style={styles.separador} />
+      <View style={[styles.separador, { backgroundColor: c.border }]} />
 
       <View style={styles.filaNombrePrecio}>
-        <Text style={styles.nombre} numberOfLines={1}>{vehiculo.nombre}</Text>
-        <Text style={styles.precio}>
+        <Text style={[styles.nombre, { color: c.textPrimary }]} numberOfLines={1}>{vehiculo.nombre}</Text>
+        <Text style={[styles.precio, { color: c.textPrimary }]}>
           {formatPrecio(vehiculo.precio)}
-          <Text style={styles.precioDia}>/día</Text>
+          <Text style={[styles.precioDia, { color: c.textMuted }]}>/día</Text>
         </Text>
       </View>
 
@@ -149,21 +151,21 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
         {specs.map((s, i) => (
           <View key={i} style={styles.specItem}>
             {s.icono}
-            <Text style={styles.specText}>{s.label}</Text>
+            <Text style={[styles.specText, { color: c.textSecondary }]}>{s.label}</Text>
           </View>
         ))}
       </View>
 
       {filasCaracteristicas.length > 0 && (
         <>
-          <Text style={styles.seccionLabel}>CARACTERÍSTICAS</Text>
+          <Text style={[styles.seccionLabel, { color: c.textMuted }]}>CARACTERÍSTICAS</Text>
           <View style={styles.caracteristicasGrid}>
             {filasCaracteristicas.map((fila, fi) => (
               <View key={fi} style={styles.caracteristicasFila}>
                 {fila.map((item, ci) => (
-                  <View key={ci} style={styles.caracteristicaChip}>
+                  <View key={ci} style={[styles.caracteristicaChip, { backgroundColor: c.bgInput, borderColor: c.border }]}>
                     {item.icono}
-                    <Text style={styles.caracteristicaChipText} numberOfLines={1}>{item.label}</Text>
+                    <Text style={[styles.caracteristicaChipText, { color: c.textSecondary }]} numberOfLines={1}>{item.label}</Text>
                   </View>
                 ))}
                 {fila.length === 1 && <View style={styles.caracteristicaChipVacio} />}

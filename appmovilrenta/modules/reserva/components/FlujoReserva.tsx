@@ -16,6 +16,7 @@ import TabsSeccion, { SeccionReserva } from "./TabsSeccion";
 import PlanesAdicionales from "./PlanesAdicionales";
 import FormDatosPersonales from "./FormDatosPersonales";
 import { AlertModal } from "../../../components/ui/AlertModal";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -23,6 +24,7 @@ interface Props {
 
 export default function FlujoReserva({ vehiculo }: Props) {
   const insets = useSafeAreaInsets();
+  const c = useTemaColores();
 
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const planes = useReservaStore((s) => s.planes);
@@ -78,15 +80,15 @@ export default function FlujoReserva({ vehiculo }: Props) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.topRow}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
+      <View style={[styles.topRow, { backgroundColor: c.bgCard }]}>
         <TouchableOpacity onPress={handleVolver} style={styles.volverBtn}>
-          <Ionicons name="chevron-back" size={16} color={COLOR_MARCA} />
-          <Text style={styles.volverText}>Volver</Text>
+          <Ionicons name="chevron-back" size={16} color={c.primary} />
+          <Text style={[styles.volverText, { color: c.primary }]}>Volver</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.resumenBtn} onPress={() => setModalResumenVisible(true)}>
-          <Text style={styles.resumenBtnText}>Resumen reserva</Text>
+        <TouchableOpacity style={[styles.resumenBtn, { borderColor: c.primary, backgroundColor: c.bgCard }]} onPress={() => setModalResumenVisible(true)}>
+          <Text style={[styles.resumenBtnText, { color: c.primary }]}>Resumen reserva</Text>
         </TouchableOpacity>
       </View>
 
@@ -116,10 +118,10 @@ export default function FlujoReserva({ vehiculo }: Props) {
         >
           {seccionActiva === "fechas" && (
             <>
-              <Text style={styles.seccionLabel}>Datos del vehículo</Text>
+              <Text style={[styles.seccionLabel, { color: c.textMuted }]}>Datos del vehículo</Text>
               <VehiculoResumenCard vehiculo={vehiculo} />
 
-              <Text style={[styles.seccionLabel, { marginTop: 20 }]}>Seleccionar fechas y lugar</Text>
+              <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>Seleccionar fechas y lugar</Text>
               <FormFechasLugar vehiculo={vehiculo} />
 
               <TouchableOpacity style={styles.continuarBtnWrap} onPress={handleVerPlanes} activeOpacity={0.85}>
