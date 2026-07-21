@@ -317,5 +317,12 @@ export default {
     oscuro: '🌙 Escuro',
     moneda: 'Moeda',
     monedaSub: 'Os preços são apresentados na moeda selecionada',
+    monedaUsdTitulo: 'A cobrança é sempre em COP',
+    monedaUsdParte1: 'Está a ver os preços em ',
+    monedaUsdDolares: 'dólares (USD)',
+    monedaUsdParte2: ' apenas como referência visual.',
+    monedaUsdParte3: 'A cobrança real através da Wompi é sempre feita em ',
+    monedaUsdPesos: 'pesos colombianos (COP)',
+    monedaUsdParte4: ', de acordo com a taxa de câmbio do momento.',
   },
 }

@@ -48,6 +48,13 @@ interface ColoresTema {
   textMuted: string;
   primaryBg: string;
   primary: string;
+  /** Si el tema activo de la app es oscuro. Se usa para fijar el
+   *  color-scheme del <input type="date"> nativo del navegador — sin
+   *  esto, el navegador decide con la preferencia del SISTEMA operativo,
+   *  no con el tema elegido dentro de la app, y eso puede volver
+   *  invisibles el texto/ícono del selector cuando ambos no coinciden
+   *  (ej: app en modo claro pero el SO en modo oscuro). */
+  oscuro?: boolean;
 }
 
 interface Props {
@@ -104,7 +111,14 @@ export function DateField({
             outline: "none",
             width: "100%",
             boxSizing: "border-box",
-            colorScheme: "auto",
+            // Antes: "auto" — dejaba que el navegador eligiera el color
+            // del texto/ícono del calendario según el modo del SISTEMA
+            // operativo. Si el usuario tenía el celular/PC en modo
+            // oscuro pero la app en modo CLARO, el navegador pintaba el
+            // valor y el ícono en blanco sobre el fondo claro del input,
+            // haciéndolos invisibles. Ahora se fija según el tema real
+            // de la app.
+            colorScheme: c.oscuro ? "dark" : "light",
           },
         })}
         {error ? <Text style={s.error}>{error}</Text> : null}

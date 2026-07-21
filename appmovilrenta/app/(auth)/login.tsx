@@ -10,6 +10,7 @@ import { useLogin } from "@/modules/auth/hooks/useAuth";
 import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
 import { useAuthStore } from "@/store/authStore";
 import { useUsuarioStore } from "@/store/usuarioStore";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -44,6 +45,7 @@ const BENEFICIOS = [
 
 export default function LoginScreen() {
   const { t } = useTranslation();
+  const c = useTemaColores();
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<Tab>("login");
   const { form, errores, cargando, bloqueado, actualizarCampo, iniciarSesion } =
@@ -103,9 +105,9 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.flex}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
 
-      <View style={{ height: insets.top, backgroundColor: "#FFFFFF" }} />
+      <View style={{ height: insets.top, backgroundColor: c.bgHeader }} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -121,20 +123,20 @@ export default function LoginScreen() {
         >
           <View>
             {/* BARRA SUPERIOR BLANCA */}
-            <View style={styles.topBar}>
+            <View style={[styles.topBar, { backgroundColor: c.bgHeader }]}>
               <TouchableOpacity
                 style={styles.volverBtn}
                 onPress={() => router.back()}
               >
-                <Ionicons name="chevron-back" size={20} color="#1E3A8A" />
-                <Text style={styles.volverTexto}>Volver</Text>
+                <Ionicons name="chevron-back" size={20} color={c.primary} />
+                <Text style={[styles.volverTexto, { color: c.primary }]}>Volver</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.invitadoBtn}
+                style={[styles.invitadoBtn, { backgroundColor: c.bgHeader, borderColor: c.primary }]}
                 onPress={handleInvitado}
               >
-                <Text style={styles.invitadoBtnTexto}>Modo invitado</Text>
+                <Text style={[styles.invitadoBtnTexto, { color: c.primary }]}>Modo invitado</Text>
               </TouchableOpacity>
             </View>
 
@@ -202,10 +204,10 @@ export default function LoginScreen() {
                     />
                   </View>
 
-                  <View style={styles.card}>
+                  <View style={[styles.card, { backgroundColor: c.bgCard }]}>
                     <View style={styles.encabezado}>
-                      <Text style={styles.titulo}>Iniciar sesión</Text>
-                      <Text style={styles.subtitulo}>
+                      <Text style={[styles.titulo, { color: c.textPrimary }]}>Iniciar sesión</Text>
+                      <Text style={[styles.subtitulo, { color: c.textSecondary }]}>
                         Ingresa tus credenciales para continuar
                       </Text>
                     </View>
@@ -268,13 +270,13 @@ export default function LoginScreen() {
                     </View>
 
                     <View style={loginLocalS.registroRow}>
-                      <Text style={loginLocalS.registroTexto}>
+                      <Text style={[loginLocalS.registroTexto, { color: c.textSecondary }]}>
                         ¿No tienes cuenta?{" "}
                       </Text>
                       <TouchableOpacity
                         onPress={() => router.push("/(auth)/registro")}
                       >
-                        <Text style={loginLocalS.registroLink}>
+                        <Text style={[loginLocalS.registroLink, { color: c.primary }]}>
                           Regístrate aquí
                         </Text>
                       </TouchableOpacity>
@@ -290,10 +292,10 @@ export default function LoginScreen() {
                     />
                   </View>
 
-                  <View style={styles.card}>
+                  <View style={[styles.card, { backgroundColor: c.bgCard }]}>
                     <View style={styles.encabezado}>
-                      <Text style={styles.titulo}>Bienvenido de vuelta</Text>
-                      <Text style={styles.subtitulo}>
+                      <Text style={[styles.titulo, { color: c.textPrimary }]}>Bienvenido de vuelta</Text>
+                      <Text style={[styles.subtitulo, { color: c.textSecondary }]}>
                         Gestiona tus reservas, pagos y contratos desde un solo
                         lugar.
                       </Text>
@@ -318,7 +320,7 @@ export default function LoginScreen() {
 
                     <View style={styles.beneficiosCol}>
                       {BENEFICIOS.map((b) => (
-                        <Text key={b} style={styles.beneficioTexto}>
+                        <Text key={b} style={[styles.beneficioTexto, { color: c.textPrimary }]}>
                           {b}
                         </Text>
                       ))}
@@ -336,7 +338,7 @@ export default function LoginScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View style={{ height: insets.bottom, backgroundColor: "#FFFFFF" }} />
+      <View style={{ height: insets.bottom, backgroundColor: "#1E3A8A" }} />
 
       {/* ── ALERTA DE ERROR (mismo diseño y color que catálogo) ── */}
       <AlertModal

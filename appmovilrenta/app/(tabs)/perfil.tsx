@@ -34,6 +34,8 @@ import { useUsuarioStore } from "@/store/usuarioStore";
 import { eliminarUsuarioDemo } from "@/mocks/usuariosDemo";
 import { DateField } from "@/components/ui/DateField";
 import { useMoneda } from "@/hooks/useMoneda";
+import { AlertModal } from "@/components/ui/AlertModal";
+import { Moneda } from "@/utils/monedaUtils";
 
 export default function PerfilScreen() {
   const { t } = useTranslation();
@@ -43,6 +45,15 @@ export default function PerfilScreen() {
   const insets = useSafeAreaInsets();
   const [editando, setEditando] = useState(false);
   const [completando, setCompletando] = useState(false);
+  const [mostrarAvisoUSD, setMostrarAvisoUSD] = useState(false);
+
+  // Al elegir USD, la moneda solo cambia la referencia visual de los
+  // precios; el cobro real con Wompi siempre se hace en COP. Se avisa
+  // con un modal cada vez que la persona selecciona USD.
+  const handleCambiarMoneda = (moneda: Moneda) => {
+    cambiarMoneda(moneda);
+    if (moneda === "USD") setMostrarAvisoUSD(true);
+  };
 
   const authUsuario = useAuthStore((s) => s.usuario);
   const cerrarSesionAuth = useAuthStore((s) => s.cerrarSesion);
@@ -196,7 +207,7 @@ export default function PerfilScreen() {
       <View style={configStyles.temaRow}>
         <TouchableOpacity
           style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, monedaActual === "COP" && configStyles.temaBtnActivo]}
-          onPress={() => cambiarMoneda("COP")}
+          onPress={() => handleCambiarMoneda("COP")}
         >
           <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, monedaActual === "COP" && configStyles.temaBtnTextoActivo]}>
             🇨🇴 COP
@@ -204,7 +215,7 @@ export default function PerfilScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, monedaActual === "USD" && configStyles.temaBtnActivo]}
-          onPress={() => cambiarMoneda("USD")}
+          onPress={() => handleCambiarMoneda("USD")}
         >
           <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, monedaActual === "USD" && configStyles.temaBtnTextoActivo]}>
             🇺🇸 USD
@@ -484,7 +495,7 @@ export default function PerfilScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.menuItem, styles.menuItemBorder, { borderBottomColor: c.borderLight }]}
+            style={styles.menuItem}
             onPress={() => setMostrarModalCorreo(true)}
           >
             <View style={[styles.menuIconWrap, { backgroundColor: c.primaryBg }]}>
@@ -493,17 +504,6 @@ export default function PerfilScreen() {
             <View style={styles.menuTextos}>
               <Text style={[styles.menuLabel, { color: c.textPrimary }]}>{t("perfil.seguridad")}</Text>
               <Text style={[styles.menuSub, { color: c.textMuted }]}>{t("perfil.seguridadSub")}</Text>
-            </View>
-            <Text style={[styles.menuArrow, { color: c.textMuted }]}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={() => console.log("Tarjetas")}>
-            <View style={[styles.menuIconWrap, { backgroundColor: c.primaryBg }]}>
-              <Text style={styles.menuIcon}>💳</Text>
-            </View>
-            <View style={styles.menuTextos}>
-              <Text style={[styles.menuLabel, { color: c.textPrimary }]}>{t("perfil.tarjetas")}</Text>
-              <Text style={[styles.menuSub, { color: c.textMuted }]}>{t("perfil.tarjetasSub")}</Text>
             </View>
             <Text style={[styles.menuArrow, { color: c.textMuted }]}>›</Text>
           </TouchableOpacity>
@@ -542,6 +542,26 @@ export default function PerfilScreen() {
         onCambiar={actualizarCampoCorreo}
         onGuardar={handleGuardarCorreo}
         onCerrar={cerrarModalCorreo}
+      />
+
+      {/* Aviso al elegir USD: el cobro real siempre se hace en COP */}
+      <AlertModal
+        visible={mostrarAvisoUSD}
+        icono="information-circle-outline"
+        titulo={t("config.monedaUsdTitulo")}
+        mensaje=""
+        contenido={
+          <Text style={{ fontSize: 13.5, color: "#4B5563", textAlign: "center", lineHeight: 20, marginBottom: 24, marginTop: -16 }}>
+            {t("config.monedaUsdParte1")}
+            <Text style={{ fontWeight: "700" }}>{t("config.monedaUsdDolares")}</Text>
+            {t("config.monedaUsdParte2")}
+            {"\n\n"}
+            {t("config.monedaUsdParte3")}
+            <Text style={{ fontWeight: "700" }}>{t("config.monedaUsdPesos")}</Text>
+            {t("config.monedaUsdParte4")}
+          </Text>
+        }
+        onCerrar={() => setMostrarAvisoUSD(false)}
       />
     </View>
   );
