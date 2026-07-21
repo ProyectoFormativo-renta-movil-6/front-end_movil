@@ -57,7 +57,7 @@ export default function OnboardingScreen1() {
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
         ]}
       >
-        <Text style={styles.title}>¡Bienvenido a{"\n"}RentaMovil!</Text>
+        <Text style={styles.title}>¡Bienvenido a{"\n"}Drivique!</Text>
         <Text style={styles.subtitle}>
           Tu libertad sobre ruedas comienza aquí.
         </Text>

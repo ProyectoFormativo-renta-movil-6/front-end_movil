@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -10,6 +11,7 @@ import {
   Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -55,7 +57,7 @@ export default function RegistroScreen() {
     return (
       <View style={[styles.flex, { backgroundColor: c.bg, alignItems: 'center', justifyContent: 'center', padding: 32 }]}>
         <View style={[exitoS.circulo, { backgroundColor: c.primaryBg }]}>
-          <Text style={exitoS.check}>✓</Text>
+          <Ionicons name="checkmark-circle" size={64} color="#10B981" />
         </View>
         <Text style={[exitoS.titulo, { color: c.textPrimary }]}>{t('auth.registro.exitoTitulo')}</Text>
         <Text style={[exitoS.msg, { color: c.textSecondary }]}>{t('auth.registro.exitoMsg')}</Text>
@@ -94,81 +96,117 @@ export default function RegistroScreen() {
           onPress={() => router.canGoBack() ? router.back() : router.replace('/(auth)/login')}
           style={newS.backBtn}
         >
-          <Text style={newS.backTxt}>←</Text>
+          <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={newS.titulo}>{t('auth.registro.titulo')}</Text>
         <Text style={newS.subtitulo}>{t('auth.registro.subtitulo')}</Text>
       </LinearGradient>
 
-      {/* ── Sheet blanca ────────────────────────────────────── */}
-      <View style={[newS.sheet, { backgroundColor: c.bg }]}>
+      {/* ── Sheet blanca con card flotante (mismo lenguaje visual del login) ── */}
+      <View style={[newS.sheet, { backgroundColor: '#1e3a8a' }]}>
         <ScrollView
-          contentContainerStyle={newS.sheetContent}
+          contentContainerStyle={newS.sheetScroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Correo */}
-          <InputField
-            label={t('auth.registro.correo')}
-            placeholder="ejemplo@correo.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={form.correo}
-            onChangeText={val => actualizarCampo('correo', val)}
-            onBlur={() => setCorreoTocado(true)}
-            error={errorCorreo}
-          />
+          <View style={newS.cardWrapper}>
+            <View style={newS.logoBadge}>
+              <Image
+                source={require('@/assets/images/logo.png')}
+                style={newS.logoBadgeImg}
+              />
+            </View>
 
-          {/* Contraseña */}
-          <PasswordInput
-            label={t('auth.registro.contrasena')}
-            placeholder={t('auth.registro.contrasena')}
-            value={form.contrasena}
-            onChangeText={val => actualizarCampo('contrasena', val)}
-            error={getError('contrasena')}
-          />
-          <PasswordRequirements password={form.contrasena} />
-          <PasswordInput
-            label={t('auth.registro.confirmarContrasena')}
-            placeholder={t('auth.registro.confirmarContrasena')}
-            value={form.confirmarContrasena}
-            onChangeText={val => actualizarCampo('confirmarContrasena', val)}
-            error={getError('confirmarContrasena')}
-          />
+            <View style={[newS.card, { backgroundColor: c.bgCard }]}>
+              {/* Datos de acceso */}
+              <View style={newS.seccion}>
+                <View style={newS.seccionHeader}>
+                  <View style={[newS.seccionIcono, { backgroundColor: c.primaryBg }]}>
+                    <Ionicons name="person-outline" size={14} color={c.primary} />
+                  </View>
+                  <Text style={[newS.seccionTitulo, { color: c.textPrimary }]}>Datos de acceso</Text>
+                </View>
 
-          {/* Términos */}
-          <View style={styles.filaTerminos}>
-            <TouchableOpacity
-              onPress={() => actualizarCampo('aceptaTerminos', !form.aceptaTerminos)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.checkbox, form.aceptaTerminos && styles.checkboxActivo]}>
-                {form.aceptaTerminos ? <Text style={styles.checkmark}>✓</Text> : null}
+                <InputField
+                  label={t('auth.registro.correo')}
+                  placeholder="ejemplo@correo.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={form.correo}
+                  onChangeText={val => actualizarCampo('correo', val)}
+                  onBlur={() => setCorreoTocado(true)}
+                  error={errorCorreo}
+                />
               </View>
-            </TouchableOpacity>
-            <Text style={[styles.textoTerminos, { color: c.textSecondary }]}>
-              {t('auth.registro.terminosAcepto')}{' '}
-              <Text style={styles.enlaceTerminos} onPress={() => setModalTerminos(true)}>
-                {t('auth.registro.terminosLink')}
-              </Text>
-              {' '}{t('auth.registro.terminosDel')}
-            </Text>
-          </View>
-          {getError('aceptaTerminos') ? (
-            <Text style={styles.errorTerminos}>{getError('aceptaTerminos')}</Text>
-          ) : null}
 
-          {/* Botón */}
-          <View style={styles.pieFormulario}>
-            <PrimaryButton
-              titulo={t('auth.registro.btnCrear')}
-              onPress={handleRegistrar}
-              cargando={cargando}
-            />
-            <SocialAuthButtons
-              onGoogle={() => console.log('Google registro')}
-              onFacebook={() => console.log('Facebook registro')}
-            />
+              {/* Seguridad */}
+              <View style={newS.seccion}>
+                <View style={newS.seccionHeader}>
+                  <View style={[newS.seccionIcono, { backgroundColor: c.primaryBg }]}>
+                    <Ionicons name="lock-closed-outline" size={14} color={c.primary} />
+                  </View>
+                  <Text style={[newS.seccionTitulo, { color: c.textPrimary }]}>Seguridad</Text>
+                </View>
+
+                <PasswordInput
+                  label={t('auth.registro.contrasena')}
+                  placeholder={t('auth.registro.contrasena')}
+                  value={form.contrasena}
+                  onChangeText={val => actualizarCampo('contrasena', val)}
+                  error={getError('contrasena')}
+                />
+                <PasswordRequirements password={form.contrasena} />
+                <PasswordInput
+                  label={t('auth.registro.confirmarContrasena')}
+                  placeholder={t('auth.registro.confirmarContrasena')}
+                  value={form.confirmarContrasena}
+                  onChangeText={val => actualizarCampo('confirmarContrasena', val)}
+                  error={getError('confirmarContrasena')}
+                />
+              </View>
+
+              {/* Términos */}
+              <View style={[styles.filaTerminos, newS.filaTerminosBox, { backgroundColor: c.primaryBg }]}>
+                <TouchableOpacity
+                  onPress={() => actualizarCampo('aceptaTerminos', !form.aceptaTerminos)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.checkbox, form.aceptaTerminos && styles.checkboxActivo]}>
+                    {form.aceptaTerminos ? <Ionicons name="checkmark" size={14} color="#FFFFFF" /> : null}
+                  </View>
+                </TouchableOpacity>
+                <Text style={[styles.textoTerminos, { color: c.textSecondary }]}>
+                  {t('auth.registro.terminosAcepto')}{' '}
+                  <Text style={styles.enlaceTerminos} onPress={() => setModalTerminos(true)}>
+                    {t('auth.registro.terminosLink')}
+                  </Text>
+                  {' '}{t('auth.registro.terminosDel')}
+                </Text>
+              </View>
+              {getError('aceptaTerminos') ? (
+                <Text style={styles.errorTerminos}>{getError('aceptaTerminos')}</Text>
+              ) : null}
+
+              {/* Botón */}
+              <View style={styles.pieFormulario}>
+                <PrimaryButton
+                  titulo={t('auth.registro.btnCrear')}
+                  onPress={handleRegistrar}
+                  cargando={cargando}
+                />
+                <SocialAuthButtons
+                  onGoogle={() => console.log('Google registro')}
+                  onFacebook={() => console.log('Facebook registro')}
+                />
+              </View>
+
+              <View style={newS.loginRow}>
+                <Text style={[newS.loginTexto, { color: c.textSecondary }]}>¿Ya tienes cuenta? </Text>
+                <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
+                  <Text style={[newS.loginLink, { color: c.primary }]}>Inicia sesión</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </ScrollView>
       </View>
@@ -184,7 +222,7 @@ export default function RegistroScreen() {
                 style={styles.modalBotonCerrar}
                 onPress={() => setModalTerminos(false)}
               >
-                <Text style={styles.modalBotonCerrarTexto}>✕</Text>
+                <Ionicons name="close" size={16} color="#6B7280" />
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
@@ -226,24 +264,19 @@ export default function RegistroScreen() {
 const newS = StyleSheet.create({
   header: {
     paddingHorizontal: 24,
-    paddingBottom: 32,
+    paddingBottom: 40,
   },
   backBtn: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
   },
-  backTxt: {
-    fontSize: 20,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
   titulo: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '800',
     color: '#FFFFFF',
     marginBottom: 6,
@@ -251,33 +284,101 @@ const newS = StyleSheet.create({
   subtitulo: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.75)',
+    lineHeight: 20,
   },
   sheet: {
     flex: 1,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    overflow: 'hidden',
   },
-  sheetContent: {
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 48,
+  sheetScroll: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 32,
+  },
+  cardWrapper: {
+    position: 'relative',
+  },
+  logoBadge: {
+    position: 'absolute',
+    top: -34,
+    right: 24,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  logoBadgeImg: {
+    width: 42,
+    height: 42,
+    resizeMode: 'contain',
+  },
+  card: {
+    borderRadius: 24,
+    paddingHorizontal: 22,
+    paddingTop: 36,
+    paddingBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  seccion: {
+    marginBottom: 18,
+  },
+  seccionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  seccionIcono: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  seccionTitulo: {
+    fontSize: 13,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  filaTerminosBox: {
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 4,
+  },
+  loginRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 18,
+  },
+  loginTexto: {
+    fontSize: 13.5,
+  },
+  loginLink: {
+    fontSize: 13.5,
+    fontWeight: '700',
   },
 });
 
 const exitoS = StyleSheet.create({
   circulo: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
-  },
-  check: {
-    fontSize: 42,
-    color: '#10B981',
-    fontWeight: '800',
   },
   titulo: {
     fontSize: 26,

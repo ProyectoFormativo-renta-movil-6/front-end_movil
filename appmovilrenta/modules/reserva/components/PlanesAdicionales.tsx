@@ -40,9 +40,9 @@ function calcularDias(fechaRetiro: string | null, fechaDevolucion: string | null
 }
 
 function IconoBeneficio({ tipo, c }: { tipo: "check" | "warning" | "cross"; c: Tema }) {
-  if (tipo === "check") return <Ionicons name="checkmark-circle" size={13} color={COLOR_MARCA} />;
-  if (tipo === "warning") return <Ionicons name="alert-circle" size={13} color={c.textSecondary} />;
-  return <Ionicons name="close-circle-outline" size={13} color={c.textMuted} />;
+  if (tipo === "check") return <Ionicons name="checkmark-circle" size={13} color="#16a34a" />;
+  if (tipo === "warning") return <Ionicons name="alert-circle" size={13} color="#f59e0b" />;
+  return <Ionicons name="close-circle" size={13} color="#dc2626" />;
 }
 
 // Lista de beneficios reutilizable — mismo bloque visual usado en

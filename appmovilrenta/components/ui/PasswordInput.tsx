@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, TextInputProps } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { passwordInputStyles as styles } from './PasswordInput.styles';
 
 interface Props extends TextInputProps {
@@ -27,7 +28,7 @@ export function PasswordInput({ label, error, ...props }: Props) {
           style={styles.botonOjo}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={styles.textoOjo}>{visible ? '🙈' : '👁️'}</Text>
+          <Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color="#6B7280" />
         </TouchableOpacity>
       </View>
       {error ? <Text style={styles.textoError}>{error}</Text> : null}

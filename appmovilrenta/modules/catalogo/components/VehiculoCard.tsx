@@ -168,7 +168,7 @@ function VehiculoCard({
           <Ionicons
             name={esFavorito ? "heart" : "heart-outline"}
             size={18}
-            color={esFavorito ? COLORES.accentText : c.textMuted}
+            color={esFavorito ? "#ef4444" : c.textMuted}
           />
         </TouchableOpacity>
 

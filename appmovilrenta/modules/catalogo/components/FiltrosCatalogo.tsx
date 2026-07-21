@@ -160,7 +160,7 @@ export default function FiltrosCatalogo({
                 <Ionicons
                   name="heart"
                   size={15}
-                  color={soloFavoritos ? "#fff" : primaryAccent}
+                  color={soloFavoritos ? "#fff" : "#ef4444"}
                 />
                 <Text
                   style={[
