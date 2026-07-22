@@ -31,21 +31,25 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Tab = "login" | "bienvenida";
 
-const ACCESOS = [
-  { icono: "calendar-outline", texto: "Mis\nreservas" },
-  { icono: "card-outline", texto: "Mis\npagos" },
-  { icono: "document-text-outline", texto: "Mis\ncontratos" },
-];
-
-const BENEFICIOS = [
-  "Reserva en minutos",
-  "Paga con Nequi o PSE",
-  "Contrato digital inmediato",
+const ICONOS_ACCESOS: { icono: string }[] = [
+  { icono: "calendar-outline" },
+  { icono: "card-outline" },
+  { icono: "document-text-outline" },
 ];
 
 export default function LoginScreen() {
   const { t } = useTranslation();
   const c = useTemaColores();
+  const ACCESOS = [
+    { icono: ICONOS_ACCESOS[0].icono, texto: t("auth.login.accesoMisReservas") },
+    { icono: ICONOS_ACCESOS[1].icono, texto: t("auth.login.accesoMisPagos") },
+    { icono: ICONOS_ACCESOS[2].icono, texto: t("auth.login.accesoMisContratos") },
+  ];
+  const BENEFICIOS = [
+    t("auth.login.beneficio1"),
+    t("auth.login.beneficio2"),
+    t("auth.login.beneficio3"),
+  ];
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<Tab>("login");
   const { form, errores, cargando, bloqueado, actualizarCampo, iniciarSesion } =
@@ -129,14 +133,14 @@ export default function LoginScreen() {
                 onPress={() => router.back()}
               >
                 <Ionicons name="chevron-back" size={20} color={c.primary} />
-                <Text style={[styles.volverTexto, { color: c.primary }]}>Volver</Text>
+                <Text style={[styles.volverTexto, { color: c.primary }]}>{t("auth.login.volver")}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.invitadoBtn, { backgroundColor: c.bgHeader, borderColor: c.primary }]}
                 onPress={handleInvitado}
               >
-                <Text style={[styles.invitadoBtnTexto, { color: c.primary }]}>Modo invitado</Text>
+                <Text style={[styles.invitadoBtnTexto, { color: c.primary }]}>{t("auth.login.modoInvitado")}</Text>
               </TouchableOpacity>
             </View>
 
@@ -151,7 +155,7 @@ export default function LoginScreen() {
               <View style={styles.marcaWrapper}>
                 <Text style={styles.marca}>Drivique</Text>
                 <Text style={styles.marcaTagline}>
-                  Distintivo, elegante y memorable
+                  {t("auth.login.tagline")}
                 </Text>
               </View>
 
@@ -170,7 +174,7 @@ export default function LoginScreen() {
                       tab === "login" && styles.tabBtnTextoActivo,
                     ]}
                   >
-                    Iniciar sesión
+                    {t("auth.login.tabIniciarSesion")}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -186,7 +190,7 @@ export default function LoginScreen() {
                       tab === "bienvenida" && styles.tabBtnTextoActivo,
                     ]}
                   >
-                    Bienvenida
+                    {t("auth.login.tabBienvenida")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -206,9 +210,9 @@ export default function LoginScreen() {
 
                   <View style={[styles.card, { backgroundColor: c.bgCard }]}>
                     <View style={styles.encabezado}>
-                      <Text style={[styles.titulo, { color: c.textPrimary }]}>Iniciar sesión</Text>
+                      <Text style={[styles.titulo, { color: c.textPrimary }]}>{t("auth.login.titulo")}</Text>
                       <Text style={[styles.subtitulo, { color: c.textSecondary }]}>
-                        Ingresa tus credenciales para continuar
+                        {t("auth.login.ingresaCredenciales")}
                       </Text>
                     </View>
 
@@ -264,20 +268,20 @@ export default function LoginScreen() {
                       ) : null}
 
                       <SocialAuthButtons
-                        onGoogle={() => console.log("Google login")}
-                        onFacebook={() => console.log("Facebook login")}
+                        onGoogle={() => {}}
+                        onFacebook={() => {}}
                       />
                     </View>
 
                     <View style={loginLocalS.registroRow}>
                       <Text style={[loginLocalS.registroTexto, { color: c.textSecondary }]}>
-                        ¿No tienes cuenta?{" "}
+                        {t("auth.login.noTienesCuenta")}
                       </Text>
                       <TouchableOpacity
                         onPress={() => router.push("/(auth)/registro")}
                       >
                         <Text style={[loginLocalS.registroLink, { color: c.primary }]}>
-                          Regístrate aquí
+                          {t("auth.login.registrateAqui")}
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -294,10 +298,9 @@ export default function LoginScreen() {
 
                   <View style={[styles.card, { backgroundColor: c.bgCard }]}>
                     <View style={styles.encabezado}>
-                      <Text style={[styles.titulo, { color: c.textPrimary }]}>Bienvenido de vuelta</Text>
+                      <Text style={[styles.titulo, { color: c.textPrimary }]}>{t("auth.login.bienvenidoDeVuelta")}</Text>
                       <Text style={[styles.subtitulo, { color: c.textSecondary }]}>
-                        Gestiona tus reservas, pagos y contratos desde un solo
-                        lugar.
+                        {t("auth.login.gestionaDesde")}
                       </Text>
                     </View>
 
@@ -344,11 +347,11 @@ export default function LoginScreen() {
       <AlertModal
         visible={alertaErrorVisible}
         icono="alert-circle-outline"
-        titulo="No pudimos iniciar sesión"
-        mensaje={errorGlobal ?? "Revisa tus credenciales e inténtalo de nuevo."}
+        titulo={t("auth.login.errorTitulo")}
+        mensaje={errorGlobal ?? t("auth.login.errorMensajeDefault")}
         botones={[
           {
-            texto: "Entendido",
+            texto: t("catalogo.alertas.entendido"),
             variante: "primario",
             onPress: () => setAlertaErrorVisible(false),
           },
@@ -360,7 +363,7 @@ export default function LoginScreen() {
       <AlertModal
         visible={alertaExitoVisible}
         icono="checkmark-circle-outline"
-        titulo="¡Bienvenido de nuevo!"
+        titulo={t("auth.login.exitoTitulo")}
         mensaje={t("auth.login.exitoMsg")}
         botones={[]}
         onCerrar={() => setAlertaExitoVisible(false)}

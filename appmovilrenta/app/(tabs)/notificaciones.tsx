@@ -1,14 +1,16 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useTemaColores } from '@/modules/i18n/hooks/useIdioma';
 
-export default function BuscarScreen() {
+export default function NotificacionesScreen() {
   const insets = useSafeAreaInsets();
   const c = useTemaColores();
+  const { t } = useTranslation();
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
-      <Text style={[styles.text, { color: c.textSecondary }]}>Notificaciones — próximamente</Text>
+      <Text style={[styles.text, { color: c.textSecondary }]}>{t('tabs.notificacionesProximamente')}</Text>
     </View>
   );
 }

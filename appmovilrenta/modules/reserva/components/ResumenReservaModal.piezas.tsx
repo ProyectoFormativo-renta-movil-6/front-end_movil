@@ -9,6 +9,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 import {
   COLOR_MARCA,
   COLORES,
@@ -34,8 +35,8 @@ export const fechaCorta = (f: string | null) =>
     ? new Date(f + "T00:00:00").toLocaleDateString("es-CO", { day: "2-digit", month: "short" })
     : "";
 
-export const fechaHora = (f: string | null, h: string, formatHoraAmPm: (h: string) => string) =>
-  [fechaCorta(f), h ? formatHoraAmPm(h) : ""].filter(Boolean).join(" · ") || "Seleccionar";
+export const fechaHora = (f: string | null, h: string, formatHoraAmPm: (h: string) => string, fallback: string) =>
+  [fechaCorta(f), h ? formatHoraAmPm(h) : ""].filter(Boolean).join(" · ") || fallback;
 
 export const diasEntre = (a: string | null, b: string | null) =>
   a && b
@@ -58,6 +59,7 @@ export function SubcardHeader({
   onEditar: () => void;
 }) {
   const c = useTemaColores();
+  const { t } = useTranslation();
   const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
 
   return (
@@ -72,7 +74,7 @@ export function SubcardHeader({
         hitSlop={8}
       >
         <Ionicons name="pencil" size={11} color={primaryAccent} />
-        <Text style={[styles.editarLink, { color: primaryAccent }]}>Editar</Text>
+        <Text style={[styles.editarLink, { color: primaryAccent }]}>{t("reserva.resumen.editar")}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -178,6 +180,7 @@ export function ServicioRow({
 }) {
   useMonedaStore();
   const c = useTemaColores();
+  const { t } = useTranslation();
   const icono = ICONOS_SERVICIOS[nombre] ?? ICONO_SERVICIO_DEFECTO;
   const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
 
@@ -194,7 +197,7 @@ export function ServicioRow({
       <Ionicons name={activo ? "checkbox" : "square-outline"} size={18} color={activo ? primaryAccent : c.textMuted} />
       <Ionicons name={icono as any} size={14} color={activo ? primaryAccent : c.textMuted} style={{ marginHorizontal: 8 }} />
       <Text style={[styles.servicioNombre, { color: c.textSecondary }, activo && { color: c.textPrimary, fontWeight: "700" }]} numberOfLines={2}>{nombre}</Text>
-      {precio > 0 && <Text style={[styles.servicioPrecio, { color: c.textMuted }]}>{fmt(precio)}/día</Text>}
+      {precio > 0 && <Text style={[styles.servicioPrecio, { color: c.textMuted }]}>{fmt(precio)}{t("reserva.planes.porDia")}</Text>}
     </TouchableOpacity>
   );
 }
@@ -215,11 +218,12 @@ export function LineaPrecio({ label, valor, destacado }: { label: string; valor:
 // para que el patrón sea idéntico en todas.
 export function FilaBotonesEdicion({ onVolver, onActualizar }: { onVolver: () => void; onActualizar: () => void }) {
   const c = useTemaColores();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.filaBotones}>
       <TouchableOpacity style={[styles.volverBtn, { borderColor: c.border }]} onPress={onVolver}>
-        <Text style={[styles.volverBtnText, { color: c.textSecondary }]}>Volver</Text>
+        <Text style={[styles.volverBtnText, { color: c.textSecondary }]}>{t("reserva.resumen.volver")}</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.actualizarBtnWrap} onPress={onActualizar} activeOpacity={0.85}>
         <LinearGradient
@@ -228,7 +232,7 @@ export function FilaBotonesEdicion({ onVolver, onActualizar }: { onVolver: () =>
           end={GRADIENTES.boton.end}
           style={styles.actualizarBtn}
         >
-          <Text style={styles.actualizarBtnText}>Actualizar</Text>
+          <Text style={styles.actualizarBtnText}>{t("reserva.resumen.actualizar")}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>

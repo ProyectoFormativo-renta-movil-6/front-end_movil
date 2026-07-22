@@ -6,17 +6,18 @@ import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { useReservaStore } from "@/store/reservaStore";
 import { GRADIENTES } from "@/constants/gradients";
 import {
-  BENEFICIOS_PROTECCION,
-  BENEFICIOS_KILOMETRAJE,
+  getBeneficiosProteccion,
+  getBeneficiosKilometraje,
   COLOR_MARCA,
   ICONOS_SERVICIOS,
   ICONO_SERVICIO_DEFECTO,
-  INFO_KILOMETRAJE_COLOMBIA,
+  getInfoKilometrajeColombia,
 } from "../constants/reserva.constants";
 import { AlertModal } from "../../../components/ui/AlertModal";
 import { useMonedaStore } from "@/store/monedaStore";
 import { formatCurrency } from "@/utils/monedaUtils";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 type Tema = ReturnType<typeof useTemaColores>;
 
@@ -79,6 +80,10 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
   // cuando cambie COP↔USD o llegue una tasa nueva.
   useMonedaStore();
   const c = useTemaColores();
+  const { t } = useTranslation();
+  const BENEFICIOS_PROTECCION = useMemo(() => getBeneficiosProteccion(t), [t]);
+  const BENEFICIOS_KILOMETRAJE = useMemo(() => getBeneficiosKilometraje(t), [t]);
+  const INFO_KILOMETRAJE_COLOMBIA = getInfoKilometrajeColombia(t);
   const planes = useReservaStore((s) => s.planes);
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const actualizarPlanes = useReservaStore((s) => s.actualizarPlanes);
@@ -141,7 +146,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
       {/* --- PROTECCIÓN --- */}
       {seguros.length > 0 && (
         <>
-          <Text style={[styles.seccionLabel, { color: c.textMuted }]}>Elige tu protección</Text>
+          <Text style={[styles.seccionLabel, { color: c.textMuted }]}>{t("reserva.planes.elegirProteccion")}</Text>
           <View style={[styles.card, { backgroundColor: c.bgCard }]}>
             {seguros.map((seguro) => {
               const activo = planes.proteccion === seguro.nombre;
@@ -160,8 +165,12 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                         {seguro.nombre}
                       </Text>
                       <Text style={[styles.opcionDesc, { color: c.textMuted }, activo && styles.opcionDescActiva]}>
-                        {formatPrecio(seguro.precio)} / día · {formatPrecio(seguro.precio * dias)} en {dias}{" "}
-                        {dias === 1 ? "día" : "días"}
+                        {t("reserva.planes.precioSeguroLinea", {
+                          precioDia: formatPrecio(seguro.precio),
+                          precioTotal: formatPrecio(seguro.precio * dias),
+                          dias,
+                          unidad: dias === 1 ? t("reserva.planes.dia") : t("reserva.planes.dias"),
+                        })}
                       </Text>
                     </View>
                     <View style={[styles.radio, { borderColor: c.border }, activo && styles.radioActivo]}>
@@ -175,7 +184,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
             })}
 
             {seguroElegido && (
-              <FooterTotalTarjeta label="Total protección" valor={totalProteccion} c={c} />
+              <FooterTotalTarjeta label={t("reserva.planes.totalProteccion")} valor={totalProteccion} c={c} />
             )}
           </View>
         </>
@@ -184,7 +193,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
       {/* --- TIPO DE KILÓMETROS --- */}
       {(kmLimitado || kmIlimitado) && (
         <>
-          <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>Tipo de kilómetraje</Text>
+          <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>{t("reserva.planes.tipoKilometraje")}</Text>
           <Text style={[styles.infoGeneral, { color: c.textMuted }]}>{INFO_KILOMETRAJE_COLOMBIA}</Text>
           <View style={styles.kmFila}>
             {kmLimitado && (
@@ -202,7 +211,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                         planes.tipoKilometraje === "limitado" && styles.opcionTituloActiva,
                       ]}
                     >
-                      Kilómetro limitado
+                      {t("reserva.planes.kmLimitadoTitulo")}
                     </Text>
                     <Text
                       style={[
@@ -211,8 +220,8 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                         planes.tipoKilometraje === "limitado" && styles.opcionDescActiva,
                       ]}
                     >
-                      Incluye {kmLimitado.km} km por día · {formatPrecio(kmLimitado.precio)} / día
-                      {kmLimitado.excedente ? ` · excedente ${formatPrecio(kmLimitado.excedente)}/km` : ""}
+                      {t("reserva.planes.kmLimitadoDesc", { km: kmLimitado.km, precio: formatPrecio(kmLimitado.precio) })}
+                      {kmLimitado.excedente ? t("reserva.planes.kmLimitadoExcedente", { excedente: formatPrecio(kmLimitado.excedente) }) : ""}
                     </Text>
                   </View>
                   <View style={[styles.radio, { borderColor: c.border }, planes.tipoKilometraje === "limitado" && styles.radioActivo]}>
@@ -239,7 +248,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                         planes.tipoKilometraje === "ilimitado" && styles.opcionTituloActiva,
                       ]}
                     >
-                      Kilómetro ilimitado
+                      {t("reserva.planes.kmIlimitadoTitulo")}
                     </Text>
                     <Text
                       style={[
@@ -248,7 +257,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                         planes.tipoKilometraje === "ilimitado" && styles.opcionDescActiva,
                       ]}
                     >
-                      Sin restricción de distancia · {formatPrecio(kmIlimitado.precio)} / día
+                      {t("reserva.planes.kmIlimitadoDesc", { precio: formatPrecio(kmIlimitado.precio) })}
                     </Text>
                   </View>
                   <View style={[styles.radio, { borderColor: c.border }, planes.tipoKilometraje === "ilimitado" && styles.radioActivo]}>
@@ -263,7 +272,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
 
           {kmElegido && (
             <View style={[styles.card, { backgroundColor: c.bgCard }]}>
-              <FooterTotalTarjeta label="Total kilometraje" valor={totalKilometraje} c={c} />
+              <FooterTotalTarjeta label={t("reserva.planes.totalKilometraje")} valor={totalKilometraje} c={c} />
             </View>
           )}
         </>
@@ -272,9 +281,9 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
       {/* --- SERVICIOS ADICIONALES (opcionales) --- */}
       {todosLosServicios.length > 0 && (
         <>
-          <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>Servicios adicionales</Text>
+          <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>{t("reserva.planes.serviciosAdicionales")}</Text>
           <View style={[styles.card, { backgroundColor: c.bgCard }]}>
-            <Text style={[styles.serviciosSub, { color: c.textMuted }]}>Elige uno, varios o ninguno.</Text>
+            <Text style={[styles.serviciosSub, { color: c.textMuted }]}>{t("reserva.planes.elegirServicios")}</Text>
 
             {todosLosServicios.map((servicio) => {
               const seleccionado = planes.serviciosSeleccionados.includes(servicio.nombre);
@@ -302,14 +311,14 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                     {servicio.nombre}
                   </Text>
                   {servicio.precio > 0 && (
-                    <Text style={[styles.servicioPrecio, { color: c.textMuted }]}>{formatPrecio(servicio.precio)}/día</Text>
+                    <Text style={[styles.servicioPrecio, { color: c.textMuted }]}>{formatPrecio(servicio.precio)}{t("reserva.planes.porDia")}</Text>
                   )}
                 </TouchableOpacity>
               );
             })}
 
             {totalServicios > 0 && (
-              <FooterTotalTarjeta label="Total servicios adicionales" valor={totalServicios} c={c} />
+              <FooterTotalTarjeta label={t("reserva.planes.totalServiciosAdicionales")} valor={totalServicios} c={c} />
             )}
           </View>
         </>
@@ -321,32 +330,32 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
           no aparecer vacía apenas se entra al tab. --- */}
       {totalPlanes > 0 && (
         <>
-          <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>Resumen de planes</Text>
+          <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>{t("reserva.planes.resumenDePlanes")}</Text>
           <View style={[styles.card, { backgroundColor: c.bgCard }]}>
             <View style={styles.resumenSubcard}>
               {seguroElegido && (
                 <View style={styles.lineaPrecio}>
-                  <Text style={[styles.lineaLabel, { color: c.textSecondary }]}>Protección — {seguroElegido.nombre}</Text>
+                  <Text style={[styles.lineaLabel, { color: c.textSecondary }]}>{t("reserva.planes.proteccionLinea", { nombre: seguroElegido.nombre })}</Text>
                   <Text style={[styles.lineaValor, { color: c.textPrimary }]}>{formatPrecio(totalProteccion)}</Text>
                 </View>
               )}
               {kmElegido && (
                 <View style={styles.lineaPrecio}>
                   <Text style={[styles.lineaLabel, { color: c.textSecondary }]}>
-                    Kilometraje — {planes.tipoKilometraje === "limitado" ? "Limitado" : "Ilimitado"}
+                    {t("reserva.planes.kilometrajeLinea", { tipo: planes.tipoKilometraje === "limitado" ? t("reserva.planes.limitado") : t("reserva.planes.ilimitado") })}
                   </Text>
                   <Text style={[styles.lineaValor, { color: c.textPrimary }]}>{formatPrecio(totalKilometraje)}</Text>
                 </View>
               )}
               {totalServicios > 0 && (
                 <View style={styles.lineaPrecio}>
-                  <Text style={[styles.lineaLabel, { color: c.textSecondary }]}>Servicios adicionales</Text>
+                  <Text style={[styles.lineaLabel, { color: c.textSecondary }]}>{t("reserva.planes.serviciosAdicionalesLinea")}</Text>
                   <Text style={[styles.lineaValor, { color: c.textPrimary }]}>{formatPrecio(totalServicios)}</Text>
                 </View>
               )}
 
               <View style={[styles.subtotalBox, { backgroundColor: c.primaryBg }]}>
-                <Text style={[styles.subtotalLabel, { color: c.textPrimary }]}>Total planes ({dias} {dias === 1 ? "día" : "días"})</Text>
+                <Text style={[styles.subtotalLabel, { color: c.textPrimary }]}>{t("reserva.planes.totalPlanes", { dias, unidad: dias === 1 ? t("reserva.planes.dia") : t("reserva.planes.dias") })}</Text>
                 <Text style={[styles.subtotalValor, { color: c.textPrimary }]}>{formatPrecio(totalPlanes)}</Text>
               </View>
             </View>
@@ -361,15 +370,15 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
           end={GRADIENTES.boton.end}
           style={styles.confirmarBtn}
         >
-          <Text style={styles.confirmarBtnText}>Continuar</Text>
+          <Text style={styles.confirmarBtnText}>{t("reserva.planes.continuar")}</Text>
         </LinearGradient>
       </TouchableOpacity>
 
       <AlertModal
         visible={alertaFaltantesVisible}
         icono="alert-circle-outline"
-        titulo="Faltan datos por completar"
-        mensaje="Elige un plan de protección y un tipo de kilómetros para continuar."
+        titulo={t("reserva.planes.alertaFaltantesTitulo")}
+        mensaje={t("reserva.planes.alertaFaltantesMensaje")}
         botones={[]}
         onCerrar={() => setAlertaFaltantesVisible(false)}
       />

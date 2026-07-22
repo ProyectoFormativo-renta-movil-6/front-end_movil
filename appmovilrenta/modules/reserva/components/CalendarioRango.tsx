@@ -7,6 +7,7 @@ import { getDisponibilidadVehiculo } from "@/modules/catalogo/constants/catalogo
 import { COLOR_MARCA } from "../constants/reserva.constants";
 import { GRADIENTES } from "@/constants/gradients";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -125,6 +126,7 @@ export default function CalendarioRango({
   onCambiarFechas,
 }: Props) {
   const c = useTemaColores();
+  const { t } = useTranslation();
   // La disponibilidad ya no viene embebida en el vehículo — se calcula
   // a partir de RESERVAS_MOCK (mocks/reservas.json) según su id.
   const ocupados = useMemo(() => {
@@ -139,12 +141,12 @@ export default function CalendarioRango({
 
   const mensajePorMotivo = (motivo: "reservado" | "mantenimiento") =>
     motivo === "mantenimiento"
-      ? "Este vehículo se encuentra en mantenimiento en la fecha seleccionada."
-      : "Este vehículo ya está reservado en la fecha seleccionada.";
+      ? t("reserva.fechasLugar.vehiculoEnMantenimiento")
+      : t("reserva.fechasLugar.vehiculoYaReservado");
 
   const alertarNoDisponible = (titulo: string, motivo: "reservado" | "mantenimiento") => {
     Alert.alert(titulo, mensajePorMotivo(motivo), [
-      { text: "Intentar de nuevo", style: "default" },
+      { text: t("reserva.fechasLugar.intentarDeNuevo"), style: "default" },
     ]);
   };
 
@@ -153,7 +155,7 @@ export default function CalendarioRango({
     const motivo = ocupados.get(fecha);
 
     if (motivo) {
-      alertarNoDisponible("Fecha no disponible", motivo);
+      alertarNoDisponible(t("reserva.fechasLugar.fechaNoDisponibleTitulo"), motivo);
       return;
     }
 
@@ -171,11 +173,11 @@ export default function CalendarioRango({
     const motivoEnMedio = rango.map((d) => ocupados.get(d)).find(Boolean);
     if (motivoEnMedio) {
       Alert.alert(
-        "Rango no disponible",
+        t("reserva.fechasLugar.rangoNoDisponibleTitulo"),
         motivoEnMedio === "mantenimiento"
-          ? "Hay fechas en mantenimiento dentro del rango seleccionado. Elige otras fechas."
-          : "Hay fechas ya reservadas dentro del rango seleccionado. Elige otras fechas.",
-        [{ text: "Intentar de nuevo", style: "default" }]
+          ? t("reserva.fechasLugar.rangoConMantenimiento")
+          : t("reserva.fechasLugar.rangoConReservas"),
+        [{ text: t("reserva.fechasLugar.intentarDeNuevo"), style: "default" }]
       );
       onCambiarFechas(fecha, null);
       return;

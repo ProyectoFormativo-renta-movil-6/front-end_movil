@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { GRADIENTES } from "@/constants/gradients";
 import { COLOR_MARCA } from "@/modules/catalogo/constants/catalogo.constants";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
@@ -16,15 +17,16 @@ import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 export default function MisReservasScreen() {
   const insets = useSafeAreaInsets();
   const c = useTemaColores();
+  const { t } = useTranslation();
 
   const tieneReservas = false; // placeholder — se reemplaza cuando haya datos reales
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
       <View style={[styles.header, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
-        <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>Mis reservas</Text>
+        <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>{t("misReservas.titulo")}</Text>
         <Text style={[styles.headerSubtitulo, { color: c.textSecondary }]}>
-          Historial de tus reservas realizadas
+          {t("misReservas.subtitulo")}
         </Text>
       </View>
 
@@ -35,10 +37,9 @@ export default function MisReservasScreen() {
           <View style={[styles.vacioIconoWrap, { backgroundColor: c.primaryBg }]}>
             <Ionicons name="receipt-outline" size={40} color={COLOR_MARCA} />
           </View>
-          <Text style={[styles.vacioTitulo, { color: c.textPrimary }]}>Aún no tienes reservas</Text>
+          <Text style={[styles.vacioTitulo, { color: c.textPrimary }]}>{t("misReservas.vacioTitulo")}</Text>
           <Text style={[styles.vacioTexto, { color: c.textMuted }]}>
-            Cuando reserves un vehículo, vas a ver acá el historial completo
-            con fechas, lugar y estado de cada reserva.
+            {t("misReservas.vacioTexto")}
           </Text>
           <TouchableOpacity
             style={styles.vacioBtnWrap}
@@ -52,7 +53,7 @@ export default function MisReservasScreen() {
               style={styles.vacioBtn}
             >
               <Ionicons name="car-sport-outline" size={16} color="#fff" />
-              <Text style={styles.vacioBtnText}>Explorar vehículos</Text>
+              <Text style={styles.vacioBtnText}>{t("misReservas.explorarVehiculos")}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>

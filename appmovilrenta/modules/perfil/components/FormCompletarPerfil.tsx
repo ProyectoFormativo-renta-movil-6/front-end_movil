@@ -98,7 +98,9 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
         onPress={() => setShowTipoDoc(v => !v)}
       >
         <Text style={[s.selectorText, { color: form.tipoDocumento ? c.textPrimary : "#9CA3AF" }]}>
-          {form.tipoDocumento || t("perfil.seleccionar")}
+          {form.tipoDocumento
+            ? t(`reserva.datosPersonales.tiposDocumento.${form.tipoDocumento === "Doc. Extranjero" ? "DocExtranjero" : form.tipoDocumento}`, { defaultValue: form.tipoDocumento })
+            : t("perfil.seleccionar")}
         </Text>
         <Text style={{ color: c.textSecondary }}>▾</Text>
       </TouchableOpacity>
@@ -111,7 +113,7 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
               onPress={() => { actualizarCampo("tipoDocumento", tipo); setShowTipoDoc(false); }}
             >
               <Text style={[s.dropdownText, { color: form.tipoDocumento === tipo ? "#1D4ED8" : c.textPrimary }]}>
-                {tipo}
+                {t(`reserva.datosPersonales.tiposDocumento.${tipo === "Doc. Extranjero" ? "DocExtranjero" : tipo}`, { defaultValue: tipo })}
               </Text>
             </TouchableOpacity>
           ))}

@@ -3,6 +3,7 @@ import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from "react
 import { Ionicons } from "@expo/vector-icons";
 import { COLOR_MARCA } from "../constants/reserva.constants";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 export interface OpcionLugar {
   value: string;
@@ -20,12 +21,13 @@ interface Props {
 
 export default function SelectorSucursalModal({ visible, titulo, opciones, onSeleccionar, onCerrar }: Props) {
   const c = useTemaColores();
+  const { t } = useTranslation();
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onCerrar}>
       <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onCerrar}>
         <View style={[styles.sheet, { backgroundColor: c.bgCard }]} onStartShouldSetResponder={() => true}>
           <View style={[styles.header, { borderBottomColor: c.border }]}>
-            <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>{titulo ?? "Elige el lugar"}</Text>
+            <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>{titulo ?? t("reserva.fechasLugar.eligeElLugar")}</Text>
             <TouchableOpacity onPress={onCerrar}>
               <Ionicons name="close" size={22} color={c.textSecondary} />
             </TouchableOpacity>
@@ -41,7 +43,7 @@ export default function SelectorSucursalModal({ visible, titulo, opciones, onSel
               </TouchableOpacity>
             )}
             ListEmptyComponent={
-              <Text style={[styles.emptyText, { color: c.textMuted }]}>No hay opciones disponibles</Text>
+              <Text style={[styles.emptyText, { color: c.textMuted }]}>{t("reserva.fechasLugar.sinOpcionesDisponibles")}</Text>
             }
           />
         </View>

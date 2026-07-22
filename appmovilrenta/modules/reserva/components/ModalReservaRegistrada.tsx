@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { COLOR_MARCA } from "../constants/reserva.constants";
 import { GRADIENTES, SOMBRA_BOTON_GRADIENTE } from "@/constants/gradients";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   visible: boolean;
@@ -15,6 +16,7 @@ interface Props {
 
 export default function ModalReservaRegistrada({ visible, onPagarWompi, onCerrar }: Props) {
   const c = useTemaColores();
+  const { t } = useTranslation();
   const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
 
   return (
@@ -25,15 +27,14 @@ export default function ModalReservaRegistrada({ visible, onPagarWompi, onCerrar
             <Ionicons name="checkmark-circle" size={40} color={primaryAccent} />
           </View>
 
-          <Text style={[styles.titulo, { color: c.textPrimary }]}>Reserva Registrada</Text>
+          <Text style={[styles.titulo, { color: c.textPrimary }]}>{t("reserva.confirmacion.reservaRegistradaTitulo")}</Text>
 
           <Text style={[styles.descripcion, { color: c.textSecondary }]}>
-            Tu reserva quedó guardada como pendiente. Para confirmarla, completa el pago digital
-            seguro con Wompi (Pruebas).
+            {t("reserva.confirmacion.reservaRegistradaDescripcion")}
           </Text>
 
-          <Text style={[styles.linkTexto, { color: primaryAccent }]}>Serás redirigido al checkout oficial de Wompi.</Text>
-          <Text style={[styles.subTexto, { color: c.textMuted }]}>Recibirás la confirmación de tu reserva cuando el pago sea exitoso.</Text>
+          <Text style={[styles.linkTexto, { color: primaryAccent }]}>{t("reserva.confirmacion.redirigidoWompi")}</Text>
+          <Text style={[styles.subTexto, { color: c.textMuted }]}>{t("reserva.confirmacion.confirmacionCuandoExitoso")}</Text>
 
           <TouchableOpacity style={styles.botonWompiWrap} onPress={onPagarWompi} activeOpacity={0.85}>
             <LinearGradient
@@ -43,7 +44,7 @@ export default function ModalReservaRegistrada({ visible, onPagarWompi, onCerrar
               style={styles.botonWompi}
             >
               <Ionicons name="card-outline" size={16} color="#fff" />
-              <Text style={styles.botonWompiTexto}>Pagar con Wompi</Text>
+              <Text style={styles.botonWompiTexto}>{t("reserva.confirmacion.pagarConWompi")}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>

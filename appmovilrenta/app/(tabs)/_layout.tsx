@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/authStore";
 import { AlertModal } from "@/components/ui/AlertModal";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -26,6 +27,7 @@ export default function TabLayout() {
   const usuario = useAuthStore((s) => s.usuario);
   const [alertVisible, setAlertVisible] = useState(false);
   const c = useTemaColores();
+  const { t } = useTranslation();
 
   const tabBarHeight =
     Platform.OS === "android" ? 58 + insets.bottom : 60 + insets.bottom;
@@ -63,7 +65,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="catalogo"
           options={{
-            title: "Inicio",
+            title: t("tabs.inicio"),
             tabBarIcon: ({ focused }) => <TabIcon name="car" focused={focused} c={c} />,
           }}
         />
@@ -75,7 +77,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="mis-reservas"
           options={{
-            title: "Mis reservas",
+            title: t("tabs.misReservas"),
             tabBarIcon: ({ focused }) => (
               <TabIcon name="receipt" focused={focused} c={c} />
             ),
@@ -93,7 +95,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="perfil"
           options={{
-            title: "Perfil",
+            title: t("tabs.perfil"),
             tabBarIcon: ({ focused }) => (
               <TabIcon name="person" focused={focused} c={c} />
             ),
@@ -102,7 +104,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="buscar"
           options={{
-            title: "Explorar",
+            title: t("tabs.explorar"),
             tabBarIcon: ({ focused }) => (
               <TabIcon name="compass" focused={focused} c={c} />
             ),
@@ -125,16 +127,16 @@ export default function TabLayout() {
       <AlertModal
         visible={alertVisible}
         icono="lock-closed-outline"
-        titulo="Inicia sesión"
-        mensaje="Necesitas una cuenta activa para ver tu historial de reservas."
+        titulo={t("tabs.alertaMisReservasTitulo")}
+        mensaje={t("tabs.alertaMisReservasMensaje")}
         botones={[
           {
-            texto: "Cancelar",
+            texto: t("catalogo.alertas.cancelar"),
             variante: "secundario",
             onPress: () => setAlertVisible(false),
           },
           {
-            texto: "Iniciar sesión",
+            texto: t("catalogo.alertas.iniciarSesion"),
             variante: "primario",
             onPress: () => {
               setAlertVisible(false);

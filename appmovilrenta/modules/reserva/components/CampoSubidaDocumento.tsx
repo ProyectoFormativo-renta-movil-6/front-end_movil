@@ -3,6 +3,7 @@ import React from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 import { COLOR_MARCA } from "../constants/reserva.constants";
 import { ArchivoDocumento } from "../types/reserva.types";
 
@@ -28,6 +29,7 @@ export default function CampoSubidaDocumento({
   requerido = true,
 }: Props) {
   const c = useTemaColores();
+  const { t } = useTranslation();
   const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
 
   return (
@@ -47,7 +49,7 @@ export default function CampoSubidaDocumento({
       {cargando ? (
         <View style={styles.estadoCargando}>
           <ActivityIndicator size="small" color={primaryAccent} />
-          <Text style={[styles.textoCargando, { color: primaryAccent }]}>Subiendo archivo...</Text>
+          <Text style={[styles.textoCargando, { color: primaryAccent }]}>{t("reserva.documentos.subiendoArchivo")}</Text>
         </View>
       ) : archivo ? (
         <View style={[styles.archivoBox, { backgroundColor: c.primaryBg, borderColor: primaryAccent }]}>
@@ -65,7 +67,7 @@ export default function CampoSubidaDocumento({
       ) : (
         <TouchableOpacity style={[styles.boton, { backgroundColor: c.bgCard, borderColor: c.border }]} onPress={onSeleccionar} activeOpacity={0.7}>
           <Ionicons name="cloud-upload-outline" size={16} color={primaryAccent} />
-          <Text style={[styles.botonTexto, { color: primaryAccent }]}>Subir PDF</Text>
+          <Text style={[styles.botonTexto, { color: primaryAccent }]}>{t("reserva.documentos.subirPdf")}</Text>
         </TouchableOpacity>
       )}
 

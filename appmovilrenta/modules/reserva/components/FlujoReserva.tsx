@@ -17,6 +17,7 @@ import PlanesAdicionales from "./PlanesAdicionales";
 import FormDatosPersonales from "./FormDatosPersonales";
 import { AlertModal } from "../../../components/ui/AlertModal";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -25,6 +26,7 @@ interface Props {
 export default function FlujoReserva({ vehiculo }: Props) {
   const insets = useSafeAreaInsets();
   const c = useTemaColores();
+  const { t } = useTranslation();
 
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const planes = useReservaStore((s) => s.planes);
@@ -84,11 +86,11 @@ export default function FlujoReserva({ vehiculo }: Props) {
       <View style={[styles.topRow, { backgroundColor: c.bgCard }]}>
         <TouchableOpacity onPress={handleVolver} style={styles.volverBtn}>
           <Ionicons name="chevron-back" size={16} color={c.primary} />
-          <Text style={[styles.volverText, { color: c.primary }]}>Volver</Text>
+          <Text style={[styles.volverText, { color: c.primary }]}>{t("reserva.flujo.volver")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.resumenBtn, { borderColor: c.primary, backgroundColor: c.bgCard }]} onPress={() => setModalResumenVisible(true)}>
-          <Text style={[styles.resumenBtnText, { color: c.primary }]}>Resumen reserva</Text>
+          <Text style={[styles.resumenBtnText, { color: c.primary }]}>{t("reserva.flujo.resumenReserva")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -98,12 +100,17 @@ export default function FlujoReserva({ vehiculo }: Props) {
         end={GRADIENTES.panel.end}
         style={styles.headerAzul}
       >
-        <Text style={styles.headerTitulo}>Reservar ahora</Text>
+        <Text style={styles.headerTitulo}>{t("reserva.flujo.reservarAhora")}</Text>
         <View style={styles.tabsWrapper}>
           <TabsSeccion
             seccionActiva={seccionActiva}
             onCambiarSeccion={irASeccion}
             tabsDeshabilitados={tabsDeshabilitados}
+            secciones={[
+              { id: "fechas", label: t("reserva.flujo.tabFechas") },
+              { id: "planes", label: t("reserva.flujo.tabPlanes") },
+              { id: "datos", label: t("reserva.flujo.tabDatos") },
+            ]}
           />
         </View>
       </LinearGradient>
@@ -118,10 +125,10 @@ export default function FlujoReserva({ vehiculo }: Props) {
         >
           {seccionActiva === "fechas" && (
             <>
-              <Text style={[styles.seccionLabel, { color: c.textMuted }]}>Datos del vehículo</Text>
+              <Text style={[styles.seccionLabel, { color: c.textMuted }]}>{t("reserva.flujo.datosVehiculo")}</Text>
               <VehiculoResumenCard vehiculo={vehiculo} />
 
-              <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>Seleccionar fechas y lugar</Text>
+              <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>{t("reserva.flujo.seleccionarFechasLugar")}</Text>
               <FormFechasLugar vehiculo={vehiculo} />
 
               <TouchableOpacity style={styles.continuarBtnWrap} onPress={handleVerPlanes} activeOpacity={0.85}>
@@ -131,7 +138,7 @@ export default function FlujoReserva({ vehiculo }: Props) {
                   end={GRADIENTES.boton.end}
                   style={styles.continuarBtn}
                 >
-                  <Text style={styles.continuarBtnText}>Continuar</Text>
+                  <Text style={styles.continuarBtnText}>{t("reserva.flujo.continuar")}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </>
@@ -156,8 +163,8 @@ export default function FlujoReserva({ vehiculo }: Props) {
       <AlertModal
         visible={alertaFaltantesVisible}
         icono="alert-circle-outline"
-        titulo="Faltan datos por completar"
-        mensaje="Completa la información requerida para continuar con tu reserva."
+        titulo={t("reserva.flujo.alertaFaltantesTitulo")}
+        mensaje={t("reserva.flujo.alertaFaltantesMensaje")}
         botones={[]}
         onCerrar={() => setAlertaFaltantesVisible(false)}
       />

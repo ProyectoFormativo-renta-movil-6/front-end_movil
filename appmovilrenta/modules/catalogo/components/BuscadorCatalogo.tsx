@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FlatList,
   Modal,
@@ -94,6 +95,7 @@ export default function BuscadorCatalogo({
 }: Props) {
   const [pickerOpen, setPickerOpen] = useState<PickerField>(null);
   const c = useTemaColores();
+  const { t } = useTranslation();
 
   const ciudadSeleccionada = form.lugarRecogida;
   const sucursalSeleccionada = form.lugarDevolucion;
@@ -156,8 +158,8 @@ export default function BuscadorCatalogo({
         .filter(Boolean)
         .join(" · ")
     : disabled
-      ? "Inicia sesión para consultar disponibilidad"
-      : "Consultar disponibilidad";
+      ? t("catalogo.buscador.iniciaSesionConsultar")
+      : t("catalogo.buscador.consultarDisponibilidad");
 
   const handlePressFechas = () => {
     if (disabled) {
@@ -187,7 +189,7 @@ export default function BuscadorCatalogo({
         />
         <TextInput
           style={[styles.textInput, { color: c.textPrimary }]}
-          placeholder="Buscar por marca o modelo..."
+          placeholder={t("catalogo.buscador.placeholder")}
           placeholderTextColor={c.textMuted}
           value={textBusqueda}
           onChangeText={setTextBusqueda}
@@ -241,10 +243,10 @@ export default function BuscadorCatalogo({
             <TouchableOpacity onPress={() => setModalFormVisible(false)}>
               <Ionicons name="arrow-back" size={24} color={c.textPrimary} />
             </TouchableOpacity>
-            <Text style={[styles.modalFormTitle, { color: c.textPrimary }]}>Consultar Disponibilidad</Text>
+            <Text style={[styles.modalFormTitle, { color: c.textPrimary }]}>{t("catalogo.buscador.tituloModal")}</Text>
             {tieneBusquedaActiva ? (
               <TouchableOpacity onPress={limpiarFormulario}>
-                <Text style={[styles.txtLimpiarModal, { color: primaryAccent }]}>Limpiar</Text>
+                <Text style={[styles.txtLimpiarModal, { color: primaryAccent }]}>{t("catalogo.buscador.limpiar")}</Text>
               </TouchableOpacity>
             ) : (
               <View style={{ width: 45 }} />
@@ -254,7 +256,7 @@ export default function BuscadorCatalogo({
           <View style={styles.modalFormBody}>
             <View style={styles.row}>
               <View style={styles.field}>
-                <Text style={[styles.label, { color: c.textSecondary }]}>CIUDAD</Text>
+                <Text style={[styles.label, { color: c.textSecondary }]}>{t("catalogo.buscador.ciudad")}</Text>
                 <TouchableOpacity
                   style={[styles.selector, { backgroundColor: c.bgInput, borderColor: c.border }]}
                   onPress={() => setPickerOpen("ciudad")}
@@ -268,14 +270,14 @@ export default function BuscadorCatalogo({
                     ]}
                     numberOfLines={1}
                   >
-                    {ciudadSeleccionada || "Selecciona ciudad"}
+                    {ciudadSeleccionada || t("catalogo.buscador.seleccionaCiudad")}
                   </Text>
                   <Ionicons name="chevron-down" size={12} color={c.textMuted} />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.field}>
-                <Text style={[styles.label, { color: c.textSecondary }]}>SUCURSAL</Text>
+                <Text style={[styles.label, { color: c.textSecondary }]}>{t("catalogo.buscador.sucursal")}</Text>
                 <TouchableOpacity
                   style={[
                     styles.selector,
@@ -299,8 +301,8 @@ export default function BuscadorCatalogo({
                     numberOfLines={1}
                   >
                     {!ciudadSeleccionada
-                      ? "Selecciona ciudad primero"
-                      : sucursalSeleccionada || "Selecciona sucursal"}
+                      ? t("catalogo.buscador.seleccionaCiudadPrimero")
+                      : sucursalSeleccionada || t("catalogo.buscador.seleccionaSucursal")}
                   </Text>
                   <Ionicons name="chevron-down" size={12} color={c.textMuted} />
                 </TouchableOpacity>
@@ -309,7 +311,7 @@ export default function BuscadorCatalogo({
 
             <View style={styles.row}>
               <View style={styles.field}>
-                <Text style={[styles.label, { color: c.textSecondary }]}>FECHA RECOGIDA</Text>
+                <Text style={[styles.label, { color: c.textSecondary }]}>{t("catalogo.buscador.fechaRecogida")}</Text>
                 <View style={[styles.dateBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}>
                   <Ionicons name="calendar-outline" size={14} color={primaryAccent} />
                   <Text
@@ -321,13 +323,13 @@ export default function BuscadorCatalogo({
                   >
                     {form.fechaInicio
                       ? formatFechaDisplay(form.fechaInicio)
-                      : "dd/mm/aaaa"}
+                      : t("catalogo.buscador.formatoFecha")}
                   </Text>
                 </View>
               </View>
 
               <View style={styles.field}>
-                <Text style={[styles.label, { color: c.textSecondary }]}>FECHA DEVOLUCIÓN</Text>
+                <Text style={[styles.label, { color: c.textSecondary }]}>{t("catalogo.buscador.fechaDevolucion")}</Text>
                 <View style={[styles.dateBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}>
                   <Ionicons name="calendar-outline" size={14} color={primaryAccent} />
                   <Text
@@ -339,7 +341,7 @@ export default function BuscadorCatalogo({
                   >
                     {form.fechaFin
                       ? formatFechaDisplay(form.fechaFin)
-                      : "dd/mm/aaaa"}
+                      : t("catalogo.buscador.formatoFecha")}
                   </Text>
                 </View>
               </View>
@@ -389,7 +391,7 @@ export default function BuscadorCatalogo({
                 style={styles.buscarBtnGrande}
               >
                 <Ionicons name="search" size={18} color="#fff" />
-                <Text style={styles.buscarBtnGrandeTexto}>Buscar</Text>
+                <Text style={styles.buscarBtnGrandeTexto}>{t("catalogo.buscador.buscar")}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -401,8 +403,8 @@ export default function BuscadorCatalogo({
               <View style={[styles.modalHeader, { borderBottomColor: c.border }]}>
                 <Text style={[styles.modalTitle, { color: c.textPrimary }]}>
                   {pickerOpen === "ciudad"
-                    ? "Selecciona ciudad"
-                    : "Selecciona sucursal"}
+                    ? t("catalogo.buscador.modalCiudadTitulo")
+                    : t("catalogo.buscador.modalSucursalTitulo")}
                 </Text>
                 <TouchableOpacity
                   style={[styles.modalCloseBtn, { backgroundColor: c.bgInput }]}

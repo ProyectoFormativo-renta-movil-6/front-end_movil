@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { AlertModal } from "../../../components/ui/AlertModal";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 import {
   COLOR_MARCA,
   getPrefijoPorNacionalidad,
@@ -13,7 +14,7 @@ import {
   PORCENTAJE_CARGOS_ADMINISTRATIVOS,
   PORCENTAJE_IVA,
   RECARGO_LOGISTICO,
-  TIPOS_DOCUMENTO,
+  getTiposDocumento,
 } from "../constants/reserva.constants";
 import { TipoDocumento } from "../types/reserva.types";
 import BarraTotalConfirmar from "./BarraTotalConfirmar";
@@ -23,10 +24,6 @@ import { diasEntre } from "./ResumenReservaModal.piezas";
 import TarjetaTerminosCondiciones from "./TarjetaTerminosCondiciones";
 import TarjetaVerificacionDocumental from "./TarjetaVerificacionDocumental";
 
-const OPCIONES_TIPO_DOCUMENTO = TIPOS_DOCUMENTO.map((t) => ({
-  id: t.id,
-  label: t.label,
-}));
 const OPCIONES_NACIONALIDAD = NACIONALIDADES.map((n) => ({
   id: n.nombre,
   label: n.nombre,
@@ -56,6 +53,8 @@ interface Props {
 
 export default function FormDatosPersonales({ vehiculo }: Props) {
   const c = useTemaColores();
+  const { t } = useTranslation();
+  const OPCIONES_TIPO_DOCUMENTO = useMemo(() => getTiposDocumento(t), [t]);
   const datosPersonales = useReservaStore((s) => s.datosPersonales);
   const actualizarDatosPersonales = useReservaStore(
     (s) => s.actualizarDatosPersonales,
@@ -171,21 +170,21 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
 
   return (
     <View>
-      <Text style={[styles.seccionLabel, { color: c.textMuted }]}>Datos personales</Text>
+      <Text style={[styles.seccionLabel, { color: c.textMuted }]}>{t("reserva.datosPersonales.titulo")}</Text>
 
       <View style={[styles.card, { backgroundColor: c.bgCard }]}>
         <View style={[styles.subcard, { backgroundColor: c.bgCard, borderColor: brandBg }]}>
           <Text style={[styles.subtitulo, { color: c.textMuted }]}>
-            Informa tus datos para que podamos realizar tu reserva.
+            {t("reserva.datosPersonales.subtitulo")}
           </Text>
           <Text style={[styles.nota, { color: primaryAccent }]}>
-            Los campos marcados con asterisco (*) son obligatorios.
+            {t("reserva.datosPersonales.camposObligatorios")}
           </Text>
 
           <View style={[styles.separador, { backgroundColor: c.border }]} />
 
           <View style={styles.campo}>
-            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>NOMBRE COMPLETO *</Text>
+            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>{t("reserva.datosPersonales.nombreCompleto")}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: c.bgInput, borderColor: brandBg, color: c.textPrimary }]}
               value={datosPersonales.nombreCompleto}
@@ -201,7 +200,7 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
 
           <View style={styles.campo}>
             <CampoSelectorLista
-              etiqueta="NACIONALIDAD *"
+              etiqueta={t("reserva.datosPersonales.nacionalidad")}
               valorSeleccionado={datosPersonales.nacionalidad || null}
               opciones={OPCIONES_NACIONALIDAD}
               onSeleccionar={(id) => {
@@ -212,7 +211,7 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
           </View>
 
           <View style={styles.campo}>
-            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>CORREO ELECTRÓNICO *</Text>
+            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>{t("reserva.datosPersonales.correoElectronico")}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: c.bgInput, borderColor: brandBg, color: c.textPrimary }]}
               value={datosPersonales.correo}
@@ -227,7 +226,7 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
           </View>
 
           <View style={styles.campo}>
-            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>NÚMERO DE CELULAR *</Text>
+            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>{t("reserva.datosPersonales.numeroCelular")}</Text>
             <View style={styles.filaCelular}>
               <View
                 style={[
@@ -269,7 +268,7 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
 
           <View style={styles.campo}>
             <CampoSelectorLista
-              etiqueta="TIPO DE DOCUMENTO *"
+              etiqueta={t("reserva.datosPersonales.tipoDeDocumento")}
               valorSeleccionado={datosPersonales.tipoDocumento}
               opciones={OPCIONES_TIPO_DOCUMENTO}
               onSeleccionar={(id) => {
@@ -284,7 +283,7 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
           </View>
 
           <View style={[styles.campo, { marginBottom: 0 }]}>
-            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>NÚMERO DE DOCUMENTO *</Text>
+            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>{t("reserva.datosPersonales.numeroDeDocumento")}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: c.bgInput, borderColor: brandBg, color: c.textPrimary }]}
               value={datosPersonales.numeroDocumento}
@@ -313,8 +312,8 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
       <AlertModal
         visible={alertaFaltantesVisible}
         icono="alert-circle-outline"
-        titulo="Faltan datos por completar"
-        mensaje="Completa tus datos personales, sube tus documentos y acepta los términos y condiciones antes de confirmar la reserva."
+        titulo={t("reserva.datosPersonales.alertaFaltantesTitulo")}
+        mensaje={t("reserva.datosPersonales.alertaFaltantesMensaje")}
         botones={[]}
         onCerrar={() => setAlertaFaltantesVisible(false)}
       />

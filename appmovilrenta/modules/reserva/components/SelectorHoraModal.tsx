@@ -2,6 +2,7 @@ import React from "react";
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { COLOR_MARCA, formatHoraAmPm } from "../constants/reserva.constants";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 function generarHoras(): string[] {
   const horas: string[] = [];
@@ -24,6 +25,7 @@ interface Props {
 
 export default function SelectorHoraModal({ visible, horaSeleccionada, onSeleccionar, onCerrar }: Props) {
   const c = useTemaColores();
+  const { t } = useTranslation();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCerrar}>
       <TouchableWithoutFeedback onPress={onCerrar}>
@@ -31,9 +33,9 @@ export default function SelectorHoraModal({ visible, horaSeleccionada, onSelecci
           <TouchableWithoutFeedback>
             <View style={[styles.card, { backgroundColor: c.bgCard }]}>
               <View style={[styles.header, { borderBottomColor: c.border }]}>
-                <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>Selecciona la hora</Text>
+                <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>{t("reserva.fechasLugar.seleccionaHora")}</Text>
                 <TouchableOpacity onPress={onCerrar} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <Text style={styles.cerrarTexto}>Cerrar</Text>
+                  <Text style={styles.cerrarTexto}>{t("reserva.resumen.cerrar")}</Text>
                 </TouchableOpacity>
               </View>
               <ScrollView style={styles.lista} showsVerticalScrollIndicator={false}>

@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { GRADIENTES } from "@/constants/gradients";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 import { fmt, styles as piezas } from "./ResumenReservaModal.piezas";
 
 interface Props {
@@ -14,13 +15,14 @@ interface Props {
 
 export default function BarraTotalConfirmar({ total, onConfirmar }: Props) {
   const c = useTemaColores();
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.contenedor, { backgroundColor: c.bgCard, borderColor: c.border }]}>
       <View style={piezas.totalBlock}>
-        <Text style={[piezas.totalLabelChica, { color: c.textSecondary }]}>TOTAL A PAGAR</Text>
+        <Text style={[piezas.totalLabelChica, { color: c.textSecondary }]}>{t("reserva.confirmacion.totalAPagar")}</Text>
         <Text style={[piezas.totalValorGrande, { color: c.textPrimary }]}>{fmt(total)}</Text>
-        <Text style={[piezas.totalNota, { color: c.textMuted }]}>*Incluye impuestos y cargos administrativos</Text>
+        <Text style={[piezas.totalNota, { color: c.textMuted }]}>{t("reserva.confirmacion.notaTotalPagar")}</Text>
       </View>
 
       <TouchableOpacity style={styles.botonWrap} onPress={onConfirmar} activeOpacity={0.85}>
@@ -30,7 +32,7 @@ export default function BarraTotalConfirmar({ total, onConfirmar }: Props) {
           end={GRADIENTES.boton.end}
           style={styles.boton}
         >
-          <Text style={styles.botonTexto}>Confirmar reserva</Text>
+          <Text style={styles.botonTexto}>{t("reserva.confirmacion.confirmarReserva")}</Text>
           <Ionicons name="arrow-forward" size={16} color="#fff" />
         </LinearGradient>
       </TouchableOpacity>

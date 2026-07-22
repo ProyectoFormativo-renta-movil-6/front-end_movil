@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 interface BannerRegistroProps {
   visible: boolean;
@@ -15,16 +16,18 @@ interface BannerRegistroProps {
 export function BannerRegistro({
   visible,
   onCerrar,
-  mensaje = "Regístrate para reservar este vehículo y acceder a todas las funcionalidades.",
+  mensaje,
 }: BannerRegistroProps) {
+  const { t } = useTranslation();
   if (!visible) return null;
+  const mensajeFinal = mensaje ?? t("catalogo.bannerRegistro.mensaje");
 
   return (
     <View style={styles.overlay}>
       <View style={styles.banner}>
         <Text style={styles.icono}>🔒</Text>
-        <Text style={styles.titulo}>Función exclusiva</Text>
-        <Text style={styles.mensaje}>{mensaje}</Text>
+        <Text style={styles.titulo}>{t("catalogo.bannerRegistro.titulo")}</Text>
+        <Text style={styles.mensaje}>{mensajeFinal}</Text>
 
         <View style={styles.botones}>
           <TouchableOpacity
@@ -41,7 +44,7 @@ export function BannerRegistro({
               end={GRADIENTES.boton.end}
               style={styles.botonRegistro}
             >
-              <Text style={styles.botonRegistroTexto}>Registrarme</Text>
+              <Text style={styles.botonRegistroTexto}>{t("catalogo.bannerRegistro.registrarme")}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
@@ -52,12 +55,12 @@ export function BannerRegistro({
               router.push("/(auth)/login");
             }}
           >
-            <Text style={styles.botonLoginTexto}>Iniciar sesión</Text>
+            <Text style={styles.botonLoginTexto}>{t("catalogo.bannerRegistro.iniciarSesion")}</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.botonCerrar} onPress={onCerrar}>
-          <Text style={styles.botonCerrarTexto}>Continuar como invitado</Text>
+          <Text style={styles.botonCerrarTexto}>{t("catalogo.bannerRegistro.continuarInvitado")}</Text>
         </TouchableOpacity>
       </View>
     </View>

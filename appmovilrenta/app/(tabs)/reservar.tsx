@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
 import { useReservaStore } from "@/store/reservaStore";
 import FlujoReserva from "@/modules/reserva/components/FlujoReserva";
 import { GRADIENTES } from "@/constants/gradients";
@@ -13,14 +14,15 @@ export default function ReservarScreen() {
   const insets = useSafeAreaInsets();
   const vehiculo = useReservaStore((s) => s.vehiculoSeleccionado);
   const c = useTemaColores();
+  const { t } = useTranslation();
 
   if (!vehiculo) {
     return (
       <View style={[styles.vacioContainer, { paddingTop: insets.top, backgroundColor: c.bg }]}>
         <Ionicons name="car-sport-outline" size={56} color={c.textMuted} />
-        <Text style={[styles.vacioTitulo, { color: c.textPrimary }]}>Aún no elegiste un vehículo</Text>
+        <Text style={[styles.vacioTitulo, { color: c.textPrimary }]}>{t("reserva.flujo.vacioTitulo")}</Text>
         <Text style={[styles.vacioTexto, { color: c.textMuted }]}>
-          Volvé al catálogo y tocá &ldquo;Reservar ahora&rdquo; en el auto que quieras.
+          {t("reserva.flujo.vacioTexto")}
         </Text>
         <TouchableOpacity style={styles.vacioBtnWrap} onPress={() => router.push("/(tabs)/catalogo")} activeOpacity={0.85}>
           <LinearGradient
@@ -29,7 +31,7 @@ export default function ReservarScreen() {
             end={GRADIENTES.boton.end}
             style={styles.vacioBtn}
           >
-            <Text style={styles.vacioBtnText}>Ir al catálogo</Text>
+            <Text style={styles.vacioBtnText}>{t("reserva.flujo.irAlCatalogo")}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>

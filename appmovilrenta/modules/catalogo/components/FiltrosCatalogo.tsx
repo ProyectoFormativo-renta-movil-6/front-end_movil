@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Modal,
   SafeAreaView,
@@ -97,29 +98,30 @@ export default function FiltrosCatalogo({
 }: Props) {
   const [dropdownAbierto, setDropdownAbierto] = useState<DropdownAbierto>(null);
   const c = useTemaColores();
+  const { t } = useTranslation();
 
   const primaryAccent = c.oscuro ? "#60A5FA" : "#2f4ea2";
 
   const catLabels: Record<string, string> = {
-    Todos: "Todas las categorías",
-    Sedan: "Sedan",
-    SUV: "SUV",
-    Económico: "Económico",
-    Deportivo: "Deportivo",
+    Todos: t("catalogo.filtrosModal.todasCategorias"),
+    Sedan: t("catalogo.categoriaValores.Sedan"),
+    SUV: t("catalogo.categoriaValores.SUV"),
+    Económico: t("catalogo.categoriaValores.Económico"),
+    Deportivo: t("catalogo.categoriaValores.Deportivo"),
   };
 
   const transLabels: Record<string, string> = {
-    Todas: "Todas",
-    Automática: "Automática",
-    Manual: "Manual",
+    Todas: t("catalogo.transmisionValores.Todas"),
+    Automática: t("catalogo.transmisionValores.Automática"),
+    Manual: t("catalogo.transmisionValores.Manual"),
   };
 
   const fuelLabels: Record<string, string> = {
-    Todos: "Todos",
-    Gasolina: "Gasolina",
-    Diesel: "Diesel",
-    Híbrido: "Híbrido",
-    Eléctrico: "Eléctrico",
+    Todos: t("catalogo.combustibleValores.Todos"),
+    Gasolina: t("catalogo.combustibleValores.Gasolina"),
+    Diesel: t("catalogo.combustibleValores.Diesel"),
+    Híbrido: t("catalogo.combustibleValores.Híbrido"),
+    Eléctrico: t("catalogo.combustibleValores.Eléctrico"),
   };
 
   const toggleDropdown = (campo: "ciudad" | "sucursal") => {
@@ -135,9 +137,9 @@ export default function FiltrosCatalogo({
     >
       <SafeAreaView style={[styles.container, { backgroundColor: c.bg }]}>
         <View style={[styles.header, { borderBottomColor: c.border }]}>
-          <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Filtros</Text>
+          <Text style={[styles.headerTitle, { color: c.textPrimary }]}>{t("catalogo.filtrosModal.titulo")}</Text>
           <TouchableOpacity onPress={limpiar}>
-            <Text style={[styles.limpiarBtn, { color: primaryAccent }]}>Limpiar filtros</Text>
+            <Text style={[styles.limpiarBtn, { color: primaryAccent }]}>{t("catalogo.limpiarFiltros")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -147,7 +149,7 @@ export default function FiltrosCatalogo({
           showsVerticalScrollIndicator={false}
         >
           {usuario && (
-            <Seccion label="FAVORITOS" c={c}>
+            <Seccion label={t("catalogo.filtrosModal.misFavoritos").toUpperCase()} c={c}>
               <TouchableOpacity
                 style={[
                   styles.favoritoBtn,
@@ -169,7 +171,7 @@ export default function FiltrosCatalogo({
                     soloFavoritos && { color: "#fff" },
                   ]}
                 >
-                  Mis Favoritos
+                  {t("catalogo.filtrosModal.misFavoritos")}
                 </Text>
                 {totalFavoritos > 0 && (
                   <View
@@ -189,7 +191,7 @@ export default function FiltrosCatalogo({
             </Seccion>
           )}
 
-          <Seccion label="CATEGORÍA" c={c}>
+          <Seccion label={t("catalogo.filtrosModal.categoria")} c={c}>
             <View style={styles.chipsRow}>
               {CATEGORIAS.map((cat) => (
                 <Chip
@@ -203,7 +205,7 @@ export default function FiltrosCatalogo({
             </View>
           </Seccion>
 
-          <Seccion label="CIUDAD" c={c}>
+          <Seccion label={t("catalogo.filtrosModal.ciudad")} c={c}>
             <TouchableOpacity
               style={[styles.selectorBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}
               onPress={() => toggleDropdown("ciudad")}
@@ -245,7 +247,7 @@ export default function FiltrosCatalogo({
             )}
           </Seccion>
 
-          <Seccion label="SUCURSAL" c={c}>
+          <Seccion label={t("catalogo.filtrosModal.sucursal")} c={c}>
             <TouchableOpacity
               style={[styles.selectorBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}
               onPress={() => toggleDropdown("sucursal")}
@@ -290,11 +292,11 @@ export default function FiltrosCatalogo({
             )}
           </Seccion>
 
-          <Seccion label="PRECIO POR DÍA (COP)" c={c}>
+          <Seccion label={t("catalogo.filtrosModal.precioPorDia")} c={c}>
             <View style={styles.precioRow}>
               <TextInput
                 style={[styles.precioInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }]}
-                placeholder="Mín"
+                placeholder={t("catalogo.filtrosModal.min")}
                 placeholderTextColor={c.textMuted}
                 keyboardType="numeric"
                 value={filtros.precioMin}
@@ -304,7 +306,7 @@ export default function FiltrosCatalogo({
               />
               <TextInput
                 style={[styles.precioInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }]}
-                placeholder="Máx"
+                placeholder={t("catalogo.filtrosModal.max")}
                 placeholderTextColor={c.textMuted}
                 keyboardType="numeric"
                 value={filtros.precioMax}
@@ -315,7 +317,7 @@ export default function FiltrosCatalogo({
             </View>
           </Seccion>
 
-          <Seccion label="TRANSMISIÓN" c={c}>
+          <Seccion label={t("catalogo.filtrosModal.transmisionLbl")} c={c}>
             <View style={styles.chipsRow}>
               {TRANSMISIONES.map((tr) => (
                 <Chip
@@ -329,7 +331,7 @@ export default function FiltrosCatalogo({
             </View>
           </Seccion>
 
-          <Seccion label="COMBUSTIBLE" c={c}>
+          <Seccion label={t("catalogo.filtrosModal.combustibleLbl")} c={c}>
             <View style={styles.chipsRow}>
               {COMBUSTIBLES.map((comb) => (
                 <Chip
@@ -346,7 +348,7 @@ export default function FiltrosCatalogo({
 
         <View style={[styles.footerBtn, { borderTopColor: c.border, backgroundColor: c.bgCard }]}>
           <TouchableOpacity style={[styles.aplicarBtn, { backgroundColor: c.oscuro ? "#3B82F6" : "#2f4ea2" }]} onPress={onClose}>
-            <Text style={styles.aplicarBtnText}>Aplicar filtros</Text>
+            <Text style={styles.aplicarBtnText}>{t("catalogo.filtrosModal.aplicarFiltros")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

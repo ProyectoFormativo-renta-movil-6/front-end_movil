@@ -8,7 +8,8 @@ import { useAuthStore } from "@/store/authStore";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -20,38 +21,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const ORDEN_OPCIONES = [
-  { valor: "precio_asc", label: "Precio: menor a mayor" },
-  { valor: "precio_desc", label: "Precio: mayor a menor" },
-  { valor: "calificacion", label: "Mejor calificacion" },
-];
-
-const ALERT_CONTENT = {
-  busqueda: {
-    icono: "calendar-outline" as const,
-    titulo: "Elegi fechas y lugar",
-    mensaje:
-      "Inicia sesion para buscar por fecha de recogida, devolucion y sucursal.",
-  },
-  reservar: {
-    icono: "car-sport-outline" as const,
-    titulo: "Reserva este vehiculo",
-    mensaje: "Necesitas una cuenta activa para realizar reservas en Drivique.",
-  },
-  favorito: {
-    icono: "heart-outline" as const,
-    titulo: "Guarda en favoritos",
-    mensaje: "Inicia sesion para guardar tus vehiculos favoritos.",
-  },
-  sinResultados: {
-    icono: "car-outline" as const,
-    titulo: "Sin disponibilidad",
-    mensaje:
-      "No encontramos vehículos disponibles para esa ciudad, sucursal o esas fechas. Te mostramos el catálogo completo mientras tanto.",
-  },
-};
-
-type AlertTipo = keyof typeof ALERT_CONTENT;
+type AlertTipo = "busqueda" | "reservar" | "favorito" | "sinResultados";
 
 function nombreDesdeCorreo(correo?: string): string {
   if (!correo) return "Usuario";
@@ -77,6 +47,7 @@ function ListFooter({
   onSiguiente: () => void;
   c: ReturnType<typeof useTemaColores>;
 }) {
+  const { t } = useTranslation();
   if (totalPaginas <= 1) return null;
   return (
     <View style={styles.paginacionContainer}>
@@ -100,7 +71,7 @@ function ListFooter({
             paginaActual === 1 && [styles.paginaBtnTextDisabled, { color: c.textMuted }],
           ]}
         >
-          Anterior
+          {t("catalogo.anterior")}
         </Text>
       </TouchableOpacity>
 
@@ -123,7 +94,7 @@ function ListFooter({
             paginaActual === totalPaginas && [styles.paginaBtnTextDisabled, { color: c.textMuted }],
           ]}
         >
-          Siguiente
+          {t("catalogo.siguiente")}
         </Text>
         <Ionicons
           name="arrow-forward"
@@ -138,11 +109,47 @@ function ListFooter({
 export default function Catalogo() {
   const insets = useSafeAreaInsets();
   const c = useTemaColores();
+  const { t } = useTranslation();
   const usuario = useAuthStore((state) => state.usuario);
   const [textBusqueda, setTextBusqueda] = useState("");
   const [modalFormVisible, setModalFormVisible] = useState(false);
   const [sweetAlertVisible, setSweetAlertVisible] = useState(false);
   const [alertTipo, setAlertTipo] = useState("busqueda" as AlertTipo);
+
+  const ORDEN_OPCIONES = useMemo(
+    () => [
+      { valor: "precio_asc", label: t("catalogo.ordenar.precioAsc") },
+      { valor: "precio_desc", label: t("catalogo.ordenar.precioDesc") },
+      { valor: "calificacion", label: t("catalogo.ordenar.calificacion") },
+    ],
+    [t]
+  );
+
+  const ALERT_CONTENT = useMemo(
+    () => ({
+      busqueda: {
+        icono: "calendar-outline" as const,
+        titulo: t("catalogo.alertas.busquedaTitulo"),
+        mensaje: t("catalogo.alertas.busquedaMensaje"),
+      },
+      reservar: {
+        icono: "car-sport-outline" as const,
+        titulo: t("catalogo.alertas.reservarTitulo"),
+        mensaje: t("catalogo.alertas.reservarMensaje"),
+      },
+      favorito: {
+        icono: "heart-outline" as const,
+        titulo: t("catalogo.alertas.favoritoTitulo"),
+        mensaje: t("catalogo.alertas.favoritoMensaje"),
+      },
+      sinResultados: {
+        icono: "car-outline" as const,
+        titulo: t("catalogo.alertas.sinResultadosTitulo"),
+        mensaje: t("catalogo.alertas.sinResultadosMensaje"),
+      },
+    }),
+    [t]
+  );
 
   const usuarioId = usuario ? String(usuario.id ?? usuario.correo ?? "user") : null;
   const { favoritos, toggleFavorito, esFavorito } = useFavoritos(usuarioId);
@@ -190,7 +197,7 @@ export default function Catalogo() {
 
   const ordenLabel =
     ORDEN_OPCIONES.find((o) => o.valor === filtros.orden)?.label ??
-    "Ordenar por";
+    t("catalogo.ordenar.porDefecto");
 
   const filtrosActivos =
     filtros.sucursal !== "Todas las sucursales" ||
@@ -243,19 +250,19 @@ export default function Catalogo() {
     alertTipo === "sinResultados"
       ? [
           {
-            texto: "Entendido",
+            texto: t("catalogo.alertas.entendido"),
             variante: "primario" as const,
             onPress: () => setSweetAlertVisible(false),
           },
         ]
       : [
           {
-            texto: "Cancelar",
+            texto: t("catalogo.alertas.cancelar"),
             variante: "secundario" as const,
             onPress: () => setSweetAlertVisible(false),
           },
           {
-            texto: "Iniciar sesion",
+            texto: t("catalogo.alertas.iniciarSesion"),
             variante: "primario" as const,
             onPress: () => {
               setSweetAlertVisible(false);
@@ -288,7 +295,7 @@ export default function Catalogo() {
             activeOpacity={0.7}
           >
             <Text style={[styles.headerUsuarioTexto, { color: c.textSecondary }]} numberOfLines={1}>
-              Bienvenido, {nombreUsuario}
+              {t("catalogo.bienvenido", { nombre: nombreUsuario })}
             </Text>
             <View style={styles.headerAvatar}>
               <Text style={styles.headerAvatarTexto}>{inicialUsuario}</Text>
@@ -300,13 +307,13 @@ export default function Catalogo() {
               style={styles.loginBtn}
               onPress={() => router.push("/(auth)/login")}
             >
-              <Text style={styles.loginBtnText}>Ingresar</Text>
+              <Text style={styles.loginBtnText}>{t("catalogo.ingresar")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.registerBtn}
               onPress={() => router.push("/(auth)/registro")}
             >
-              <Text style={styles.registerBtnText}>Registro</Text>
+              <Text style={styles.registerBtnText}>{t("catalogo.registro")}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -344,14 +351,14 @@ export default function Catalogo() {
                 filtrosActivos && styles.filtrosBtnTextActivo,
               ]}
             >
-              Filtros
+              {t("catalogo.filtrosBtn")}
             </Text>
           </View>
         </TouchableOpacity>
 
         <View style={styles.controlsRight}>
           <Text style={[styles.contadorText, { color: c.textSecondary }]}>
-            {vehiculosAMostrar.length} vehiculos
+            {t("catalogo.vehiculosContador", { count: vehiculosAMostrar.length })}
           </Text>
           <TouchableOpacity
             style={[styles.ordenBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}
@@ -423,7 +430,7 @@ export default function Catalogo() {
               <View style={styles.estadoCentro}>
                 <Ionicons name="heart-outline" size={48} color={c.textMuted} />
                 <Text style={[styles.emptyText, { color: c.textMuted }]}>
-                  Aún no tienes favoritos guardados
+                  {t("catalogo.sinFavoritosGuardados")}
                 </Text>
               </View>
             ) : null

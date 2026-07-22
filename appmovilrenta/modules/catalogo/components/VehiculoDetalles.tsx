@@ -3,6 +3,7 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { COLORES } from "../constants/catalogo.constants";
 import { Vehiculo } from "../types/catalogo.types";
 import { useMonedaStore } from "@/store/monedaStore";
@@ -23,6 +24,7 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
   // cuando cambie COP↔USD o llegue una tasa nueva.
   useMonedaStore();
   const c = useTemaColores();
+  const { t } = useTranslation();
   const tarifas = vehiculo.tarifas ?? {};
   const seguros = vehiculo.seguros ?? [];
 
@@ -31,17 +33,17 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
   if (vehiculo.aireAcondicionado)
     caracteristicas.push({
       icono: <Ionicons name="snow-outline" size={14} color="#2f4ea2" />,
-      label: "Aire acondicionado",
+      label: t("catalogo.detalles.aireAcondicionado"),
     });
   if (vehiculo.vidriosElectricos)
     caracteristicas.push({
       icono: <Ionicons name="flash-outline" size={14} color="#2f4ea2" />,
-      label: "Eleva vidrios eléctrico",
+      label: t("catalogo.detalles.vidriosElectricos"),
     });
   if (vehiculo.cierreCentralizado)
     caracteristicas.push({
       icono: <Ionicons name="lock-closed-outline" size={14} color="#2f4ea2" />,
-      label: "Cierre centralizado",
+      label: t("catalogo.detalles.cierreCentralizado"),
     });
   if (vehiculo.maletero)
     caracteristicas.push({
@@ -52,12 +54,12 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
           color="#2f4ea2"
         />
       ),
-      label: `${vehiculo.maletero}L maletero`,
+      label: `${vehiculo.maletero}L ${t("catalogo.detalles.maletero")}`,
     });
   if (vehiculo.transmision)
     caracteristicas.push({
       icono: <Ionicons name="settings-outline" size={14} color="#2f4ea2" />,
-      label: vehiculo.transmision,
+      label: t(`catalogo.transmisionValores.${vehiculo.transmision}`, { defaultValue: vehiculo.transmision }),
     });
   if (vehiculo.combustible)
     caracteristicas.push({
@@ -68,12 +70,12 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
           color="#2f4ea2"
         />
       ),
-      label: vehiculo.combustible,
+      label: t(`catalogo.combustibleValores.${vehiculo.combustible}`, { defaultValue: vehiculo.combustible }),
     });
   if (vehiculo.pasajeros)
     caracteristicas.push({
       icono: <Ionicons name="people-outline" size={14} color="#2f4ea2" />,
-      label: `${vehiculo.pasajeros} personas`,
+      label: `${vehiculo.pasajeros} ${t("catalogo.detalles.personas")}`,
     });
 
   const filas: (typeof caracteristicas)[] = [];
@@ -108,12 +110,12 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
       <View style={[styles.seccionDetalle, { backgroundColor: c.oscuro ? "#0F2A1C" : "#f4fbf7", borderColor: c.oscuro ? "#1F4D34" : "#ccf1dc" }]}>
         <View style={styles.seccionDetalleHeader}>
           <Ionicons name="cash-outline" size={14} color="#22C55E" />
-          <Text style={[styles.seccionDetalleTitulo, { color: "#22C55E" }]}>TARIFAS</Text>
+          <Text style={[styles.seccionDetalleTitulo, { color: "#22C55E" }]}>{t("catalogo.detalles.tarifas")}</Text>
         </View>
         {tarifas.kmLimitado && (
           <View style={styles.tarifaRow}>
             <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>
-              Km limitado ({tarifas.kmLimitado.km} km/dia)
+              {t("catalogo.detalles.kmLimitado")} ({tarifas.kmLimitado.km} {t("catalogo.detalles.kmDia")})
             </Text>
             <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>
               {formatPrecio(tarifas.kmLimitado.precio)}
@@ -122,7 +124,7 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
         )}
         {tarifas.kmIlimitado && (
           <View style={styles.tarifaRow}>
-            <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>Km ilimitado</Text>
+            <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>{t("catalogo.detalles.kmIlimitado")}</Text>
             <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>
               {formatPrecio(tarifas.kmIlimitado.precio)}
             </Text>
@@ -139,7 +141,7 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
         <View style={styles.seccionDetalleHeader}>
           <Ionicons name="shield-checkmark-outline" size={14} color="#5B8DEF" />
           <Text style={[styles.seccionDetalleTitulo, { color: "#5B8DEF" }]}>
-            SEGUROS
+            {t("catalogo.detalles.seguros")}
           </Text>
         </View>
         {seguros.length > 0 ? (
@@ -147,18 +149,18 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
             <View key={i} style={styles.tarifaRow}>
               <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>{seg.nombre}</Text>
               <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>
-                {formatPrecio(seg.precio)}/dia
+                {formatPrecio(seg.precio)}/{t("catalogo.porDia")}
               </Text>
             </View>
           ))
         ) : (
           <>
             <View style={styles.tarifaRow}>
-              <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>Proteccion Obligatoria</Text>
+              <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>{t("catalogo.detalles.proteccionObligatoria")}</Text>
               <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>$29.000/dia</Text>
             </View>
             <View style={styles.tarifaRow}>
-              <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>Proteccion Total</Text>
+              <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>{t("catalogo.detalles.proteccionTotal")}</Text>
               <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>$67.000/dia</Text>
             </View>
           </>

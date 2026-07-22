@@ -1,13 +1,14 @@
 // modules/reserva/components/TarjetaTerminosCondiciones.tsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 import {
   COLOR_MARCA,
-  PUNTOS_POLITICA,
-  RESUMEN_POLITICAS_IMPORTANTES,
+  getPuntosPolitica,
+  getResumenPoliticasImportantes,
 } from "../constants/reserva.constants";
 import { GRADIENTES } from "@/constants/gradients";
 import { useReservaStore } from "@/store/reservaStore";
@@ -17,6 +18,9 @@ export default function TarjetaTerminosCondiciones() {
   const actualizarDatosPersonales = useReservaStore((s) => s.actualizarDatosPersonales);
   const [verTerminos, setVerTerminos] = useState(false);
   const c = useTemaColores();
+  const { t } = useTranslation();
+  const PUNTOS_POLITICA = useMemo(() => getPuntosPolitica(t), [t]);
+  const RESUMEN_POLITICAS_IMPORTANTES = getResumenPoliticasImportantes(t);
 
   const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
   const brandBg = c.oscuro ? "#3B82F6" : COLOR_MARCA;
@@ -36,15 +40,15 @@ export default function TarjetaTerminosCondiciones() {
           {datosPersonales.terminosAceptados && <Ionicons name="checkmark" size={13} color="#fff" />}
         </TouchableOpacity>
         <Text style={[styles.textoCheckbox, { color: c.textPrimary }]}>
-          Autorizo el tratamiento de mis datos personales conforme a la{" "}
-          <Text style={[styles.enlace, { color: primaryAccent }]}>política de privacidad</Text> *
+          {t("reserva.terminos.autorizoTratamiento")}
+          <Text style={[styles.enlace, { color: primaryAccent }]}>{t("reserva.terminos.politicaPrivacidad")}</Text> *
         </Text>
       </View>
 
       <TouchableOpacity style={styles.botonToggle} onPress={() => setVerTerminos((v) => !v)} activeOpacity={0.7}>
         <Ionicons name={verTerminos ? "chevron-down" : "chevron-forward"} size={13} color={primaryAccent} />
         <Text style={[styles.botonToggleTexto, { color: primaryAccent }]}>
-          {verTerminos ? "Ocultar términos y condiciones" : "Ver términos y condiciones"}
+          {verTerminos ? t("reserva.terminos.ocultarTerminos") : t("reserva.terminos.verTerminos")}
         </Text>
       </TouchableOpacity>
 
@@ -56,7 +60,7 @@ export default function TarjetaTerminosCondiciones() {
             end={GRADIENTES.panel.end}
             style={styles.panelHeader}
           >
-            <Text style={styles.panelHeaderTitulo}>POLÍTICAS IMPORTANTES</Text>
+            <Text style={styles.panelHeaderTitulo}>{t("reserva.terminos.politicasImportantes")}</Text>
             <Text style={styles.panelHeaderTexto}>{RESUMEN_POLITICAS_IMPORTANTES}</Text>
           </LinearGradient>
 

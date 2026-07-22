@@ -4,6 +4,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { memo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useReservaStore } from "@/store/reservaStore";
 import { GRADIENTES } from "@/constants/gradients";
 import { DatosFechasLugar } from "@/modules/reserva/types/reserva.types";
@@ -71,6 +72,7 @@ function VehiculoCard({
   // cuando cambie COP↔USD o llegue una tasa nueva.
   useMonedaStore();
   const c = useTemaColores();
+  const { t } = useTranslation();
   const [fotoActiva, setFotoActiva] = useState(0);
   const [verDetalles, setVerDetalles] = useState(false);
   const [cardWidth, setCardWidth] = useState(0);
@@ -160,7 +162,7 @@ function VehiculoCard({
               { color: estadoDisponible ? "#137333" : "#c5221f" },
             ]}
           >
-            {estadoDisponible ? "Disponible" : "No disponible"}
+            {estadoDisponible ? t("catalogo.estados.disponible") : t("catalogo.noDisponible")}
           </Text>
         </View>
 
@@ -190,7 +192,9 @@ function VehiculoCard({
             <View style={styles.tagsRow}>
               <View style={styles.tagCategoria}>
                 <Text style={styles.tagCategoriaText}>
-                  {vehiculo.categoria ?? "Economico"}
+                  {t(`catalogo.categoriaValores.${vehiculo.categoria ?? "Economico"}`, {
+                    defaultValue: vehiculo.categoria ?? "Económico",
+                  })}
                 </Text>
               </View>
               <View style={styles.tagSucursal}>
@@ -206,7 +210,11 @@ function VehiculoCard({
             <View style={styles.infoRow}>
               <View style={styles.infoItem}>
                 <Ionicons name="settings-outline" size={14} color="#2f4ea2" />
-                <Text style={[styles.infoText, { color: c.textSecondary }]}>{vehiculo.transmision}</Text>
+                <Text style={[styles.infoText, { color: c.textSecondary }]}>
+                  {t(`catalogo.transmisionValores.${vehiculo.transmision}`, {
+                    defaultValue: vehiculo.transmision,
+                  })}
+                </Text>
               </View>
               <View style={[styles.infoSeparador, { backgroundColor: c.border }]} />
               <View style={styles.infoItem}>
@@ -215,7 +223,11 @@ function VehiculoCard({
                   size={14}
                   color="#2f4ea2"
                 />
-                <Text style={[styles.infoText, { color: c.textSecondary }]}>{vehiculo.combustible}</Text>
+                <Text style={[styles.infoText, { color: c.textSecondary }]}>
+                  {t(`catalogo.combustibleValores.${vehiculo.combustible}`, {
+                    defaultValue: vehiculo.combustible,
+                  })}
+                </Text>
               </View>
             </View>
 
@@ -228,7 +240,7 @@ function VehiculoCard({
 
             <Text style={styles.precio}>
               {formatPrecio(vehiculo.precio)}
-              <Text style={[styles.precioDia, { color: c.textMuted }]}> /dia</Text>
+              <Text style={[styles.precioDia, { color: c.textMuted }]}> /{t("catalogo.porDia")}</Text>
             </Text>
 
             <TouchableOpacity
@@ -248,12 +260,12 @@ function VehiculoCard({
                   style={styles.reservarBtn}
                 >
                   <Ionicons name="car-sport-outline" size={16} color="#fff" />
-                  <Text style={styles.reservarBtnText}>RESERVAR AHORA</Text>
+                  <Text style={styles.reservarBtnText}>{t("catalogo.reservarAhora")}</Text>
                 </LinearGradient>
               ) : (
                 <View style={styles.reservarBtn}>
                   <Ionicons name="car-sport-outline" size={16} color="#fff" />
-                  <Text style={styles.reservarBtnText}>RESERVAR AHORA</Text>
+                  <Text style={styles.reservarBtnText}>{t("catalogo.reservarAhora")}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -265,7 +277,7 @@ function VehiculoCard({
           onPress={() => setVerDetalles(!verDetalles)}
         >
           <Text style={styles.detallesBtnText}>
-            {verDetalles ? "Ocultar detalles" : "Ver detalles"}
+            {verDetalles ? t("catalogo.ocultarDetalles") : t("catalogo.verDetalles")}
           </Text>
         </TouchableOpacity>
 

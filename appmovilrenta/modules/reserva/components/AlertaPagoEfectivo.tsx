@@ -9,6 +9,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { AlertModal } from "@/components/ui/AlertModal";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   visible: boolean;
@@ -20,24 +21,25 @@ interface Props {
 
 export function AlertaPagoEfectivo({ visible, nombreSucursal, ciudad, direccion, onCerrar }: Props) {
   const c = useTemaColores();
+  const { t } = useTranslation();
   return (
     <AlertModal
       visible={visible}
       icono="information-circle-outline"
-      titulo="Pago en efectivo: retiro en sucursal"
-      mensaje="Al pagar en efectivo, el único punto de retiro y devolución es la sucursal donde se encuentra el vehículo. Dirígete a:"
+      titulo={t("reserva.confirmacion.pagoEfectivoTitulo")}
+      mensaje={t("reserva.confirmacion.pagoEfectivoMensaje")}
       onCerrar={onCerrar}
-      botones={[{ texto: "Cerrar", onPress: onCerrar, variante: "primario" }]}
+      botones={[{ texto: t("reserva.resumen.cerrar"), onPress: onCerrar, variante: "primario" }]}
       contenido={
         <View style={[s.caja, { backgroundColor: c.primaryBg }]}>
           <Text style={[s.nombreSucursal, { color: c.textPrimary }]}>{nombreSucursal}</Text>
           <Text style={[s.fila, { color: c.textSecondary }]}>
-            <Text style={[s.etiqueta, { color: c.textSecondary }]}>Ciudad: </Text>
-            {ciudad ?? "Sin definir"}
+            <Text style={[s.etiqueta, { color: c.textSecondary }]}>{t("reserva.confirmacion.ciudad")}</Text>
+            {ciudad ?? t("reserva.confirmacion.sinDefinir")}
           </Text>
           <Text style={[s.fila, { color: c.textSecondary }]}>
-            <Text style={[s.etiqueta, { color: c.textSecondary }]}>Dirección: </Text>
-            {direccion ?? "Sin definir"}
+            <Text style={[s.etiqueta, { color: c.textSecondary }]}>{t("reserva.confirmacion.direccion")}</Text>
+            {direccion ?? t("reserva.confirmacion.sinDefinir")}
           </Text>
         </View>
       }

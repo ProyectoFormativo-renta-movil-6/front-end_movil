@@ -73,7 +73,7 @@ export function DateField({
   value,
   onChange,
   error,
-  placeholder = "Seleccionar...",
+  placeholder = "",
   maximumDate,
   minimumDate,
   colores: c,

@@ -55,7 +55,7 @@ export function InfoPersonal({ usuario, onEditar, onCambiarCorreo }: Props) {
 
         <View style={styles.campo}>
           <Text style={styles.campoLabel}>{t('perfil.documento')}</Text>
-          <Text style={styles.campoValor}>{usuario.tipoDocumento} {usuario.numeroDocumento}</Text>
+          <Text style={styles.campoValor}>{t(`reserva.datosPersonales.tiposDocumento.${usuario.tipoDocumento === "Doc. Extranjero" ? "DocExtranjero" : usuario.tipoDocumento}`, { defaultValue: usuario.tipoDocumento })} {usuario.numeroDocumento}</Text>
         </View>
         <View style={styles.divider} />
 

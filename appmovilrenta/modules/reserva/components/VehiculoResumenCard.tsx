@@ -12,6 +12,7 @@ import { COLORES } from "../constants/reserva.constants";
 import { useMonedaStore } from "@/store/monedaStore";
 import { formatCurrency } from "@/utils/monedaUtils";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -41,13 +42,17 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
   // cuando cambie COP↔USD o llegue una tasa nueva.
   useMonedaStore();
   const c = useTemaColores();
+  const { t } = useTranslation();
   const [fotoActiva, setFotoActiva] = useState(0);
   const imagenes = getSafeImages(vehiculo);
 
+  const trTransmision = (v?: string) => v ? t(`catalogo.transmisionValores.${v}`, { defaultValue: v }) : "—";
+  const trCombustible = (v?: string) => v ? t(`catalogo.combustibleValores.${v}`, { defaultValue: v }) : "—";
+
   const specs: CaracteristicaItem[] = [
-    { icono: <Ionicons name="settings-outline" size={14} color={COLORES.accentText} />, label: vehiculo.transmision ?? "—" },
-    { icono: <MaterialCommunityIcons name="gas-station-outline" size={14} color={COLORES.accentText} />, label: vehiculo.combustible ?? "—" },
-    { icono: <Ionicons name="people-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.pasajeros ?? 5} personas` },
+    { icono: <Ionicons name="settings-outline" size={14} color={COLORES.accentText} />, label: trTransmision(vehiculo.transmision) },
+    { icono: <MaterialCommunityIcons name="gas-station-outline" size={14} color={COLORES.accentText} />, label: trCombustible(vehiculo.combustible) },
+    { icono: <Ionicons name="people-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.pasajeros ?? 5} ${t("catalogo.detalles.personas")}` },
   ];
 
   // Mismas 7 características que maneja VehiculoDetalles.tsx en el catálogo — nada extra,
@@ -55,25 +60,25 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
   const caracteristicas: CaracteristicaItem[] = [];
 
   if (vehiculo.aireAcondicionado) {
-    caracteristicas.push({ icono: <Ionicons name="snow-outline" size={14} color={COLORES.accentText} />, label: "Aire acondicionado" });
+    caracteristicas.push({ icono: <Ionicons name="snow-outline" size={14} color={COLORES.accentText} />, label: t("catalogo.detalles.aireAcondicionado") });
   }
   if (vehiculo.vidriosElectricos) {
-    caracteristicas.push({ icono: <Ionicons name="flash-outline" size={14} color={COLORES.accentText} />, label: "Eleva vidrios eléctrico" });
+    caracteristicas.push({ icono: <Ionicons name="flash-outline" size={14} color={COLORES.accentText} />, label: t("catalogo.detalles.vidriosElectricos") });
   }
   if (vehiculo.cierreCentralizado) {
-    caracteristicas.push({ icono: <Ionicons name="lock-closed-outline" size={14} color={COLORES.accentText} />, label: "Cierre centralizado" });
+    caracteristicas.push({ icono: <Ionicons name="lock-closed-outline" size={14} color={COLORES.accentText} />, label: t("catalogo.detalles.cierreCentralizado") });
   }
   if (vehiculo.maletero) {
-    caracteristicas.push({ icono: <MaterialCommunityIcons name="bag-suitcase-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.maletero}L maletero` });
+    caracteristicas.push({ icono: <MaterialCommunityIcons name="bag-suitcase-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.maletero}L ${t("catalogo.detalles.maletero")}` });
   }
   if (vehiculo.transmision) {
-    caracteristicas.push({ icono: <Ionicons name="settings-outline" size={14} color={COLORES.accentText} />, label: vehiculo.transmision });
+    caracteristicas.push({ icono: <Ionicons name="settings-outline" size={14} color={COLORES.accentText} />, label: trTransmision(vehiculo.transmision) });
   }
   if (vehiculo.combustible) {
-    caracteristicas.push({ icono: <MaterialCommunityIcons name="gas-station-outline" size={14} color={COLORES.accentText} />, label: vehiculo.combustible });
+    caracteristicas.push({ icono: <MaterialCommunityIcons name="gas-station-outline" size={14} color={COLORES.accentText} />, label: trCombustible(vehiculo.combustible) });
   }
   if (vehiculo.pasajeros) {
-    caracteristicas.push({ icono: <Ionicons name="people-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.pasajeros} personas` });
+    caracteristicas.push({ icono: <Ionicons name="people-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.pasajeros} ${t("catalogo.detalles.personas")}` });
   }
 
   const filasCaracteristicas: CaracteristicaItem[][] = [];
@@ -93,7 +98,7 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
             />
             <View style={styles.badgeGaleria}>
               <Ionicons name="images-outline" size={11} color="#0f6e56" />
-              <Text style={styles.badgeGaleriaText}>En galería</Text>
+              <Text style={styles.badgeGaleriaText}>{t("reserva.resumenVehiculo.enGaleria")}</Text>
             </View>
           </>
         ) : (
@@ -128,13 +133,13 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
         <Text style={[styles.nombre, { color: c.textPrimary }]} numberOfLines={1}>{vehiculo.nombre}</Text>
         <Text style={[styles.precio, { color: c.textPrimary }]}>
           {formatPrecio(vehiculo.precio)}
-          <Text style={[styles.precioDia, { color: c.textMuted }]}>/día</Text>
+          <Text style={[styles.precioDia, { color: c.textMuted }]}>/{t("catalogo.porDia")}</Text>
         </Text>
       </View>
 
       <View style={styles.tagsRow}>
         <View style={styles.tagCategoria}>
-          <Text style={styles.tagCategoriaText}>{vehiculo.categoria ?? "Económico"}</Text>
+          <Text style={styles.tagCategoriaText}>{t(`catalogo.categoriaValores.${vehiculo.categoria ?? "Economico"}`, { defaultValue: vehiculo.categoria ?? "Económico" })}</Text>
         </View>
 
         {vehiculo.sucursal && (
@@ -158,7 +163,7 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
 
       {filasCaracteristicas.length > 0 && (
         <>
-          <Text style={[styles.seccionLabel, { color: c.textMuted }]}>CARACTERÍSTICAS</Text>
+          <Text style={[styles.seccionLabel, { color: c.textMuted }]}>{t("reserva.resumenVehiculo.caracteristicas")}</Text>
           <View style={styles.caracteristicasGrid}>
             {filasCaracteristicas.map((fila, fi) => (
               <View key={fi} style={styles.caracteristicasFila}>

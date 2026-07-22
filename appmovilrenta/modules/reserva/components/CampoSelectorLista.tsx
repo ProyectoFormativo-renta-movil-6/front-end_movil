@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 import { COLOR_MARCA } from "../constants/reserva.constants";
 
 interface Opcion {
@@ -23,12 +24,14 @@ export default function CampoSelectorLista({
   valorSeleccionado,
   opciones,
   onSeleccionar,
-  placeholder = "Seleccionar",
+  placeholder,
 }: Props) {
   const [abierto, setAbierto] = useState(false);
   const c = useTemaColores();
+  const { t } = useTranslation();
   const opcionActual = opciones.find((o) => o.id === valorSeleccionado);
   const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
+  const placeholderTexto = placeholder ?? t("reserva.fechasLugar.seleccionar");
 
   return (
     <View style={styles.contenedor}>
@@ -50,7 +53,7 @@ export default function CampoSelectorLista({
           ]}
           numberOfLines={1}
         >
-          {opcionActual?.label ?? placeholder}
+          {opcionActual?.label ?? placeholderTexto}
         </Text>
         <Ionicons name="chevron-down" size={14} color={primaryAccent} />
       </TouchableOpacity>
@@ -96,7 +99,7 @@ export default function CampoSelectorLista({
                 );
               }}
               ListEmptyComponent={
-                <Text style={[styles.emptyText, { color: c.textMuted }]}>No hay opciones disponibles</Text>
+                <Text style={[styles.emptyText, { color: c.textMuted }]}>{t("reserva.fechasLugar.sinOpcionesDisponibles")}</Text>
               }
             />
           </View>
