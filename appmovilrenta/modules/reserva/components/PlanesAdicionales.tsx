@@ -162,7 +162,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                   <View style={styles.opcionHeaderRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.opcionTitulo, { color: c.textSecondary }, activo && styles.opcionTituloActiva]}>
-                        {seguro.nombre}
+                        {t(`reserva.planes.nombreSeguro.${seguro.nombre}`, { defaultValue: seguro.nombre })}
                       </Text>
                       <Text style={[styles.opcionDesc, { color: c.textMuted }, activo && styles.opcionDescActiva]}>
                         {t("reserva.planes.precioSeguroLinea", {
@@ -308,7 +308,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
                     style={{ marginLeft: 8, marginRight: 8 }}
                   />
                   <Text style={[styles.servicioNombre, { color: c.textSecondary }, seleccionado && styles.opcionTituloActiva]} numberOfLines={2}>
-                    {servicio.nombre}
+                    {t(`reserva.planes.nombreServicio.${servicio.nombre}`, { defaultValue: servicio.nombre })}
                   </Text>
                   {servicio.precio > 0 && (
                     <Text style={[styles.servicioPrecio, { color: c.textMuted }]}>{formatPrecio(servicio.precio)}{t("reserva.planes.porDia")}</Text>
@@ -335,7 +335,7 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
             <View style={styles.resumenSubcard}>
               {seguroElegido && (
                 <View style={styles.lineaPrecio}>
-                  <Text style={[styles.lineaLabel, { color: c.textSecondary }]}>{t("reserva.planes.proteccionLinea", { nombre: seguroElegido.nombre })}</Text>
+                  <Text style={[styles.lineaLabel, { color: c.textSecondary }]}>{t("reserva.planes.proteccionLinea", { nombre: t(`reserva.planes.nombreSeguro.${seguroElegido.nombre}`, { defaultValue: seguroElegido.nombre }) })}</Text>
                   <Text style={[styles.lineaValor, { color: c.textPrimary }]}>{formatPrecio(totalProteccion)}</Text>
                 </View>
               )}

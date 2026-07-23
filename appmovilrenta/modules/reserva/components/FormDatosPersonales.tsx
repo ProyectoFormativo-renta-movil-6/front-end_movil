@@ -4,6 +4,9 @@ import { useReservaStore } from "@/store/reservaStore";
 import { useUsuarioStore } from "@/store/usuarioStore";
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
+import { router } from "expo-router";
 import { AlertModal } from "../../../components/ui/AlertModal";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { useTranslation } from "react-i18next";
@@ -17,6 +20,15 @@ import {
   getTiposDocumento,
 } from "../constants/reserva.constants";
 import { TipoDocumento } from "../types/reserva.types";
+import {
+  aCentavos,
+  construirUrlCheckout,
+  generarReferenciaUnica,
+} from "../services/wompiService";
+import {
+  HORAS_LIMITE_PAGO_EFECTIVO,
+  reservaPersistService,
+} from "../services/reservaPersistService";
 import BarraTotalConfirmar from "./BarraTotalConfirmar";
 import CampoSelectorLista from "./CampoSelectorLista";
 import ModalReservaRegistrada from "./ModalReservaRegistrada";
@@ -65,9 +77,14 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
 
   const usuarioGlobal = useUsuarioStore((s) => s.usuario);
   const actualizarUsuarioGlobal = useUsuarioStore((s) => s.actualizarUsuario);
+  const limpiarReserva = useReservaStore((s) => s.limpiarReserva);
 
   const [modalReservaVisible, setModalReservaVisible] = useState(false);
   const [alertaFaltantesVisible, setAlertaFaltantesVisible] = useState(false);
+  const [alertaEfectivoVisible, setAlertaEfectivoVisible] = useState(false);
+  const [alertaErrorPagoVisible, setAlertaErrorPagoVisible] = useState(false);
+  const [procesandoPago, setProcesandoPago] = useState(false);
+  const [referenciaActual, setReferenciaActual] = useState<string | null>(null);
 
   const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
   const brandBg = c.oscuro ? "#3B82F6" : COLOR_MARCA;
@@ -156,16 +173,86 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
     return subtotal + iva;
   }, [vehiculo, fechasLugar.fechaRetiro, fechasLugar.fechaDevolucion, planes]);
 
-  const handleConfirmarReserva = () => {
+  const handleConfirmarReserva = async () => {
     if (!datosCompletos) {
       setAlertaFaltantesVisible(true);
       return;
     }
-    setModalReservaVisible(true);
+
+    const referencia = generarReferenciaUnica();
+    const metodoPago = fechasLugar.metodoPago;
+
+    await reservaPersistService.guardarReserva({
+      referencia,
+      vehiculoId: vehiculo.id,
+      vehiculoNombre: vehiculo.nombre,
+      metodoPago,
+      total,
+      fechaReserva: new Date().toISOString(),
+      fechaRetiro: fechasLugar.fechaRetiro,
+      fechaDevolucion: fechasLugar.fechaDevolucion,
+      lugarRetiro: fechasLugar.lugarRetiro,
+      lugarDevolucion: fechasLugar.lugarDevolucion,
+      proteccion: planes.proteccion,
+      tipoKilometraje: planes.tipoKilometraje,
+    });
+
+    setReferenciaActual(referencia);
+
+    if (metodoPago === "efectivo") {
+      // El pago en efectivo se confirma directamente en sucursal: no pasa
+      // por Wompi. Mostramos el plazo límite y dejamos la reserva guardada
+      // como PENDIENTE_EFECTIVO (ya calculado dentro del servicio).
+      setAlertaEfectivoVisible(true);
+    } else {
+      setModalReservaVisible(true);
+    }
   };
 
-  const handlePagarWompi = () => {
+  const handlePagarWompi = async () => {
+    if (!referenciaActual) return;
     setModalReservaVisible(false);
+    setProcesandoPago(true);
+
+    try {
+      const redirectUrl = Linking.createURL("pago-respuesta");
+      const amountInCents = aCentavos(total);
+
+      const url = await construirUrlCheckout({
+        reference: referenciaActual,
+        amountInCents,
+        redirectUrl,
+      });
+
+      const resultado = await WebBrowser.openAuthSessionAsync(url, redirectUrl);
+
+      if (resultado.type === "success" && resultado.url) {
+        const { queryParams } = Linking.parse(resultado.url);
+        const transactionId =
+          typeof queryParams?.id === "string" ? queryParams.id : null;
+
+        await reservaPersistService.actualizarEstado(
+          referenciaActual,
+          "PENDIENTE_VALIDACION",
+          transactionId,
+        );
+
+        limpiarReserva();
+        router.replace(`/pago-respuesta?ref=${encodeURIComponent(referenciaActual)}`);
+      } else {
+        // El usuario canceló el checkout o Wompi no completó la redirección.
+        // La reserva queda guardada como PENDIENTE; puede reintentar el
+        // pago volviendo a tocar "Pagar con Wompi".
+        setAlertaErrorPagoVisible(true);
+        setModalReservaVisible(true);
+      }
+    } catch (error) {
+      console.error("[FormDatosPersonales] Error en el pago con Wompi", error);
+      setAlertaErrorPagoVisible(true);
+      setModalReservaVisible(true);
+    } finally {
+      setProcesandoPago(false);
+    }
   };
 
   return (
@@ -316,6 +403,36 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
         mensaje={t("reserva.datosPersonales.alertaFaltantesMensaje")}
         botones={[]}
         onCerrar={() => setAlertaFaltantesVisible(false)}
+      />
+
+      <AlertModal
+        visible={alertaEfectivoVisible}
+        icono="checkmark-circle-outline"
+        titulo={t("reserva.confirmacion.efectivoConfirmadaTitulo")}
+        mensaje={t("reserva.confirmacion.efectivoConfirmadaMensaje", {
+          horas: HORAS_LIMITE_PAGO_EFECTIVO,
+        })}
+        botones={[
+          {
+            texto: t("reserva.confirmacion.entendidoIrAMisReservas"),
+            variante: "primario",
+            onPress: () => {
+              setAlertaEfectivoVisible(false);
+              limpiarReserva();
+              router.replace("/(tabs)/mis-reservas");
+            },
+          },
+        ]}
+        onCerrar={() => setAlertaEfectivoVisible(false)}
+      />
+
+      <AlertModal
+        visible={alertaErrorPagoVisible}
+        icono="close-circle-outline"
+        titulo={t("reserva.confirmacion.errorPagoTitulo")}
+        mensaje={t("reserva.confirmacion.errorPagoMensaje")}
+        botones={[]}
+        onCerrar={() => setAlertaErrorPagoVisible(false)}
       />
     </View>
   );

@@ -291,7 +291,7 @@ const newS = StyleSheet.create({
   },
   sheetScroll: {
     paddingHorizontal: 16,
-    paddingTop: 4,
+    paddingTop: 40,
     paddingBottom: 32,
   },
   cardWrapper: {
