@@ -1,9 +1,13 @@
 import React, { useMemo } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Calendar, DateData } from "react-native-calendars";
+import { LinearGradient } from "expo-linear-gradient";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { getDisponibilidadVehiculo } from "@/modules/catalogo/constants/catalogo.constants";
-import { COLOR_MARCA, COLORES } from "../constants/reserva.constants";
+import { COLOR_MARCA } from "../constants/reserva.constants";
+import { GRADIENTES } from "@/constants/gradients";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -27,12 +31,102 @@ function getDiasEnRango(inicio: string, fin: string): string[] {
   return dias;
 }
 
+// Marca de un día en el calendario. Reemplaza el `dayComponent` por defecto
+// de react-native-calendars para poder pintar el rango seleccionado con un
+// degradado (en vez del color plano de antes) y un puntito de estado
+// (disponible / ocupado) debajo del número, al estilo de la referencia.
+interface MarcaDia {
+  ocupado?: boolean;
+  dotColor?: string;
+  seleccionado?: boolean;
+  inicioRango?: boolean;
+  finRango?: boolean;
+}
+
+function DiaCalendario({
+  date,
+  state,
+  marking,
+  onPress,
+  c,
+}: {
+  date?: DateData;
+  state?: string;
+  marking?: MarcaDia;
+  onPress?: (date?: DateData) => void;
+  c: ReturnType<typeof useTemaColores>;
+}) {
+  if (!date) return <View style={diaStyles.celda} />;
+
+  const deshabilitado = state === "disabled";
+  const hoy = state === "today";
+  const seleccionado = !!marking?.seleccionado;
+  const enExtremoRango = marking?.inicioRango || marking?.finRango;
+  const esRangoContinuo = seleccionado && !enExtremoRango;
+
+  const numero = (
+    <Text
+      style={[
+        diaStyles.texto,
+        { color: c.textPrimary },
+        deshabilitado && [diaStyles.textoDeshabilitado, { color: c.textMuted }],
+        hoy && !seleccionado && { color: COLOR_MARCA, fontWeight: "800" as const },
+        seleccionado && diaStyles.textoSeleccionado,
+      ]}
+    >
+      {date.day}
+    </Text>
+  );
+
+  let colorPunto: string | null = null;
+  if (marking?.ocupado) colorPunto = marking.dotColor ?? COLOR_RESERVADO;
+  else if (!deshabilitado) colorPunto = COLOR_DISPONIBLE;
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      disabled={deshabilitado}
+      onPress={() => onPress?.(date)}
+      style={diaStyles.celda}
+    >
+      {/* Fondo continuo suave para los días intermedios de un rango */}
+      {esRangoContinuo && (
+        <View style={[diaStyles.fondoRango, { backgroundColor: "rgba(37,99,235,0.14)" }]} />
+      )}
+
+      {enExtremoRango ? (
+        <LinearGradient
+          colors={GRADIENTES.boton.colors}
+          start={GRADIENTES.boton.start}
+          end={GRADIENTES.boton.end}
+          style={diaStyles.circulo}
+        >
+          {numero}
+        </LinearGradient>
+      ) : (
+        <View style={diaStyles.circulo}>{numero}</View>
+      )}
+
+      {colorPunto && (
+        <View
+          style={[
+            diaStyles.punto,
+            { backgroundColor: seleccionado ? "#fff" : colorPunto },
+          ]}
+        />
+      )}
+    </TouchableOpacity>
+  );
+}
+
 export default function CalendarioRango({
   vehiculo,
   fechaRetiro,
   fechaDevolucion,
   onCambiarFechas,
 }: Props) {
+  const c = useTemaColores();
+  const { t } = useTranslation();
   // La disponibilidad ya no viene embebida en el vehículo — se calcula
   // a partir de RESERVAS_MOCK (mocks/reservas.json) según su id.
   const ocupados = useMemo(() => {
@@ -47,12 +141,12 @@ export default function CalendarioRango({
 
   const mensajePorMotivo = (motivo: "reservado" | "mantenimiento") =>
     motivo === "mantenimiento"
-      ? "Este vehículo se encuentra en mantenimiento en la fecha seleccionada."
-      : "Este vehículo ya está reservado en la fecha seleccionada.";
+      ? t("reserva.fechasLugar.vehiculoEnMantenimiento")
+      : t("reserva.fechasLugar.vehiculoYaReservado");
 
   const alertarNoDisponible = (titulo: string, motivo: "reservado" | "mantenimiento") => {
     Alert.alert(titulo, mensajePorMotivo(motivo), [
-      { text: "Intentar de nuevo", style: "default" },
+      { text: t("reserva.fechasLugar.intentarDeNuevo"), style: "default" },
     ]);
   };
 
@@ -61,7 +155,7 @@ export default function CalendarioRango({
     const motivo = ocupados.get(fecha);
 
     if (motivo) {
-      alertarNoDisponible("Fecha no disponible", motivo);
+      alertarNoDisponible(t("reserva.fechasLugar.fechaNoDisponibleTitulo"), motivo);
       return;
     }
 
@@ -79,11 +173,11 @@ export default function CalendarioRango({
     const motivoEnMedio = rango.map((d) => ocupados.get(d)).find(Boolean);
     if (motivoEnMedio) {
       Alert.alert(
-        "Rango no disponible",
+        t("reserva.fechasLugar.rangoNoDisponibleTitulo"),
         motivoEnMedio === "mantenimiento"
-          ? "Hay fechas en mantenimiento dentro del rango seleccionado. Elige otras fechas."
-          : "Hay fechas ya reservadas dentro del rango seleccionado. Elige otras fechas.",
-        [{ text: "Intentar de nuevo", style: "default" }]
+          ? t("reserva.fechasLugar.rangoConMantenimiento")
+          : t("reserva.fechasLugar.rangoConReservas"),
+        [{ text: t("reserva.fechasLugar.intentarDeNuevo"), style: "default" }]
       );
       onCambiarFechas(fecha, null);
       return;
@@ -93,11 +187,11 @@ export default function CalendarioRango({
   };
 
   const markedDates = useMemo(() => {
-    const marcas: Record<string, any> = {};
+    const marcas: Record<string, MarcaDia> = {};
 
     ocupados.forEach((motivo, fecha) => {
       marcas[fecha] = {
-        marked: true,
+        ocupado: true,
         dotColor: motivo === "mantenimiento" ? COLOR_MANTENIMIENTO : COLOR_RESERVADO,
       };
     });
@@ -106,18 +200,18 @@ export default function CalendarioRango({
       const rango = getDiasEnRango(fechaRetiro, fechaDevolucion);
       rango.forEach((fecha, i) => {
         marcas[fecha] = {
-          color: COLOR_MARCA,
-          textColor: "#fff",
-          startingDay: i === 0,
-          endingDay: i === rango.length - 1,
+          ...marcas[fecha],
+          seleccionado: true,
+          inicioRango: i === 0,
+          finRango: i === rango.length - 1,
         };
       });
     } else if (fechaRetiro) {
       marcas[fechaRetiro] = {
-        color: COLOR_MARCA,
-        textColor: "#fff",
-        startingDay: true,
-        endingDay: true,
+        ...marcas[fechaRetiro],
+        seleccionado: true,
+        inicioRango: true,
+        finRango: true,
       };
     }
 
@@ -125,16 +219,21 @@ export default function CalendarioRango({
   }, [ocupados, fechaRetiro, fechaDevolucion]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderColor: c.border, backgroundColor: c.bgCard }]}>
       <Calendar
         current={hoy}
         minDate={hoy}
-        markingType="period"
         markedDates={markedDates}
         onDayPress={handleDayPress}
+        dayComponent={(props: any) => <DiaCalendario {...props} c={c} />}
         theme={{
+          calendarBackground: c.bgCard,
+          dayTextColor: c.textPrimary,
+          monthTextColor: c.textPrimary,
+          textDisabledColor: c.textMuted,
           todayTextColor: COLOR_MARCA,
-          arrowColor: COLORES.textSecondary,
+          arrowColor: c.textSecondary,
+          textSectionTitleColor: c.textMuted,
           textDayFontSize: 13,
           textMonthFontSize: 14,
           textMonthFontWeight: "700",
@@ -146,32 +245,76 @@ export default function CalendarioRango({
       <View style={styles.leyenda}>
         <View style={styles.leyendaItem}>
           <View style={[styles.dot, { backgroundColor: COLOR_DISPONIBLE }]} />
-          <Text style={styles.leyendaText}>Disponible</Text>
+          <Text style={[styles.leyendaText, { color: c.textSecondary }]}>Disponible</Text>
         </View>
         <View style={styles.leyendaItem}>
           <View style={[styles.dot, { backgroundColor: COLOR_RESERVADO }]} />
-          <Text style={styles.leyendaText}>Reservado</Text>
+          <Text style={[styles.leyendaText, { color: c.textSecondary }]}>Reservado</Text>
         </View>
         <View style={styles.leyendaItem}>
           <View style={[styles.dot, { backgroundColor: COLOR_MANTENIMIENTO }]} />
-          <Text style={styles.leyendaText}>Mantenimiento</Text>
+          <Text style={[styles.leyendaText, { color: c.textSecondary }]}>Mantenimiento</Text>
         </View>
         <View style={styles.leyendaItem}>
-          <View style={[styles.dot, { backgroundColor: COLOR_MARCA }]} />
-          <Text style={styles.leyendaText}>Seleccionado</Text>
+          <LinearGradient
+            colors={GRADIENTES.boton.colors}
+            start={GRADIENTES.boton.start}
+            end={GRADIENTES.boton.end}
+            style={styles.dotGradiente}
+          />
+          <Text style={[styles.leyendaText, { color: c.textSecondary }]}>Seleccionado</Text>
         </View>
       </View>
     </View>
   );
 }
 
+const diaStyles = StyleSheet.create({
+  celda: {
+    width: 32,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fondoRango: {
+    position: "absolute",
+    left: -2,
+    right: -2,
+    top: 3,
+    height: 28,
+  },
+  circulo: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  texto: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  textoDeshabilitado: {
+    textDecorationLine: "line-through",
+  },
+  textoSeleccionado: {
+    color: "#fff",
+    fontWeight: "800",
+  },
+  punto: {
+    position: "absolute",
+    bottom: 2,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+  },
+});
+
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: COLORES.panelBorderStrong,
     borderRadius: 14,
     padding: 8,
-    backgroundColor: COLORES.panelBg,
   },
   calendar: { borderRadius: 10 },
   leyenda: {
@@ -184,5 +327,6 @@ const styles = StyleSheet.create({
   },
   leyendaItem: { flexDirection: "row", alignItems: "center", gap: 5 },
   dot: { width: 7, height: 7, borderRadius: 4 },
-  leyendaText: { fontSize: 10, color: COLORES.textSecondary },
+  dotGradiente: { width: 10, height: 10, borderRadius: 5 },
+  leyendaText: { fontSize: 10 },
 });

@@ -33,6 +33,7 @@ export function usePerfil() {
     nombres: usuario.nombres,
     apellidos: usuario.apellidos,
     telefono: usuario.telefono,
+    fechaNacimiento: usuario.fechaNacimiento,
   });
 
   // Si el usuario global cambia (p. ej. porque lo llenó desde el
@@ -44,6 +45,7 @@ export function usePerfil() {
         nombres: usuario.nombres,
         apellidos: usuario.apellidos,
         telefono: usuario.telefono,
+        fechaNacimiento: usuario.fechaNacimiento,
       });
     }
   }, [usuario, editando]);
@@ -95,6 +97,12 @@ export function usePerfil() {
       nuevosErrores.telefono = "Número inválido (ej: +57 300 123 4567)";
     }
 
+    if (!form.fechaNacimiento) {
+      nuevosErrores.fechaNacimiento = "La fecha de nacimiento es obligatoria";
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.fechaNacimiento)) {
+      nuevosErrores.fechaNacimiento = "Formato: YYYY-MM-DD";
+    }
+
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
@@ -139,6 +147,7 @@ export function usePerfil() {
         nombres: form.nombres.trim(),
         apellidos: form.apellidos.trim(),
         telefono: form.telefono.trim(),
+        fechaNacimiento: form.fechaNacimiento,
       });
       setEditando(false);
       setCargando(false);
@@ -152,6 +161,7 @@ export function usePerfil() {
       nombres: usuario.nombres,
       apellidos: usuario.apellidos,
       telefono: usuario.telefono,
+      fechaNacimiento: usuario.fechaNacimiento,
     });
     setErrores({});
     setEditando(false);

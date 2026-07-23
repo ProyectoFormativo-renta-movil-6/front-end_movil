@@ -1,9 +1,11 @@
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useOnboarding } from "@/modules/onboarding/hooks/use-onboarding";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { GRADIENTES } from "@/constants/gradients";
 
 interface Props {
   currentPage: number;
@@ -39,8 +41,15 @@ export default function OnboardingNavigation({
   if (isLast) {
     return (
       <View style={styles.container}>
-        <TouchableOpacity style={styles.btnPrimary} onPress={handleRegistro} activeOpacity={0.85}>
-          <Text style={styles.btnPrimaryText}>{t("onboarding.nav.registrate")}</Text>
+        <TouchableOpacity style={styles.btnPrimaryWrap} onPress={handleRegistro} activeOpacity={0.85}>
+          <LinearGradient
+            colors={GRADIENTES.boton.colors}
+            start={GRADIENTES.boton.start}
+            end={GRADIENTES.boton.end}
+            style={styles.btnPrimary}
+          >
+            <Text style={styles.btnPrimaryText}>{t("onboarding.nav.registrate")}</Text>
+          </LinearGradient>
         </TouchableOpacity>
         <TouchableOpacity style={styles.btnText} onPress={handleLogin}>
           <Text style={[styles.btnTextText, { color: c.textMuted }]}>
@@ -63,8 +72,15 @@ export default function OnboardingNavigation({
             {isFirst ? t("onboarding.nav.saltar") : t("onboarding.nav.atras")}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.btnPrimary} onPress={onNext} activeOpacity={0.85}>
-          <Text style={styles.btnPrimaryText}>{t("onboarding.nav.siguiente")}</Text>
+        <TouchableOpacity style={styles.btnPrimaryWrap} onPress={onNext} activeOpacity={0.85}>
+          <LinearGradient
+            colors={GRADIENTES.boton.colors}
+            start={GRADIENTES.boton.start}
+            end={GRADIENTES.boton.end}
+            style={styles.btnPrimary}
+          >
+            <Text style={styles.btnPrimaryText}>{t("onboarding.nav.siguiente")}</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>
@@ -80,9 +96,11 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: "center",
   },
-  btnPrimary: {
+  btnPrimaryWrap: {
     flex: 1,
-    backgroundColor: "#1D4ED8",
+    borderRadius: 12,
+  },
+  btnPrimary: {
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: "center",

@@ -31,9 +31,8 @@ export const passwordInputStyles = StyleSheet.create({
   },
   botonOjo: {
     paddingLeft: 8,
-  },
-  textoOjo: {
-    fontSize: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textoError: {
     color: '#EF4444',

@@ -82,12 +82,12 @@ export const registroStyles = StyleSheet.create({
   checkbox: {
     width: 22,
     height: 22,
-    borderRadius: 5,
+    borderRadius: 7,
     borderWidth: 1.5,
     borderColor: '#D1D5DB',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#FFFFFF',
     marginTop: 1,
     flexShrink: 0,
   },
@@ -230,10 +230,12 @@ export const registroStyles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 8,
   },
-  modalBotonAceptar: {
+  modalBotonAceptarWrap: {
     marginHorizontal: 24,
     marginTop: 16,
-    backgroundColor: '#1D4ED8',
+    borderRadius: 12,
+  },
+  modalBotonAceptar: {
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',

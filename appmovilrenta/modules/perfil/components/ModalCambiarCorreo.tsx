@@ -4,6 +4,10 @@
  * RF50.5 — Guardar cambios validados
  */
 import React, { useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
+import { GRADIENTES } from "@/constants/gradients";
 import {
   ActivityIndicator,
   Modal,
@@ -42,6 +46,7 @@ export function ModalCambiarCorreo({
   onCerrar,
 }: Props) {
   const [verContrasena, setVerContrasena] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <Modal
@@ -63,7 +68,7 @@ export function ModalCambiarCorreo({
           >
             {/* Encabezado */}
             <View style={styles.header}>
-              <Text style={styles.titulo}>Cambiar correo</Text>
+              <Text style={styles.titulo}>{t("perfil.cambiarCorreo.titulo")}</Text>
               <TouchableOpacity style={styles.btnCerrar} onPress={onCerrar}>
                 <Text style={styles.btnCerrarText}>✕</Text>
               </TouchableOpacity>
@@ -71,13 +76,13 @@ export function ModalCambiarCorreo({
 
             {/* Correo actual */}
             <View style={styles.correoActualWrap}>
-              <Text style={styles.correoActualLabel}>Correo actual</Text>
+              <Text style={styles.correoActualLabel}>{t("perfil.cambiarCorreo.correoActual")}</Text>
               <Text style={styles.correoActualValor}>{correoActual}</Text>
             </View>
 
             {/* Nuevo correo */}
             <View style={styles.campoWrap}>
-              <Text style={styles.campoLabel}>Nuevo correo *</Text>
+              <Text style={styles.campoLabel}>{t("perfil.cambiarCorreo.nuevoCorreo")}</Text>
               <TextInput
                 style={[
                   styles.input,
@@ -85,7 +90,7 @@ export function ModalCambiarCorreo({
                 ]}
                 value={form.nuevoCorreo}
                 onChangeText={(val) => onCambiar("nuevoCorreo", val)}
-                placeholder="nuevo@correo.com"
+                placeholder={t("perfil.cambiarCorreo.nuevoCorreoPlaceholder")}
                 placeholderTextColor="#9CA3AF"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -97,7 +102,7 @@ export function ModalCambiarCorreo({
 
             {/* Confirmar correo */}
             <View style={styles.campoWrap}>
-              <Text style={styles.campoLabel}>Confirmar nuevo correo *</Text>
+              <Text style={styles.campoLabel}>{t("perfil.cambiarCorreo.confirmarNuevoCorreo")}</Text>
               <TextInput
                 style={[
                   styles.input,
@@ -105,7 +110,7 @@ export function ModalCambiarCorreo({
                 ]}
                 value={form.confirmarCorreo}
                 onChangeText={(val) => onCambiar("confirmarCorreo", val)}
-                placeholder="Repite el nuevo correo"
+                placeholder={t("perfil.cambiarCorreo.confirmarNuevoCorreoPlaceholder")}
                 placeholderTextColor="#9CA3AF"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -117,7 +122,7 @@ export function ModalCambiarCorreo({
 
             {/* Contraseña actual */}
             <View style={styles.campoWrap}>
-              <Text style={styles.campoLabel}>Contraseña actual *</Text>
+              <Text style={styles.campoLabel}>{t("perfil.cambiarCorreo.contrasenaActual")}</Text>
               <View style={styles.inputRow}>
                 <TextInput
                   style={[
@@ -126,7 +131,7 @@ export function ModalCambiarCorreo({
                   ]}
                   value={form.contrasenaActual}
                   onChangeText={(val) => onCambiar("contrasenaActual", val)}
-                  placeholder="Tu contraseña actual"
+                  placeholder={t("perfil.cambiarCorreo.contrasenaActualPlaceholder")}
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={!verContrasena}
                   autoCapitalize="none"
@@ -135,9 +140,7 @@ export function ModalCambiarCorreo({
                   style={styles.btnVerContrasena}
                   onPress={() => setVerContrasena(!verContrasena)}
                 >
-                  <Text style={styles.btnVerContrasenaText}>
-                    {verContrasena ? "🙈" : "👁️"}
-                  </Text>
+                  <Ionicons name={verContrasena ? "eye-off-outline" : "eye-outline"} size={18} color="#6B7280" />
                 </TouchableOpacity>
               </View>
               {errores.contrasenaActual && (
@@ -148,21 +151,30 @@ export function ModalCambiarCorreo({
             {/* Nota seguridad */}
             <View style={styles.notaWrap}>
               <Text style={styles.notaText}>
-                🔐 Por tu seguridad verificamos tu contraseña antes de cambiar el correo.
+                🔐 {t("perfil.cambiarCorreo.notaSeguridad")}
               </Text>
             </View>
 
             {/* Botones */}
             <TouchableOpacity
-              style={[styles.btnGuardar, cargando && styles.btnGuardarDisabled]}
+              style={styles.btnGuardarWrap}
               onPress={onGuardar}
               activeOpacity={0.85}
               disabled={cargando}
             >
               {cargando ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <View style={[styles.btnGuardar, styles.btnGuardarDisabled]}>
+                  <ActivityIndicator color="#FFFFFF" />
+                </View>
               ) : (
-                <Text style={styles.btnGuardarText}>✓  Cambiar correo</Text>
+                <LinearGradient
+                  colors={GRADIENTES.boton.colors}
+                  start={GRADIENTES.boton.start}
+                  end={GRADIENTES.boton.end}
+                  style={styles.btnGuardar}
+                >
+                  <Text style={styles.btnGuardarText}>✓  {t("perfil.cambiarCorreo.cambiarCorreoBtn")}</Text>
+                </LinearGradient>
               )}
             </TouchableOpacity>
 
@@ -171,7 +183,7 @@ export function ModalCambiarCorreo({
               onPress={onCerrar}
               disabled={cargando}
             >
-              <Text style={styles.btnCancelarText}>Cancelar</Text>
+              <Text style={styles.btnCancelarText}>{t("perfil.cambiarCorreo.cancelar")}</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -312,12 +324,14 @@ const styles = StyleSheet.create({
     color: "#1D4ED8",
     lineHeight: 18,
   },
+  btnGuardarWrap: {
+    borderRadius: 12,
+    marginBottom: 10,
+  },
   btnGuardar: {
-    backgroundColor: "#1D4ED8",
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: "center",
-    marginBottom: 10,
   },
   btnGuardarDisabled: { backgroundColor: "#93C5FD" },
   btnGuardarText: {

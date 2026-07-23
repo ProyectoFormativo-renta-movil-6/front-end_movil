@@ -8,6 +8,7 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 
 interface BotonAlerta {
   texto: string;
@@ -23,11 +24,12 @@ interface Props {
   /** Si no se pasa, muestra un botón "Entendido". Pasa [] para no mostrar botones. */
   botones?: BotonAlerta[];
   onCerrar?: () => void;
+  /** Contenido extra (ej: tarjeta con la dirección de una sucursal) entre el mensaje y los botones. */
+  contenido?: React.ReactNode;
 }
 
 // Mismo color y diseño para TODAS las alertas de la app (igual que catalogo.tsx)
 const COLOR = "#1E40AF";
-const BG_COLOR = "#EFF6FF";
 const ICONO_DEFECTO: keyof typeof Ionicons.glyphMap = "information-circle-outline";
 
 export function AlertModal({
@@ -37,7 +39,9 @@ export function AlertModal({
   mensaje,
   botones,
   onCerrar,
+  contenido,
 }: Props) {
+  const c = useTemaColores();
   const listaBotones: BotonAlerta[] =
     botones !== undefined
       ? botones
@@ -51,8 +55,8 @@ export function AlertModal({
       onRequestClose={onCerrar}
     >
       <Pressable style={s.alertOverlay} onPress={onCerrar}>
-        <Pressable style={s.alertBox} onPress={() => {}}>
-          <View style={[s.alertIconContainer, { backgroundColor: BG_COLOR }]}>
+        <Pressable style={[s.alertBox, { backgroundColor: c.bgCard }]} onPress={() => {}}>
+          <View style={[s.alertIconContainer, { backgroundColor: c.primaryBg }]}>
             <Ionicons
               name={icono ?? ICONO_DEFECTO}
               size={44}
@@ -60,8 +64,10 @@ export function AlertModal({
             />
           </View>
 
-          <Text style={s.alertTitle}>{titulo}</Text>
-          <Text style={s.alertMessage}>{mensaje}</Text>
+          <Text style={[s.alertTitle, { color: c.textPrimary }]}>{titulo}</Text>
+          <Text style={[s.alertMessage, { color: c.textSecondary }]}>{mensaje}</Text>
+
+          {contenido}
 
           {listaBotones.length > 0 && (
             <View style={s.alertButtonsContainer}>
@@ -70,7 +76,7 @@ export function AlertModal({
                   key={btn.texto + i}
                   style={
                     btn.variante === "secundario"
-                      ? [s.alertCancelBtn, { borderColor: COLOR }]
+                      ? [s.alertCancelBtn, { borderColor: COLOR, backgroundColor: c.bgCard }]
                       : [s.alertConfirmBtn, { backgroundColor: COLOR }]
                   }
                   onPress={btn.onPress}

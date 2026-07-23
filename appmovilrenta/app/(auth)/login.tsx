@@ -4,13 +4,16 @@ import { AlertModal } from "@/components/ui/AlertModal";
 import { InputField } from "@/components/ui/InputField";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { GRADIENTES } from "@/constants/gradients";
 import { SocialAuthButtons } from "@/modules/auth/components/SocialAuthButtons";
 import { useLogin } from "@/modules/auth/hooks/useAuth";
 import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
 import { useAuthStore } from "@/store/authStore";
 import { useUsuarioStore } from "@/store/usuarioStore";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -28,20 +31,25 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Tab = "login" | "bienvenida";
 
-const ACCESOS = [
-  { icono: "calendar-outline", texto: "Mis\nreservas" },
-  { icono: "card-outline", texto: "Mis\npagos" },
-  { icono: "document-text-outline", texto: "Mis\ncontratos" },
-];
-
-const BENEFICIOS = [
-  "Reserva en minutos",
-  "Paga con Nequi o PSE",
-  "Contrato digital inmediato",
+const ICONOS_ACCESOS: { icono: string }[] = [
+  { icono: "calendar-outline" },
+  { icono: "card-outline" },
+  { icono: "document-text-outline" },
 ];
 
 export default function LoginScreen() {
   const { t } = useTranslation();
+  const c = useTemaColores();
+  const ACCESOS = [
+    { icono: ICONOS_ACCESOS[0].icono, texto: t("auth.login.accesoMisReservas") },
+    { icono: ICONOS_ACCESOS[1].icono, texto: t("auth.login.accesoMisPagos") },
+    { icono: ICONOS_ACCESOS[2].icono, texto: t("auth.login.accesoMisContratos") },
+  ];
+  const BENEFICIOS = [
+    t("auth.login.beneficio1"),
+    t("auth.login.beneficio2"),
+    t("auth.login.beneficio3"),
+  ];
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<Tab>("login");
   const { form, errores, cargando, bloqueado, actualizarCampo, iniciarSesion } =
@@ -101,9 +109,9 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.flex}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
 
-      <View style={{ height: insets.top, backgroundColor: "#FFFFFF" }} />
+      <View style={{ height: insets.top, backgroundColor: c.bgHeader }} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -119,29 +127,35 @@ export default function LoginScreen() {
         >
           <View>
             {/* BARRA SUPERIOR BLANCA */}
-            <View style={styles.topBar}>
+            <View style={[styles.topBar, { backgroundColor: c.bgHeader }]}>
               <TouchableOpacity
                 style={styles.volverBtn}
                 onPress={() => router.back()}
               >
-                <Ionicons name="chevron-back" size={20} color="#1E3A8A" />
-                <Text style={styles.volverTexto}>Volver</Text>
+                <Ionicons name="chevron-back" size={20} color={c.primary} />
+                <Text style={[styles.volverTexto, { color: c.primary }]}>{t("auth.login.volver")}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.invitadoBtn}
+                style={[styles.invitadoBtn, { backgroundColor: c.bgHeader, borderColor: c.primary }]}
                 onPress={handleInvitado}
               >
-                <Text style={styles.invitadoBtnTexto}>Modo invitado</Text>
+                <Text style={[styles.invitadoBtnTexto, { color: c.primary }]}>{t("auth.login.modoInvitado")}</Text>
               </TouchableOpacity>
             </View>
 
-            {/* HEADER AZUL */}
-            <View style={styles.header}>
+            {/* HEADER AZUL GRADIENTE */}
+            <LinearGradient
+              colors={GRADIENTES.heroOscuro.colors}
+              locations={GRADIENTES.heroOscuro.locations}
+              start={GRADIENTES.heroOscuro.start}
+              end={GRADIENTES.heroOscuro.end}
+              style={styles.header}
+            >
               <View style={styles.marcaWrapper}>
                 <Text style={styles.marca}>Drivique</Text>
                 <Text style={styles.marcaTagline}>
-                  Distintivo, elegante y memorable
+                  {t("auth.login.tagline")}
                 </Text>
               </View>
 
@@ -160,7 +174,7 @@ export default function LoginScreen() {
                       tab === "login" && styles.tabBtnTextoActivo,
                     ]}
                   >
-                    Iniciar sesión
+                    {t("auth.login.tabIniciarSesion")}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -176,11 +190,11 @@ export default function LoginScreen() {
                       tab === "bienvenida" && styles.tabBtnTextoActivo,
                     ]}
                   >
-                    Bienvenida
+                    {t("auth.login.tabBienvenida")}
                   </Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </LinearGradient>
 
             {/* CUERPO CON CARD FLOTANTE */}
             <View style={styles.cuerpo}>
@@ -194,11 +208,11 @@ export default function LoginScreen() {
                     />
                   </View>
 
-                  <View style={styles.card}>
+                  <View style={[styles.card, { backgroundColor: c.bgCard }]}>
                     <View style={styles.encabezado}>
-                      <Text style={styles.titulo}>Iniciar sesión</Text>
-                      <Text style={styles.subtitulo}>
-                        Ingresa tus credenciales para continuar
+                      <Text style={[styles.titulo, { color: c.textPrimary }]}>{t("auth.login.titulo")}</Text>
+                      <Text style={[styles.subtitulo, { color: c.textSecondary }]}>
+                        {t("auth.login.ingresaCredenciales")}
                       </Text>
                     </View>
 
@@ -254,20 +268,20 @@ export default function LoginScreen() {
                       ) : null}
 
                       <SocialAuthButtons
-                        onGoogle={() => console.log("Google login")}
-                        onFacebook={() => console.log("Facebook login")}
+                        onGoogle={() => {}}
+                        onFacebook={() => {}}
                       />
                     </View>
 
                     <View style={loginLocalS.registroRow}>
-                      <Text style={loginLocalS.registroTexto}>
-                        ¿No tienes cuenta?{" "}
+                      <Text style={[loginLocalS.registroTexto, { color: c.textSecondary }]}>
+                        {t("auth.login.noTienesCuenta")}
                       </Text>
                       <TouchableOpacity
                         onPress={() => router.push("/(auth)/registro")}
                       >
-                        <Text style={loginLocalS.registroLink}>
-                          Regístrate aquí
+                        <Text style={[loginLocalS.registroLink, { color: c.primary }]}>
+                          {t("auth.login.registrateAqui")}
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -282,12 +296,11 @@ export default function LoginScreen() {
                     />
                   </View>
 
-                  <View style={styles.card}>
+                  <View style={[styles.card, { backgroundColor: c.bgCard }]}>
                     <View style={styles.encabezado}>
-                      <Text style={styles.titulo}>Bienvenido de vuelta</Text>
-                      <Text style={styles.subtitulo}>
-                        Gestiona tus reservas, pagos y contratos desde un solo
-                        lugar.
+                      <Text style={[styles.titulo, { color: c.textPrimary }]}>{t("auth.login.bienvenidoDeVuelta")}</Text>
+                      <Text style={[styles.subtitulo, { color: c.textSecondary }]}>
+                        {t("auth.login.gestionaDesde")}
                       </Text>
                     </View>
 
@@ -310,7 +323,7 @@ export default function LoginScreen() {
 
                     <View style={styles.beneficiosCol}>
                       {BENEFICIOS.map((b) => (
-                        <Text key={b} style={styles.beneficioTexto}>
+                        <Text key={b} style={[styles.beneficioTexto, { color: c.textPrimary }]}>
                           {b}
                         </Text>
                       ))}
@@ -328,17 +341,17 @@ export default function LoginScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View style={{ height: insets.bottom, backgroundColor: "#FFFFFF" }} />
+      <View style={{ height: insets.bottom, backgroundColor: "#1E3A8A" }} />
 
       {/* ── ALERTA DE ERROR (mismo diseño y color que catálogo) ── */}
       <AlertModal
         visible={alertaErrorVisible}
         icono="alert-circle-outline"
-        titulo="No pudimos iniciar sesión"
-        mensaje={errorGlobal ?? "Revisa tus credenciales e inténtalo de nuevo."}
+        titulo={t("auth.login.errorTitulo")}
+        mensaje={errorGlobal ?? t("auth.login.errorMensajeDefault")}
         botones={[
           {
-            texto: "Entendido",
+            texto: t("catalogo.alertas.entendido"),
             variante: "primario",
             onPress: () => setAlertaErrorVisible(false),
           },
@@ -350,7 +363,7 @@ export default function LoginScreen() {
       <AlertModal
         visible={alertaExitoVisible}
         icono="checkmark-circle-outline"
-        titulo="¡Bienvenido de nuevo!"
+        titulo={t("auth.login.exitoTitulo")}
         mensaje={t("auth.login.exitoMsg")}
         botones={[]}
         onCerrar={() => setAlertaExitoVisible(false)}
