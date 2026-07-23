@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import { StatusBar, StyleSheet, View } from "react-native";
-import PagerView from "react-native-pager-view";
+import PagerView from "@/modules/onboarding/components/cross-pager";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useOnboarding } from "@/modules/onboarding/hooks/use-onboarding";
