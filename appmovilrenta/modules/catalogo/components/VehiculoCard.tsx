@@ -2,8 +2,11 @@
 
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { memo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useReservaStore } from "@/store/reservaStore";
+import { GRADIENTES } from "@/constants/gradients";
 import { DatosFechasLugar } from "@/modules/reserva/types/reserva.types";
 import {
   Image,
@@ -18,6 +21,9 @@ import {
 import { COLORES } from "../constants/catalogo.constants";
 import { Vehiculo } from "../types/catalogo.types";
 import VehiculoDetalles from "./VehiculoDetalles";
+import { useMonedaStore } from "@/store/monedaStore";
+import { formatCurrency } from "@/utils/monedaUtils";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -40,7 +46,8 @@ function getSafeImages(vehiculo: Vehiculo): string[] {
 }
 
 function formatPrecio(precio: number): string {
-  return `$${precio.toLocaleString("es-CO")}`;
+  const { monedaActual, tasaUSD } = useMonedaStore.getState();
+  return formatCurrency(precio, monedaActual, tasaUSD);
 }
 
 function Estrella({ llena }: { llena: boolean }) {
@@ -61,6 +68,11 @@ function VehiculoCard({
   onToggleFavorito,
   datosPrecarga,
 }: Props) {
+  // Nos suscribimos al store de moneda para re-renderizar los precios
+  // cuando cambie COP↔USD o llegue una tasa nueva.
+  useMonedaStore();
+  const c = useTemaColores();
+  const { t } = useTranslation();
   const [fotoActiva, setFotoActiva] = useState(0);
   const [verDetalles, setVerDetalles] = useState(false);
   const [cardWidth, setCardWidth] = useState(0);
@@ -98,9 +110,9 @@ function VehiculoCard({
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
       <View
-        style={styles.imagenContainer}
+        style={[styles.imagenContainer, { backgroundColor: c.bgInput }]}
         onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
       >
         {cardWidth > 0 && imagenes.length > 0 ? (
@@ -150,15 +162,15 @@ function VehiculoCard({
               { color: estadoDisponible ? "#137333" : "#c5221f" },
             ]}
           >
-            {estadoDisponible ? "Disponible" : "No disponible"}
+            {estadoDisponible ? t("catalogo.estados.disponible") : t("catalogo.noDisponible")}
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.favBtn} onPress={handleFavorito}>
+        <TouchableOpacity style={[styles.favBtn, { backgroundColor: c.bgCard }]} onPress={handleFavorito}>
           <Ionicons
             name={esFavorito ? "heart" : "heart-outline"}
             size={18}
-            color={esFavorito ? COLORES.accentText : "#6B7280"}
+            color={esFavorito ? "#ef4444" : c.textMuted}
           />
         </TouchableOpacity>
 
@@ -180,7 +192,9 @@ function VehiculoCard({
             <View style={styles.tagsRow}>
               <View style={styles.tagCategoria}>
                 <Text style={styles.tagCategoriaText}>
-                  {vehiculo.categoria ?? "Economico"}
+                  {t(`catalogo.categoriaValores.${vehiculo.categoria ?? "Economico"}`, {
+                    defaultValue: vehiculo.categoria ?? "Económico",
+                  })}
                 </Text>
               </View>
               <View style={styles.tagSucursal}>
@@ -191,21 +205,29 @@ function VehiculoCard({
               </View>
             </View>
 
-            <Text style={styles.nombre}>{vehiculo.nombre}</Text>
+            <Text style={[styles.nombre, { color: c.textPrimary }]}>{vehiculo.nombre}</Text>
 
             <View style={styles.infoRow}>
               <View style={styles.infoItem}>
                 <Ionicons name="settings-outline" size={14} color="#2f4ea2" />
-                <Text style={styles.infoText}>{vehiculo.transmision}</Text>
+                <Text style={[styles.infoText, { color: c.textSecondary }]}>
+                  {t(`catalogo.transmisionValores.${vehiculo.transmision}`, {
+                    defaultValue: vehiculo.transmision,
+                  })}
+                </Text>
               </View>
-              <View style={styles.infoSeparador} />
+              <View style={[styles.infoSeparador, { backgroundColor: c.border }]} />
               <View style={styles.infoItem}>
                 <MaterialCommunityIcons
                   name="gas-station-outline"
                   size={14}
                   color="#2f4ea2"
                 />
-                <Text style={styles.infoText}>{vehiculo.combustible}</Text>
+                <Text style={[styles.infoText, { color: c.textSecondary }]}>
+                  {t(`catalogo.combustibleValores.${vehiculo.combustible}`, {
+                    defaultValue: vehiculo.combustible,
+                  })}
+                </Text>
               </View>
             </View>
 
@@ -213,24 +235,39 @@ function VehiculoCard({
               {estrellas.map((llena, i) => (
                 <Estrella key={i} llena={llena} />
               ))}
-              <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+              <Text style={[styles.ratingText, { color: c.textSecondary }]}>{rating.toFixed(1)}</Text>
             </View>
 
             <Text style={styles.precio}>
               {formatPrecio(vehiculo.precio)}
-              <Text style={styles.precioDia}> /dia</Text>
+              <Text style={[styles.precioDia, { color: c.textMuted }]}> /{t("catalogo.porDia")}</Text>
             </Text>
 
             <TouchableOpacity
               style={[
-                styles.reservarBtn,
-                !estadoDisponible && styles.reservarBtnDisabled,
+                styles.reservarBtnWrap,
+                !estadoDisponible && [styles.reservarBtnDisabled, { backgroundColor: c.bgInput }],
               ]}
               onPress={handleReservar}
               disabled={!estadoDisponible}
+              activeOpacity={0.85}
             >
-              <Ionicons name="car-sport-outline" size={16} color="#fff" />
-              <Text style={styles.reservarBtnText}>RESERVAR AHORA</Text>
+              {estadoDisponible ? (
+                <LinearGradient
+                  colors={GRADIENTES.boton.colors}
+                  start={GRADIENTES.boton.start}
+                  end={GRADIENTES.boton.end}
+                  style={styles.reservarBtn}
+                >
+                  <Ionicons name="car-sport-outline" size={16} color="#fff" />
+                  <Text style={styles.reservarBtnText}>{t("catalogo.reservarAhora")}</Text>
+                </LinearGradient>
+              ) : (
+                <View style={styles.reservarBtn}>
+                  <Ionicons name="car-sport-outline" size={16} color="#fff" />
+                  <Text style={styles.reservarBtnText}>{t("catalogo.reservarAhora")}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -240,7 +277,7 @@ function VehiculoCard({
           onPress={() => setVerDetalles(!verDetalles)}
         >
           <Text style={styles.detallesBtnText}>
-            {verDetalles ? "Ocultar detalles" : "Ver detalles"}
+            {verDetalles ? t("catalogo.ocultarDetalles") : t("catalogo.verDetalles")}
           </Text>
         </TouchableOpacity>
 
@@ -376,17 +413,20 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   precioDia: { fontSize: 14, fontWeight: "400", color: COLORES.textSoft },
+  reservarBtnWrap: {
+    borderRadius: 12,
+    marginBottom: 8,
+    overflow: "hidden",
+  },
   reservarBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#2f4ea2",
     borderRadius: 12,
     paddingVertical: 14,
-    marginBottom: 8,
   },
-  reservarBtnDisabled: { backgroundColor: COLORES.paginationDisabledBg },
+  reservarBtnDisabled: { backgroundColor: COLORES.paginationDisabledBg, borderRadius: 12 },
   reservarBtnText: {
     color: "#fff",
     fontSize: 13,

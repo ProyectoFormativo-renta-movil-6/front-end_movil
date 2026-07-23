@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   Alert,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +14,7 @@ import { useCompletarPerfil } from "@/modules/perfil/hooks/usePerfil";
 import { Nacionalidad, TipoDocumento } from "@/modules/perfil/types/perfil.types";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { InputField } from "@/components/ui/InputField";
+import { DateField } from "@/components/ui/DateField";
 
 const TIPOS_DOCUMENTO: TipoDocumento[] = ["CC", "TI", "Doc. Extranjero", "Pasaporte"];
 
@@ -79,12 +81,14 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
         onChangeText={v => actualizarCampo("telefono", v)}
         error={errores.telefono}
       />
-      <InputField
+      <DateField
         label={t("perfil.fechaNac")}
-        placeholder="YYYY-MM-DD"
         value={form.fechaNacimiento}
-        onChangeText={v => actualizarCampo("fechaNacimiento", v)}
+        onChange={(valor) => actualizarCampo("fechaNacimiento", valor)}
         error={errores.fechaNacimiento}
+        placeholder={t("perfil.seleccionar")}
+        maximumDate={new Date()}
+        colores={c}
       />
 
       {/* Tipo de documento */}
@@ -94,7 +98,9 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
         onPress={() => setShowTipoDoc(v => !v)}
       >
         <Text style={[s.selectorText, { color: form.tipoDocumento ? c.textPrimary : "#9CA3AF" }]}>
-          {form.tipoDocumento || t("perfil.seleccionar")}
+          {form.tipoDocumento
+            ? t(`reserva.datosPersonales.tiposDocumento.${form.tipoDocumento === "Doc. Extranjero" ? "DocExtranjero" : form.tipoDocumento}`, { defaultValue: form.tipoDocumento })
+            : t("perfil.seleccionar")}
         </Text>
         <Text style={{ color: c.textSecondary }}>▾</Text>
       </TouchableOpacity>
@@ -107,7 +113,7 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
               onPress={() => { actualizarCampo("tipoDocumento", tipo); setShowTipoDoc(false); }}
             >
               <Text style={[s.dropdownText, { color: form.tipoDocumento === tipo ? "#1D4ED8" : c.textPrimary }]}>
-                {tipo}
+                {t(`reserva.datosPersonales.tiposDocumento.${tipo === "Doc. Extranjero" ? "DocExtranjero" : tipo}`, { defaultValue: tipo })}
               </Text>
             </TouchableOpacity>
           ))}
@@ -200,5 +206,17 @@ const s = StyleSheet.create({
     color: "#EF4444",
     marginBottom: 8,
     marginTop: 2,
+  },
+  botonConfirmarFecha: {
+    alignSelf: "flex-end",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  botonConfirmarFechaTexto: {
+    color: "#1D4ED8",
+    fontWeight: "700",
+    fontSize: 13,
   },
 });

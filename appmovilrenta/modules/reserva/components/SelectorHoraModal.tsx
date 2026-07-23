@@ -1,6 +1,8 @@
 import React from "react";
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
-import { COLOR_MARCA, COLORES, formatHoraAmPm } from "../constants/reserva.constants";
+import { COLOR_MARCA, formatHoraAmPm } from "../constants/reserva.constants";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 function generarHoras(): string[] {
   const horas: string[] = [];
@@ -22,16 +24,18 @@ interface Props {
 }
 
 export default function SelectorHoraModal({ visible, horaSeleccionada, onSeleccionar, onCerrar }: Props) {
+  const c = useTemaColores();
+  const { t } = useTranslation();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCerrar}>
       <TouchableWithoutFeedback onPress={onCerrar}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.card}>
-              <View style={styles.header}>
-                <Text style={styles.headerTitulo}>Selecciona la hora</Text>
+            <View style={[styles.card, { backgroundColor: c.bgCard }]}>
+              <View style={[styles.header, { borderBottomColor: c.border }]}>
+                <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>{t("reserva.fechasLugar.seleccionaHora")}</Text>
                 <TouchableOpacity onPress={onCerrar} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <Text style={styles.cerrarTexto}>Cerrar</Text>
+                  <Text style={styles.cerrarTexto}>{t("reserva.resumen.cerrar")}</Text>
                 </TouchableOpacity>
               </View>
               <ScrollView style={styles.lista} showsVerticalScrollIndicator={false}>
@@ -40,14 +44,14 @@ export default function SelectorHoraModal({ visible, horaSeleccionada, onSelecci
                   return (
                     <TouchableOpacity
                       key={hora}
-                      style={[styles.item, activa && styles.itemActivo]}
+                      style={[styles.item, activa && { backgroundColor: c.primaryBg }]}
                       onPress={() => {
                         onSeleccionar(hora);
                         onCerrar();
                       }}
                     >
                       {/* Se muestra con a. m. / p. m. para que no quede ambiguo */}
-                      <Text style={[styles.itemTexto, activa && styles.itemTextoActivo]}>
+                      <Text style={[styles.itemTexto, { color: c.textSecondary }, activa && styles.itemTextoActivo]}>
                         {formatHoraAmPm(hora)}
                       </Text>
                     </TouchableOpacity>
@@ -65,7 +69,6 @@ export default function SelectorHoraModal({ visible, horaSeleccionada, onSelecci
 const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(15,23,42,0.45)", justifyContent: "flex-end" },
   card: {
-    backgroundColor: COLORES.panelBg,
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     maxHeight: "65%",
@@ -78,13 +81,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORES.panelBorder,
   },
-  headerTitulo: { fontSize: 14, fontWeight: "800", color: COLORES.textPrimary },
+  headerTitulo: { fontSize: 14, fontWeight: "800" },
   cerrarTexto: { fontSize: 13, fontWeight: "700", color: COLOR_MARCA },
   lista: { paddingHorizontal: 8, paddingTop: 4 },
   item: { paddingVertical: 12, paddingHorizontal: 12, borderRadius: 10 },
-  itemActivo: { backgroundColor: "#eef2fb" },
-  itemTexto: { fontSize: 13, fontWeight: "600", color: COLORES.textSecondary },
+  itemTexto: { fontSize: 13, fontWeight: "600" },
   itemTextoActivo: { fontWeight: "800", color: COLOR_MARCA },
 });

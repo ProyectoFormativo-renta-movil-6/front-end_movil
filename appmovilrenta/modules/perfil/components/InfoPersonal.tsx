@@ -3,6 +3,8 @@
  * Componente que muestra la información actual del usuario
  */
 import React from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { GRADIENTES } from "@/constants/gradients";
 import {
   StyleSheet,
   Text,
@@ -53,7 +55,7 @@ export function InfoPersonal({ usuario, onEditar, onCambiarCorreo }: Props) {
 
         <View style={styles.campo}>
           <Text style={styles.campoLabel}>{t('perfil.documento')}</Text>
-          <Text style={styles.campoValor}>{usuario.tipoDocumento} {usuario.numeroDocumento}</Text>
+          <Text style={styles.campoValor}>{t(`reserva.datosPersonales.tiposDocumento.${usuario.tipoDocumento === "Doc. Extranjero" ? "DocExtranjero" : usuario.tipoDocumento}`, { defaultValue: usuario.tipoDocumento })} {usuario.numeroDocumento}</Text>
         </View>
         <View style={styles.divider} />
 
@@ -93,8 +95,15 @@ export function InfoPersonal({ usuario, onEditar, onCambiarCorreo }: Props) {
       </View>
 
       {/* Botón editar */}
-      <TouchableOpacity style={styles.btnEditar} onPress={onEditar}>
-        <Text style={styles.btnEditarText}>✏️  {t('perfil.editarInfo')}</Text>
+      <TouchableOpacity style={styles.btnEditarWrap} onPress={onEditar} activeOpacity={0.85}>
+        <LinearGradient
+          colors={GRADIENTES.boton.colors}
+          start={GRADIENTES.boton.start}
+          end={GRADIENTES.boton.end}
+          style={styles.btnEditar}
+        >
+          <Text style={styles.btnEditarText}>✏️  {t('perfil.editarInfo')}</Text>
+        </LinearGradient>
       </TouchableOpacity>
     </View>
   );
@@ -194,12 +203,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1D4ED8",
   },
+  btnEditarWrap: {
+    borderRadius: 12,
+    marginBottom: 16,
+  },
   btnEditar: {
-    backgroundColor: "#1D4ED8",
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: "center",
-    marginBottom: 16,
   },
   btnEditarText: {
     fontSize: 15,

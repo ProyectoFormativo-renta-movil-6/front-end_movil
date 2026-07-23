@@ -1,7 +1,9 @@
 import React from "react";
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLOR_MARCA, COLORES } from "../constants/reserva.constants";
+import { COLOR_MARCA } from "../constants/reserva.constants";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 export interface OpcionLugar {
   value: string;
@@ -18,14 +20,16 @@ interface Props {
 }
 
 export default function SelectorSucursalModal({ visible, titulo, opciones, onSeleccionar, onCerrar }: Props) {
+  const c = useTemaColores();
+  const { t } = useTranslation();
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onCerrar}>
       <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onCerrar}>
-        <View style={styles.sheet} onStartShouldSetResponder={() => true}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitulo}>{titulo ?? "Elige el lugar"}</Text>
+        <View style={[styles.sheet, { backgroundColor: c.bgCard }]} onStartShouldSetResponder={() => true}>
+          <View style={[styles.header, { borderBottomColor: c.border }]}>
+            <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>{titulo ?? t("reserva.fechasLugar.eligeElLugar")}</Text>
             <TouchableOpacity onPress={onCerrar}>
-              <Ionicons name="close" size={22} color={COLORES.textSecondary} />
+              <Ionicons name="close" size={22} color={c.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -33,13 +37,13 @@ export default function SelectorSucursalModal({ visible, titulo, opciones, onSel
             data={opciones}
             keyExtractor={(item) => item.value}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.opcion} onPress={() => onSeleccionar(item.value)}>
+              <TouchableOpacity style={[styles.opcion, { borderBottomColor: c.border }]} onPress={() => onSeleccionar(item.value)}>
                 <Ionicons name={item.icono ?? "location-outline"} size={16} color={COLOR_MARCA} />
-                <Text style={styles.opcionText}>{item.label}</Text>
+                <Text style={[styles.opcionText, { color: c.textPrimary }]}>{item.label}</Text>
               </TouchableOpacity>
             )}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>No hay opciones disponibles</Text>
+              <Text style={[styles.emptyText, { color: c.textMuted }]}>{t("reserva.fechasLugar.sinOpcionesDisponibles")}</Text>
             }
           />
         </View>
@@ -51,7 +55,6 @@ export default function SelectorSucursalModal({ visible, titulo, opciones, onSel
 const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
   sheet: {
-    backgroundColor: COLORES.panelBg,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: "70%",
@@ -63,9 +66,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORES.panelBorder,
   },
-  headerTitulo: { fontSize: 15, fontWeight: "800", color: COLORES.textPrimary },
+  headerTitulo: { fontSize: 15, fontWeight: "800" },
   opcion: {
     flexDirection: "row",
     alignItems: "center",
@@ -73,8 +75,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORES.panelBorder,
   },
-  opcionText: { fontSize: 13, fontWeight: "600", color: COLORES.textPrimary },
-  emptyText: { fontSize: 12, color: COLORES.textMuted, textAlign: "center", padding: 20 },
+  opcionText: { fontSize: 13, fontWeight: "600" },
+  emptyText: { fontSize: 12, textAlign: "center", padding: 20 },
 });

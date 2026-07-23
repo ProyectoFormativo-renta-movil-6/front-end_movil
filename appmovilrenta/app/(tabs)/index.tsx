@@ -6,9 +6,12 @@ import VehiculoCard from "@/modules/catalogo/components/VehiculoCard";
 import { COLORES } from "@/modules/catalogo/constants/catalogo.constants";
 import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
 import { useAuthStore } from "@/store/authStore";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
+import { GRADIENTES } from "@/constants/gradients";
 import {
   ActivityIndicator,
   FlatList,
@@ -33,6 +36,7 @@ const ORDEN_OPCIONES = [
 
 export default function InicioScreen() {
   const insets = useSafeAreaInsets();
+  const c = useTemaColores();
   const usuario = useAuthStore((state) => state.usuario);
   const invitado = !usuario;
 
@@ -79,15 +83,15 @@ export default function InicioScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
       <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#FFFFFF"
+        barStyle={c.oscuro ? "light-content" : "dark-content"}
+        backgroundColor={c.bgHeader}
         translucent={false}
       />
 
       {/* HEADER */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
         <Image
           source={require("@/assets/images/logo.png")}
           style={styles.logo}
@@ -102,16 +106,24 @@ export default function InicioScreen() {
               <Text style={styles.loginBtnText}>Ingresar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.registerBtn}
+              style={styles.registerBtnWrap}
               onPress={() => router.push("/(auth)/registro")}
+              activeOpacity={0.85}
             >
-              <Text style={styles.registerBtnText}>Registro</Text>
+              <LinearGradient
+                colors={GRADIENTES.boton.colors}
+                start={GRADIENTES.boton.start}
+                end={GRADIENTES.boton.end}
+                style={styles.registerBtn}
+              >
+                <Text style={styles.registerBtnText}>Registro</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.headerUsuario}>
-            <Ionicons name="person-circle-outline" size={28} color="#2f4ea2" />
-            <Text style={styles.headerUsuarioNombre} numberOfLines={1}>
+            <Ionicons name="person-circle-outline" size={28} color={c.primary} />
+            <Text style={[styles.headerUsuarioNombre, { color: c.primary }]} numberOfLines={1}>
               {usuario?.nombres ?? "Usuario"}
             </Text>
           </View>
@@ -119,7 +131,7 @@ export default function InicioScreen() {
       </View>
 
       {/* BUSCADOR — siempre visible, deshabilitado para invitados */}
-      <View style={styles.buscadorWrap}>
+      <View style={[styles.buscadorWrap, { borderColor: c.border }]}>
         <BuscadorCatalogo
           form={busquedaForm}
           setForm={setForm}
@@ -131,37 +143,38 @@ export default function InicioScreen() {
 
       {/* BÚSQUEDA POR NOMBRE */}
       <View style={styles.searchWrap}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={18} color="#9CA3AF" />
+        <View style={[styles.searchBar, { backgroundColor: c.bgInput, borderColor: c.border }]}>
+          <Ionicons name="search-outline" size={18} color={c.textMuted} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: c.textPrimary }]}
             placeholder="Buscar vehículo..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={c.textMuted}
             value={filtros.busqueda}
             onChangeText={(val) => setFiltro("busqueda", val)}
           />
           {filtros.busqueda ? (
             <TouchableOpacity onPress={() => setFiltro("busqueda", "")}>
-              <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+              <Ionicons name="close-circle" size={18} color={c.textMuted} />
             </TouchableOpacity>
           ) : null}
         </View>
       </View>
 
       {/* BARRA DE CONTROLES */}
-      <View style={styles.controlsBar}>
+      <View style={[styles.controlsBar, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
         <TouchableOpacity
-          style={[styles.filtrosBtn, filtrosActivos && styles.filtrosBtnActivo]}
+          style={[styles.filtrosBtn, { backgroundColor: c.bgInput }, filtrosActivos && styles.filtrosBtnActivo]}
           onPress={() => setFiltrosVisible(true)}
         >
           <Ionicons
             name="options-outline"
             size={15}
-            color={filtrosActivos ? "#fff" : COLORES.textSecondary}
+            color={filtrosActivos ? "#fff" : c.textSecondary}
           />
           <Text
             style={[
               styles.filtrosBtnText,
+              { color: c.textSecondary },
               filtrosActivos && styles.filtrosBtnTextActivo,
             ]}
           >
@@ -170,21 +183,21 @@ export default function InicioScreen() {
         </TouchableOpacity>
 
         <View style={styles.controlsRight}>
-          <Text style={styles.contadorText}>
+          <Text style={[styles.contadorText, { color: c.textSecondary }]}>
             {vehiculosFiltrados.length} vehículo
             {vehiculosFiltrados.length !== 1 ? "s" : ""}
           </Text>
           <TouchableOpacity
-            style={styles.ordenBtn}
+            style={[styles.ordenBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}
             onPress={() => setOrdenVisible(!ordenVisible)}
           >
-            <Text style={styles.ordenBtnText} numberOfLines={1}>
+            <Text style={[styles.ordenBtnText, { color: c.textPrimary }]} numberOfLines={1}>
               {ordenLabel}
             </Text>
             <Ionicons
               name={ordenVisible ? "chevron-up" : "chevron-down"}
               size={13}
-              color={COLORES.textSecondary}
+              color={c.textSecondary}
             />
           </TouchableOpacity>
         </View>
@@ -192,13 +205,13 @@ export default function InicioScreen() {
 
       {/* DROPDOWN ORDEN */}
       {ordenVisible && (
-        <View style={styles.ordenDropdown}>
+        <View style={[styles.ordenDropdown, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           {ORDEN_OPCIONES.map((op) => (
             <TouchableOpacity
               key={op.valor}
               style={[
                 styles.ordenOpcion,
-                filtros.orden === op.valor && styles.ordenOpcionActiva,
+                filtros.orden === op.valor && { backgroundColor: c.primaryBg },
               ]}
               onPress={() => {
                 setFiltro("orden", op.valor);
@@ -206,11 +219,12 @@ export default function InicioScreen() {
               }}
             >
               {filtros.orden === op.valor && (
-                <Ionicons name="checkmark" size={14} color="#2f4ea2" />
+                <Ionicons name="checkmark" size={14} color={c.primary} />
               )}
               <Text
                 style={[
                   styles.ordenOpcionText,
+                  { color: c.textPrimary },
                   filtros.orden === op.valor && styles.ordenOpcionTextActiva,
                 ]}
               >
@@ -225,25 +239,39 @@ export default function InicioScreen() {
       {cargando ? (
         <View style={styles.estadoCentro}>
           <ActivityIndicator size="large" color="#2f4ea2" />
-          <Text style={styles.estadoTexto}>Cargando vehículos...</Text>
+          <Text style={[styles.estadoTexto, { color: c.textMuted }]}>Cargando vehículos...</Text>
         </View>
       ) : error ? (
         <View style={styles.estadoCentro}>
           <Ionicons name="alert-circle-outline" size={48} color="#DC2626" />
           <Text style={styles.errorTexto}>{error}</Text>
-          <TouchableOpacity style={styles.accionBtn} onPress={limpiar}>
-            <Text style={styles.accionBtnText}>Reintentar</Text>
+          <TouchableOpacity style={styles.accionBtnWrap} onPress={limpiar} activeOpacity={0.85}>
+            <LinearGradient
+              colors={GRADIENTES.boton.colors}
+              start={GRADIENTES.boton.start}
+              end={GRADIENTES.boton.end}
+              style={styles.accionBtn}
+            >
+              <Text style={styles.accionBtnText}>Reintentar</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       ) : vehiculosFiltrados.length === 0 ? (
         <View style={styles.estadoCentro}>
-          <Ionicons name="car-outline" size={56} color="#D1D5DB" />
-          <Text style={styles.estadoTitulo}>Sin resultados</Text>
-          <Text style={styles.estadoTexto}>
+          <Ionicons name="car-outline" size={56} color={c.textMuted} />
+          <Text style={[styles.estadoTitulo, { color: c.textPrimary }]}>Sin resultados</Text>
+          <Text style={[styles.estadoTexto, { color: c.textMuted }]}>
             Intenta cambiar o limpiar los filtros.
           </Text>
-          <TouchableOpacity style={styles.accionBtn} onPress={limpiar}>
-            <Text style={styles.accionBtnText}>Limpiar filtros</Text>
+          <TouchableOpacity style={styles.accionBtnWrap} onPress={limpiar} activeOpacity={0.85}>
+            <LinearGradient
+              colors={GRADIENTES.boton.colors}
+              start={GRADIENTES.boton.start}
+              end={GRADIENTES.boton.end}
+              style={styles.accionBtn}
+            >
+              <Text style={styles.accionBtnText}>Limpiar filtros</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       ) : (
@@ -265,7 +293,7 @@ export default function InicioScreen() {
                 <TouchableOpacity
                   style={[
                     styles.paginaBtn,
-                    paginaActual === 1 && styles.paginaBtnDisabled,
+                    paginaActual === 1 && [styles.paginaBtnDisabled, { backgroundColor: c.bgInput }],
                   ]}
                   onPress={paginaAnterior}
                   disabled={paginaActual === 1}
@@ -273,28 +301,24 @@ export default function InicioScreen() {
                   <Ionicons
                     name="chevron-back"
                     size={16}
-                    color={
-                      paginaActual === 1
-                        ? COLORES.paginationDisabledText
-                        : "#fff"
-                    }
+                    color={paginaActual === 1 ? c.textMuted : "#fff"}
                   />
                   <Text
                     style={[
                       styles.paginaBtnText,
-                      paginaActual === 1 && styles.paginaBtnTextDisabled,
+                      paginaActual === 1 && [styles.paginaBtnTextDisabled, { color: c.textMuted }],
                     ]}
                   >
                     Anterior
                   </Text>
                 </TouchableOpacity>
-                <Text style={styles.paginaInfo}>
+                <Text style={[styles.paginaInfo, { color: c.textPrimary }]}>
                   {paginaActual} / {totalPaginas}
                 </Text>
                 <TouchableOpacity
                   style={[
                     styles.paginaBtn,
-                    paginaActual === totalPaginas && styles.paginaBtnDisabled,
+                    paginaActual === totalPaginas && [styles.paginaBtnDisabled, { backgroundColor: c.bgInput }],
                   ]}
                   onPress={paginaSiguiente}
                   disabled={paginaActual === totalPaginas}
@@ -303,7 +327,7 @@ export default function InicioScreen() {
                     style={[
                       styles.paginaBtnText,
                       paginaActual === totalPaginas &&
-                        styles.paginaBtnTextDisabled,
+                        [styles.paginaBtnTextDisabled, { color: c.textMuted }],
                     ]}
                   >
                     Siguiente
@@ -311,11 +335,7 @@ export default function InicioScreen() {
                   <Ionicons
                     name="chevron-forward"
                     size={16}
-                    color={
-                      paginaActual === totalPaginas
-                        ? COLORES.paginationDisabledText
-                        : "#fff"
-                    }
+                    color={paginaActual === totalPaginas ? c.textMuted : "#fff"}
                   />
                 </TouchableOpacity>
               </View>
@@ -344,33 +364,41 @@ export default function InicioScreen() {
           style={styles.alertOverlay}
           onPress={() => setAlertaVisible(false)}
         >
-          <Pressable style={styles.alertCard} onPress={() => {}}>
-            <View style={styles.alertIconWrap}>
-              <Ionicons name="person-add-outline" size={28} color="#2f4ea2" />
+          <Pressable style={[styles.alertCard, { backgroundColor: c.bgCard }]} onPress={() => {}}>
+            <View style={[styles.alertIconWrap, { backgroundColor: c.primaryBg }]}>
+              <Ionicons name="person-add-outline" size={28} color={c.primary} />
             </View>
-            <Text style={styles.alertTitle}>Registro requerido</Text>
-            <Text style={styles.alertBody}>
+            <Text style={[styles.alertTitle, { color: c.textPrimary }]}>Registro requerido</Text>
+            <Text style={[styles.alertBody, { color: c.textSecondary }]}>
               {alertaAccion === "reservar"
                 ? "Para realizar una reserva necesitas una cuenta. Regístrate o inicia sesión."
                 : "Para guardar favoritos necesitas una cuenta. Regístrate o inicia sesión."}
             </Text>
             <View style={styles.alertBtns}>
               <TouchableOpacity
-                style={styles.alertBtnSecundario}
+                style={[styles.alertBtnSecundario, { backgroundColor: c.bgInput }]}
                 onPress={() => setAlertaVisible(false)}
               >
-                <Text style={styles.alertBtnSecundarioText}>Cancelar</Text>
+                <Text style={[styles.alertBtnSecundarioText, { color: c.textSecondary }]}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.alertBtnPrimario}
+                style={styles.alertBtnPrimarioWrap}
                 onPress={() => {
                   setAlertaVisible(false);
                   router.push("/(auth)/registro");
                 }}
+                activeOpacity={0.85}
               >
-                <Text style={styles.alertBtnPrimarioText}>
-                  Ir a registrarse
-                </Text>
+                <LinearGradient
+                  colors={GRADIENTES.boton.colors}
+                  start={GRADIENTES.boton.start}
+                  end={GRADIENTES.boton.end}
+                  style={styles.alertBtnPrimario}
+                >
+                  <Text style={styles.alertBtnPrimarioText}>
+                    Ir a registrarse
+                  </Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </Pressable>
@@ -415,11 +443,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#2f4ea2",
   },
+  registerBtnWrap: {
+    borderRadius: 8,
+  },
   registerBtn: {
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: "#2f4ea2",
   },
   registerBtnText: {
     fontSize: 11,
@@ -593,11 +623,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
+  accionBtnWrap: {
+    borderRadius: 8,
+  },
   accionBtn: {
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 8,
-    backgroundColor: "#2f4ea2",
   },
   accionBtnText: {
     color: "#fff",
@@ -699,11 +731,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#6B7280",
   },
-  alertBtnPrimario: {
+  alertBtnPrimarioWrap: {
     flex: 1,
+    borderRadius: 10,
+  },
+  alertBtnPrimario: {
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: "#2f4ea2",
     alignItems: "center",
   },
   alertBtnPrimarioText: {

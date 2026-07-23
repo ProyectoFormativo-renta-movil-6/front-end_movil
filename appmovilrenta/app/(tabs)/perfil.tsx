@@ -22,20 +22,42 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { IdiomaKey, IDIOMAS } from "@/modules/i18n";
 import { useIdioma, useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { usePerfil } from "@/modules/perfil/hooks/usePerfil";
 import { ModalCambiarCorreo } from "@/modules/perfil/components/ModalCambiarCorreo";
 import { FormCompletarPerfil } from "@/modules/perfil/components/FormCompletarPerfil";
 import { perfilStyles as styles } from "@/modules/perfil/styles/perfil.styles";
+import { useAuthStore } from "@/store/authStore";
+import { useUsuarioStore } from "@/store/usuarioStore";
+import { eliminarUsuarioDemo } from "@/mocks/usuariosDemo";
+import { DateField } from "@/components/ui/DateField";
+import { useMoneda } from "@/hooks/useMoneda";
+import { AlertModal } from "@/components/ui/AlertModal";
+import { Moneda } from "@/utils/monedaUtils";
 
 export default function PerfilScreen() {
   const { t } = useTranslation();
   const { idiomaActual, cambiarIdioma, temaActual, cambiarTema } = useIdioma();
+  const { monedaActual, cambiarMoneda } = useMoneda();
   const c = useTemaColores();
   const insets = useSafeAreaInsets();
   const [editando, setEditando] = useState(false);
   const [completando, setCompletando] = useState(false);
+  const [mostrarAvisoUSD, setMostrarAvisoUSD] = useState(false);
+
+  // Al elegir USD, la moneda solo cambia la referencia visual de los
+  // precios; el cobro real con Wompi siempre se hace en COP. Se avisa
+  // con un modal cada vez que la persona selecciona USD.
+  const handleCambiarMoneda = (moneda: Moneda) => {
+    cambiarMoneda(moneda);
+    if (moneda === "USD") setMostrarAvisoUSD(true);
+  };
+
+  const authUsuario = useAuthStore((s) => s.usuario);
+  const cerrarSesionAuth = useAuthStore((s) => s.cerrarSesion);
+  const limpiarUsuario = useUsuarioStore((s) => s.limpiarUsuario);
 
   const {
     usuario,
@@ -104,13 +126,101 @@ export default function PerfilScreen() {
           text: t("perfil.confirmarCerrar"),
           style: "destructive",
           onPress: () => {
-            // RF43.9 — Cerrar sesión segura — se conecta al backend
-            console.log("Cerrar sesión");
+            // RF43.9 — Cerrar sesión segura
+            // En producción esto además invalida el token en el backend;
+            // por ahora limpiamos ambos stores locales y volvemos al login.
+            cerrarSesionAuth();
+            limpiarUsuario();
+            router.replace("/(auth)/login");
           },
         },
       ]
     );
   };
+
+  // El usuario navega en modo invitado cuando no hay sesión iniciada
+  // (ver app/(auth)/login.tsx → handleInvitado, que entra directo al
+  // catálogo sin llamar a setUsuario).
+  const esInvitado = !authUsuario;
+
+  const irARegistro = () => router.push("/(auth)/registro");
+
+  // Sección de Tema / Idioma / Moneda — se reutiliza igual en la vista
+  // normal y en la vista reducida de modo invitado.
+  const seccionConfig = (
+    <View style={[configStyles.seccion, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+      <Text style={configStyles.seccionTitulo}>
+        {t("config.tema")} &amp; {t("config.idioma")}
+      </Text>
+
+      <View style={configStyles.filaLabel}>
+        <Text style={[configStyles.label, { color: c.textPrimary }]}>🎨 {t("config.tema")}</Text>
+      </View>
+      <View style={configStyles.temaRow}>
+        <TouchableOpacity
+          style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, temaActual === "claro" && configStyles.temaBtnActivo]}
+          onPress={() => cambiarTema("claro")}
+        >
+          <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, temaActual === "claro" && configStyles.temaBtnTextoActivo]}>
+            {t("config.claro")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, temaActual === "oscuro" && configStyles.temaBtnActivoDark]}
+          onPress={() => cambiarTema("oscuro")}
+        >
+          <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, temaActual === "oscuro" && { color: "#F0F4FF" }]}>
+            {t("config.oscuro")}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={[configStyles.filaLabel, { marginTop: 16 }]}>
+        <Text style={[configStyles.label, { color: c.textPrimary }]}>🌐 {t("config.idioma")}</Text>
+      </View>
+      <View style={configStyles.idiomasWrap}>
+        {(Object.keys(IDIOMAS) as IdiomaKey[]).map((key) => (
+          <TouchableOpacity
+            key={key}
+            style={[configStyles.idiomaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, idiomaActual === key && configStyles.idiomaBtnActivo]}
+            onPress={() => cambiarIdioma(key)}
+          >
+            <Text style={configStyles.idiomaFlag}>{IDIOMAS[key].flag}</Text>
+            <Text style={[configStyles.idiomaLabel, { color: c.textPrimary }, idiomaActual === key && configStyles.idiomaLabelActivo]}>
+              {IDIOMAS[key].label}
+            </Text>
+            {idiomaActual === key && (
+              <View style={configStyles.idiomaCheck}>
+                <Text style={{ fontSize: 10, color: "#fff", fontWeight: "800" }}>✓</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={[configStyles.filaLabel, { marginTop: 16 }]}>
+        <Text style={[configStyles.label, { color: c.textPrimary }]}>💱 {t("config.moneda")}</Text>
+      </View>
+      <View style={configStyles.temaRow}>
+        <TouchableOpacity
+          style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, monedaActual === "COP" && configStyles.temaBtnActivo]}
+          onPress={() => handleCambiarMoneda("COP")}
+        >
+          <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, monedaActual === "COP" && configStyles.temaBtnTextoActivo]}>
+            🇨🇴 COP
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, monedaActual === "USD" && configStyles.temaBtnActivo]}
+          onPress={() => handleCambiarMoneda("USD")}
+        >
+          <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, monedaActual === "USD" && configStyles.temaBtnTextoActivo]}>
+            🇺🇸 USD
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   const handleEliminarCuenta = () => {
     Alert.alert(
@@ -122,8 +232,16 @@ export default function PerfilScreen() {
           text: t("perfil.confirmarEliminar"),
           style: "destructive",
           onPress: () => {
-            // RF52 — Eliminar cuenta — se conecta al backend
-            console.log("Eliminar cuenta");
+            // RF52 — Eliminar cuenta
+            // En producción esto llama a DELETE /usuarios/:id contra el
+            // backend. Mientras tanto, con datos mock, quitamos al usuario
+            // de USUARIOS_DEMO (mocks/usuariosDemo.ts) para que ya no
+            // pueda volver a iniciar sesión, y limpiamos ambos stores.
+            const correo = authUsuario?.correo || usuario.correo;
+            if (correo) eliminarUsuarioDemo(correo);
+            cerrarSesionAuth();
+            limpiarUsuario();
+            router.replace("/(auth)/login");
           },
         },
       ]
@@ -235,6 +353,18 @@ export default function PerfilScreen() {
               />
               {errores.telefono && <Text style={styles.editErrorText}>{errores.telefono}</Text>}
             </View>
+
+            <View style={styles.editCampoWrap}>
+              <DateField
+                label={t("perfil.fechaNac")}
+                value={form.fechaNacimiento}
+                onChange={(val) => actualizarCampo("fechaNacimiento", val)}
+                error={errores.fechaNacimiento}
+                placeholder={t("perfil.seleccionar")}
+                maximumDate={new Date()}
+                colores={c}
+              />
+            </View>
           </View>
 
           <TouchableOpacity
@@ -249,6 +379,47 @@ export default function PerfilScreen() {
               <Text style={styles.editBtnGuardarText}>{t("perfil.guardarCambios")}</Text>
             )}
           </TouchableOpacity>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // ── Vista modo invitado ─────────────────────────────────────────────────
+  // Sin sesión no hay datos de perfil que editar (historial, seguridad,
+  // tarjetas, etc. requieren una cuenta), así que solo dejamos las
+  // preferencias generales (idioma, tema, moneda) y un botón para
+  // registrarse.
+  if (esInvitado) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
+        <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
+
+        {/* Header */}
+        <View style={[styles.header, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
+          <Text style={[styles.headerTitle, { color: c.textPrimary }]}>{t("perfil.titulo")}</Text>
+        </View>
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 100 : 60 }}
+        >
+          <View style={[localS.banner, { backgroundColor: c.primaryBg, borderColor: "#1D4ED8", marginTop: 16 }]}>
+            <View style={localS.bannerIcono}>
+              <Text style={{ fontSize: 22 }}>👤</Text>
+            </View>
+            <View style={localS.bannerTextos}>
+              <Text style={localS.bannerTitulo}>{t("perfil.invitadoTitulo")}</Text>
+              <Text style={[localS.bannerSub, { color: c.textSecondary }]}>{t("perfil.invitadoSub")}</Text>
+            </View>
+          </View>
+
+          {seccionConfig}
+
+          <View style={styles.eliminarWrap}>
+            <TouchableOpacity style={localS.registroBtn} onPress={irARegistro} activeOpacity={0.85}>
+              <Text style={localS.registroBtnTexto}>{t("perfil.registrateYa")}</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </View>
     );
@@ -321,7 +492,7 @@ export default function PerfilScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.menuItem, styles.menuItemBorder, { borderBottomColor: c.borderLight }]}
+            style={styles.menuItem}
             onPress={() => setMostrarModalCorreo(true)}
           >
             <View style={[styles.menuIconWrap, { backgroundColor: c.primaryBg }]}>
@@ -333,70 +504,9 @@ export default function PerfilScreen() {
             </View>
             <Text style={[styles.menuArrow, { color: c.textMuted }]}>›</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={() => console.log("Tarjetas")}>
-            <View style={[styles.menuIconWrap, { backgroundColor: c.primaryBg }]}>
-              <Text style={styles.menuIcon}>💳</Text>
-            </View>
-            <View style={styles.menuTextos}>
-              <Text style={[styles.menuLabel, { color: c.textPrimary }]}>{t("perfil.tarjetas")}</Text>
-              <Text style={[styles.menuSub, { color: c.textMuted }]}>{t("perfil.tarjetasSub")}</Text>
-            </View>
-            <Text style={[styles.menuArrow, { color: c.textMuted }]}>›</Text>
-          </TouchableOpacity>
         </View>
 
-        {/* Configuración: Tema e Idioma */}
-        <View style={[configStyles.seccion, { backgroundColor: c.bgCard, borderColor: c.border }]}>
-          <Text style={configStyles.seccionTitulo}>
-            {t("config.tema")} &amp; {t("config.idioma")}
-          </Text>
-
-          <View style={configStyles.filaLabel}>
-            <Text style={[configStyles.label, { color: c.textPrimary }]}>🎨 {t("config.tema")}</Text>
-          </View>
-          <View style={configStyles.temaRow}>
-            <TouchableOpacity
-              style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, temaActual === "claro" && configStyles.temaBtnActivo]}
-              onPress={() => cambiarTema("claro")}
-            >
-              <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, temaActual === "claro" && configStyles.temaBtnTextoActivo]}>
-                {t("config.claro")}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, temaActual === "oscuro" && configStyles.temaBtnActivoDark]}
-              onPress={() => cambiarTema("oscuro")}
-            >
-              <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, temaActual === "oscuro" && { color: "#F0F4FF" }]}>
-                {t("config.oscuro")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={[configStyles.filaLabel, { marginTop: 16 }]}>
-            <Text style={[configStyles.label, { color: c.textPrimary }]}>🌐 {t("config.idioma")}</Text>
-          </View>
-          <View style={configStyles.idiomasWrap}>
-            {(Object.keys(IDIOMAS) as IdiomaKey[]).map((key) => (
-              <TouchableOpacity
-                key={key}
-                style={[configStyles.idiomaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, idiomaActual === key && configStyles.idiomaBtnActivo]}
-                onPress={() => cambiarIdioma(key)}
-              >
-                <Text style={configStyles.idiomaFlag}>{IDIOMAS[key].flag}</Text>
-                <Text style={[configStyles.idiomaLabel, { color: c.textPrimary }, idiomaActual === key && configStyles.idiomaLabelActivo]}>
-                  {IDIOMAS[key].label}
-                </Text>
-                {idiomaActual === key && (
-                  <View style={configStyles.idiomaCheck}>
-                    <Text style={{ fontSize: 10, color: "#fff", fontWeight: "800" }}>✓</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        {seccionConfig}
 
         {/* Cerrar sesión */}
         <View style={[styles.cerrarSection, { backgroundColor: c.bgCard, borderColor: c.border }]}>
@@ -429,6 +539,26 @@ export default function PerfilScreen() {
         onCambiar={actualizarCampoCorreo}
         onGuardar={handleGuardarCorreo}
         onCerrar={cerrarModalCorreo}
+      />
+
+      {/* Aviso al elegir USD: el cobro real siempre se hace en COP */}
+      <AlertModal
+        visible={mostrarAvisoUSD}
+        icono="information-circle-outline"
+        titulo={t("config.monedaUsdTitulo")}
+        mensaje=""
+        contenido={
+          <Text style={{ fontSize: 13.5, color: "#4B5563", textAlign: "center", lineHeight: 20, marginBottom: 24, marginTop: -16 }}>
+            {t("config.monedaUsdParte1")}
+            <Text style={{ fontWeight: "700" }}>{t("config.monedaUsdDolares")}</Text>
+            {t("config.monedaUsdParte2")}
+            {"\n\n"}
+            {t("config.monedaUsdParte3")}
+            <Text style={{ fontWeight: "700" }}>{t("config.monedaUsdPesos")}</Text>
+            {t("config.monedaUsdParte4")}
+          </Text>
+        }
+        onCerrar={() => setMostrarAvisoUSD(false)}
       />
     </View>
   );
@@ -464,6 +594,17 @@ const localS = StyleSheet.create({
     fontSize: 12,
     color: "#6B7280",
   },
+  registroBtn: {
+    backgroundColor: "#1D4ED8",
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: "center",
+  },
+  registroBtnTexto: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 15,
+  },
 });
 
 const configStyles = StyleSheet.create({
@@ -490,6 +631,10 @@ const configStyles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     color: "#374151",
+  },
+  monedaSub: {
+    fontSize: 11,
+    marginTop: 2,
   },
   temaRow: {
     flexDirection: "row",

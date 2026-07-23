@@ -6,17 +6,28 @@
 
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 import {
   COLOR_MARCA,
   COLORES,
   ICONOS_SERVICIOS,
   ICONO_SERVICIO_DEFECTO,
 } from "../constants/reserva.constants";
+import { GRADIENTES } from "@/constants/gradients";
+import { useMonedaStore } from "@/store/monedaStore";
+import { formatCurrency } from "@/utils/monedaUtils";
 
 // ---------- Helpers de formato ----------
 
-export const fmt = (n: number) => `$${Math.round(n).toLocaleString("es-CO")}`;
+// Los montos siempre llegan en COP; fmt los muestra según la moneda
+// activa (COP o USD) leída del store en el momento de la llamada.
+export const fmt = (n: number) => {
+  const { monedaActual, tasaUSD } = useMonedaStore.getState();
+  return formatCurrency(n, monedaActual, tasaUSD);
+};
 export const fmtPct = (n: number) => `${Math.round(n * 100)}%`;
 
 export const fechaCorta = (f: string | null) =>
@@ -24,8 +35,8 @@ export const fechaCorta = (f: string | null) =>
     ? new Date(f + "T00:00:00").toLocaleDateString("es-CO", { day: "2-digit", month: "short" })
     : "";
 
-export const fechaHora = (f: string | null, h: string, formatHoraAmPm: (h: string) => string) =>
-  [fechaCorta(f), h ? formatHoraAmPm(h) : ""].filter(Boolean).join(" · ") || "Seleccionar";
+export const fechaHora = (f: string | null, h: string, formatHoraAmPm: (h: string) => string, fallback: string) =>
+  [fechaCorta(f), h ? formatHoraAmPm(h) : ""].filter(Boolean).join(" · ") || fallback;
 
 export const diasEntre = (a: string | null, b: string | null) =>
   a && b
@@ -47,15 +58,23 @@ export function SubcardHeader({
   titulo: string;
   onEditar: () => void;
 }) {
+  const c = useTemaColores();
+  const { t } = useTranslation();
+  const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
+
   return (
     <View style={styles.subcardHeader}>
       <View style={styles.rowGap}>
-        <Ionicons name={icono} size={14} color={COLOR_MARCA} />
-        <Text style={styles.subcardTitulo}>{titulo}</Text>
+        <Ionicons name={icono} size={14} color={primaryAccent} />
+        <Text style={[styles.subcardTitulo, { color: c.textMuted }]}>{titulo}</Text>
       </View>
-      <TouchableOpacity style={styles.editarBtn} onPress={onEditar} hitSlop={8}>
-        <Ionicons name="pencil" size={11} color={COLOR_MARCA} />
-        <Text style={styles.editarLink}>Editar</Text>
+      <TouchableOpacity
+        style={[styles.editarBtn, { backgroundColor: c.primaryBg }]}
+        onPress={onEditar}
+        hitSlop={8}
+      >
+        <Ionicons name="pencil" size={11} color={primaryAccent} />
+        <Text style={[styles.editarLink, { color: primaryAccent }]}>{t("reserva.resumen.editar")}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -70,10 +89,13 @@ export function SubcardHeaderEditando({
   icono: keyof typeof Ionicons.glyphMap;
   titulo: string;
 }) {
+  const c = useTemaColores();
+  const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
+
   return (
     <View style={styles.rowGap}>
-      <Ionicons name={icono} size={14} color={COLOR_MARCA} />
-      <Text style={styles.subcardTitulo}>{titulo}</Text>
+      <Ionicons name={icono} size={14} color={primaryAccent} />
+      <Text style={[styles.subcardTitulo, { color: c.textMuted }]}>{titulo}</Text>
     </View>
   );
 }
@@ -90,16 +112,18 @@ export function FilaDato({
   valor: string;
   ultima?: boolean;
 }) {
+  const c = useTemaColores();
+
   return (
     <>
       <View style={styles.filaDato}>
-        <Ionicons name={icono} size={15} color={COLORES.textMuted} />
+        <Ionicons name={icono} size={15} color={c.textMuted} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.filaDatoLabel}>{label}</Text>
-          <Text style={styles.filaDatoValor} numberOfLines={1}>{valor}</Text>
+          <Text style={[styles.filaDatoLabel, { color: c.textMuted }]}>{label}</Text>
+          <Text style={[styles.filaDatoValor, { color: c.textPrimary }]} numberOfLines={1}>{valor}</Text>
         </View>
       </View>
-      {!ultima && <View style={styles.divisor} />}
+      {!ultima && <View style={[styles.divisor, { backgroundColor: c.border }]} />}
     </>
   );
 }
@@ -116,14 +140,27 @@ export function OpcionCard({
   activo: boolean;
   onPress: () => void;
 }) {
+  const c = useTemaColores();
+  const brandBg = c.oscuro ? "#3B82F6" : COLOR_MARCA;
+
   return (
-    <TouchableOpacity style={[styles.opcionCard, activo && styles.opcionCardActiva]} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={[
+        styles.opcionCard,
+        { backgroundColor: c.bgInput, borderColor: c.border },
+        activo && { borderColor: brandBg, borderWidth: 1.5, backgroundColor: c.primaryBg },
+      ]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
       <View style={styles.opcionHeaderRow}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.opcionTitulo, activo && styles.opcionTituloActiva]}>{titulo}</Text>
-          <Text style={[styles.opcionDesc, activo && styles.opcionDescActiva]}>{desc}</Text>
+          <Text style={[styles.opcionTitulo, { color: c.textSecondary }, activo && { color: c.oscuro ? "#93C5FD" : "#0c447c" }]}>{titulo}</Text>
+          <Text style={[styles.opcionDesc, { color: c.textMuted }, activo && { color: c.oscuro ? "#BFDBFE" : "#185fa5" }]}>{desc}</Text>
         </View>
-        <View style={[styles.radio, activo && styles.radioActivo]}>{activo && <View style={styles.radioPunto} />}</View>
+        <View style={[styles.radio, { borderColor: c.border }, activo && { borderColor: brandBg }]}>
+          {activo && <View style={[styles.radioPunto, { backgroundColor: brandBg }]} />}
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -141,23 +178,38 @@ export function ServicioRow({
   activo: boolean;
   onPress: () => void;
 }) {
+  useMonedaStore();
+  const c = useTemaColores();
+  const { t } = useTranslation();
   const icono = ICONOS_SERVICIOS[nombre] ?? ICONO_SERVICIO_DEFECTO;
+  const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
+
   return (
-    <TouchableOpacity style={[styles.servicioCard, activo && styles.opcionCardActiva]} onPress={onPress} activeOpacity={0.8}>
-      <Ionicons name={activo ? "checkbox" : "square-outline"} size={18} color={activo ? COLOR_MARCA : COLORES.textMuted} />
-      <Ionicons name={icono as any} size={14} color={activo ? COLOR_MARCA : COLORES.textMuted} style={{ marginHorizontal: 8 }} />
-      <Text style={[styles.servicioNombre, activo && styles.opcionTituloActiva]} numberOfLines={2}>{nombre}</Text>
-      {precio > 0 && <Text style={styles.servicioPrecio}>{fmt(precio)}/día</Text>}
+    <TouchableOpacity
+      style={[
+        styles.servicioCard,
+        { backgroundColor: c.bgInput, borderColor: c.border },
+        activo && { borderColor: primaryAccent, borderWidth: 1.5, backgroundColor: c.primaryBg },
+      ]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <Ionicons name={activo ? "checkbox" : "square-outline"} size={18} color={activo ? primaryAccent : c.textMuted} />
+      <Ionicons name={icono as any} size={14} color={activo ? primaryAccent : c.textMuted} style={{ marginHorizontal: 8 }} />
+      <Text style={[styles.servicioNombre, { color: c.textSecondary }, activo && { color: c.textPrimary, fontWeight: "700" }]} numberOfLines={2}>{nombre}</Text>
+      {precio > 0 && <Text style={[styles.servicioPrecio, { color: c.textMuted }]}>{fmt(precio)}{t("reserva.planes.porDia")}</Text>}
     </TouchableOpacity>
   );
 }
 
 // Línea del desglose de precio (label a la izquierda, valor a la derecha).
 export function LineaPrecio({ label, valor, destacado }: { label: string; valor: string; destacado?: boolean }) {
+  const c = useTemaColores();
+
   return (
     <View style={styles.lineaPrecio}>
-      <Text style={[styles.lineaLabel, destacado && styles.lineaLabelDestacado]}>{label}</Text>
-      <Text style={[styles.lineaValor, destacado && styles.lineaValorDestacado]}>{valor}</Text>
+      <Text style={[styles.lineaLabel, { color: c.textSecondary }, destacado && { color: c.textPrimary, fontWeight: "700" }]}>{label}</Text>
+      <Text style={[styles.lineaValor, { color: c.textPrimary }, destacado && { fontWeight: "800" }]}>{valor}</Text>
     </View>
   );
 }
@@ -165,104 +217,114 @@ export function LineaPrecio({ label, valor, destacado }: { label: string; valor:
 // Par de botones Volver/Actualizar — usado por las 4 tarjetas editables
 // para que el patrón sea idéntico en todas.
 export function FilaBotonesEdicion({ onVolver, onActualizar }: { onVolver: () => void; onActualizar: () => void }) {
+  const c = useTemaColores();
+  const { t } = useTranslation();
+
   return (
     <View style={styles.filaBotones}>
-      <TouchableOpacity style={styles.volverBtn} onPress={onVolver}><Text style={styles.volverBtnText}>Volver</Text></TouchableOpacity>
-      <TouchableOpacity style={styles.actualizarBtn} onPress={onActualizar}><Text style={styles.actualizarBtnText}>Actualizar</Text></TouchableOpacity>
+      <TouchableOpacity style={[styles.volverBtn, { borderColor: c.border }]} onPress={onVolver}>
+        <Text style={[styles.volverBtnText, { color: c.textSecondary }]}>{t("reserva.resumen.volver")}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.actualizarBtnWrap} onPress={onActualizar} activeOpacity={0.85}>
+        <LinearGradient
+          colors={GRADIENTES.boton.colors}
+          start={GRADIENTES.boton.start}
+          end={GRADIENTES.boton.end}
+          style={styles.actualizarBtn}
+        >
+          <Text style={styles.actualizarBtnText}>{t("reserva.resumen.actualizar")}</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 }
 
 export const styles = StyleSheet.create({
-  subcard: { paddingHorizontal: 14, paddingVertical: 14, borderTopWidth: 1, borderTopColor: COLORES.panelBorder },
+  subcard: { paddingHorizontal: 14, paddingVertical: 14, borderTopWidth: 1, borderTopColor: "#E5E7EB" },
   subcardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
-  subcardTitulo: { fontSize: 11, fontWeight: "700", color: COLORES.textMuted, letterSpacing: 0.3, textTransform: "uppercase" },
+  subcardTitulo: { fontSize: 11, fontWeight: "700", letterSpacing: 0.3, textTransform: "uppercase" },
   rowGap: { flexDirection: "row", alignItems: "center", gap: 6 },
-  editarBtn: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#eef2fb", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
-  editarLink: { fontSize: 11, fontWeight: "700", color: COLOR_MARCA },
+  editarBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  editarLink: { fontSize: 11, fontWeight: "700" },
 
   filaDato: { flexDirection: "row", alignItems: "center", paddingVertical: 10, gap: 10 },
-  filaDatoLabel: { fontSize: 10, fontWeight: "700", color: COLORES.textMuted, marginBottom: 3 },
-  filaDatoValor: { fontSize: 14, fontWeight: "700", color: COLORES.textPrimary },
-  divisor: { height: 1, backgroundColor: COLORES.panelBorder, marginLeft: 26 },
+  filaDatoLabel: { fontSize: 10, fontWeight: "700", marginBottom: 3 },
+  filaDatoValor: { fontSize: 14, fontWeight: "700" },
+  divisor: { height: 1, marginLeft: 26 },
 
-  bloqueSub: { fontSize: 11, color: COLORES.textMuted },
+  bloqueSub: { fontSize: 11 },
   filaBotones: { flexDirection: "row", gap: 10, marginTop: 14 },
 
   desgloseCabecera: { flexDirection: "row", justifyContent: "space-between", marginTop: 10, marginBottom: 2 },
-  desgloseCabeceraLabel: { fontSize: 10, fontWeight: "700", color: COLORES.textMuted },
-  desgloseCabeceraTotal: { fontSize: 10, fontWeight: "700", color: COLORES.textMuted },
-  desgloseSeccionTitulo: { fontSize: 12, fontWeight: "800", color: COLORES.textPrimary, marginTop: 12, marginBottom: 2 },
-  desgloseSubtexto: { fontSize: 11, color: COLORES.textSecondary, marginBottom: 2 },
-  desgloseDivisor: { height: 1, backgroundColor: COLORES.panelBorder, marginTop: 10, marginBottom: 4 },
+  desgloseCabeceraLabel: { fontSize: 10, fontWeight: "700" },
+  desgloseCabeceraTotal: { fontSize: 10, fontWeight: "700" },
+  desgloseSeccionTitulo: { fontSize: 12, fontWeight: "800", marginTop: 12, marginBottom: 2 },
+  desgloseSubtexto: { fontSize: 11, marginBottom: 2 },
+  desgloseDivisor: { height: 1, marginTop: 10, marginBottom: 4 },
 
   lineaPrecio: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
-  lineaLabel: { fontSize: 12, color: COLORES.textSecondary, flex: 1, marginRight: 8 },
-  lineaValor: { fontSize: 12, fontWeight: "700", color: COLORES.textPrimary },
-  lineaLabelDestacado: { fontWeight: "700", color: COLORES.textPrimary },
+  lineaLabel: { fontSize: 12, flex: 1, marginRight: 8 },
+  lineaValor: { fontSize: 12, fontWeight: "700" },
+  lineaLabelDestacado: { fontWeight: "700" },
   lineaValorDestacado: { fontWeight: "800" },
 
-  totalBlock: { backgroundColor: "#eef2fb", padding: 16, borderTopWidth: 1, borderTopColor: COLORES.panelBorder, alignItems: "center" },
-  totalLabelChica: { fontSize: 11, fontWeight: "800", color: COLOR_MARCA, letterSpacing: 0.5 },
-  totalValorGrande: { fontSize: 26, fontWeight: "800", color: "#1e3a8a", marginTop: 4 },
-  totalNota: { fontSize: 10, color: COLORES.textMuted, marginTop: 8, fontStyle: "italic" },
+  totalBlock: { padding: 16, borderTopWidth: 1, alignItems: "center" },
+  totalLabelChica: { fontSize: 11, fontWeight: "800", letterSpacing: 0.5 },
+  totalValorGrande: { fontSize: 26, fontWeight: "800", marginTop: 4 },
+  totalNota: { fontSize: 10, marginTop: 8, fontStyle: "italic" },
 
-  volverBtn: { flex: 1, borderWidth: 1.5, borderColor: COLORES.panelBorderStrong, borderRadius: 12, paddingVertical: 13, alignItems: "center" },
-  volverBtnText: { fontSize: 13, fontWeight: "800", color: COLORES.textSecondary },
-  actualizarBtn: { flex: 1, backgroundColor: COLOR_MARCA, borderRadius: 12, paddingVertical: 13, alignItems: "center" },
+  volverBtn: { flex: 1, borderWidth: 1.5, borderRadius: 12, paddingVertical: 13, alignItems: "center" },
+  volverBtnText: { fontSize: 13, fontWeight: "800" },
+  actualizarBtnWrap: { flex: 1, borderRadius: 12 },
+  actualizarBtn: { borderRadius: 12, paddingVertical: 13, alignItems: "center" },
   actualizarBtnText: { fontSize: 13, fontWeight: "800", color: "#fff" },
 
-  label: { fontSize: 10, fontWeight: "700", color: COLORES.textMuted, letterSpacing: 0.3, marginBottom: 8, marginTop: 4 },
+  label: { fontSize: 10, fontWeight: "700", letterSpacing: 0.3, marginBottom: 8, marginTop: 4 },
   filaDosCols: { flexDirection: "row", gap: 8, marginBottom: 14 },
-  metodoCard: { flex: 1, borderWidth: 1, borderColor: COLORES.panelBorderStrong, borderRadius: 10, padding: 10 },
-  metodoCardActivo: { borderColor: COLOR_MARCA, borderWidth: 1.5, backgroundColor: "#eef2fb" },
-  metodoTitulo: { fontSize: 11, fontWeight: "700", color: COLORES.textSecondary },
-  metodoDesc: { fontSize: 9, color: COLORES.textMuted, marginTop: 4 },
+  metodoCard: { flex: 1, borderWidth: 1, borderRadius: 10, padding: 10 },
+  metodoCardActivo: { borderWidth: 1.5 },
+  metodoTitulo: { fontSize: 11, fontWeight: "700" },
+  metodoDesc: { fontSize: 9, marginTop: 4 },
 
-  selectBox: { flex: 1, borderWidth: 1, borderColor: COLORES.panelBorderStrong, borderRadius: 10, padding: 9 },
-  selectLabel: { fontSize: 9, color: COLORES.textMuted, fontWeight: "700", marginBottom: 3 },
-  selectValue: { fontSize: 11, fontWeight: "600", color: COLORES.textPrimary },
+  selectBox: { flex: 1, borderWidth: 1, borderRadius: 10, padding: 9 },
+  selectLabel: { fontSize: 9, fontWeight: "700", marginBottom: 3 },
+  selectValue: { fontSize: 11, fontWeight: "600" },
 
-  opcionCard: { borderWidth: 1, borderColor: COLORES.panelBorderStrong, borderRadius: 10, padding: 12, marginBottom: 8 },
-  opcionCardActiva: { borderColor: COLOR_MARCA, borderWidth: 1.5, backgroundColor: "#eef2fb" },
+  opcionCard: { borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 8 },
+  opcionCardActiva: { borderWidth: 1.5 },
   opcionHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  opcionTitulo: { fontSize: 12.5, fontWeight: "700", color: COLORES.textSecondary },
-  opcionTituloActiva: { color: "#0c447c" },
-  opcionDesc: { fontSize: 10.5, color: COLORES.textMuted, marginTop: 4 },
-  opcionDescActiva: { color: "#185fa5" },
+  opcionTitulo: { fontSize: 12.5, fontWeight: "700" },
+  opcionTituloActiva: {},
+  opcionDesc: { fontSize: 10.5, marginTop: 4 },
+  opcionDescActiva: {},
 
-  radio: { width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, borderColor: COLORES.panelBorderStrong, alignItems: "center", justifyContent: "center", marginLeft: 8 },
-  radioActivo: { borderColor: COLOR_MARCA },
-  radioPunto: { width: 8, height: 8, borderRadius: 4, backgroundColor: COLOR_MARCA },
+  radio: { width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, alignItems: "center", justifyContent: "center", marginLeft: 8 },
+  radioActivo: {},
+  radioPunto: { width: 8, height: 8, borderRadius: 4 },
 
-  servicioCard: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: COLORES.panelBorderStrong, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 10, marginBottom: 8 },
-  servicioNombre: { flex: 1, fontSize: 11.5, fontWeight: "600", color: COLORES.textSecondary },
-  servicioPrecio: { fontSize: 10.5, fontWeight: "700", color: COLORES.textMuted, marginLeft: 6 },
+  servicioCard: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 10, marginBottom: 8 },
+  servicioNombre: { flex: 1, fontSize: 11.5, fontWeight: "600" },
+  servicioPrecio: { fontSize: 10.5, fontWeight: "700", marginLeft: 6 },
 
   inputTexto: {
     borderWidth: 1.3,
-    borderColor: COLOR_MARCA,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 9,
     fontSize: 12,
-    color: COLORES.textPrimary,
-    backgroundColor: "#fafbfd",
   },
-  inputDeshabilitado: { backgroundColor: "#F3F4F6", color: COLORES.textMuted },
+  inputDeshabilitado: { opacity: 0.6 },
   filaCelular: { flexDirection: "row", gap: 10 },
   prefijoBox: {
     borderWidth: 1.3,
-    borderColor: COLOR_MARCA,
     borderRadius: 8,
     paddingHorizontal: 10,
     justifyContent: "center",
     minWidth: 46,
     alignItems: "center",
-    backgroundColor: "#eef2fb",
   },
-  prefijoBoxVacio: { backgroundColor: "#F3F4F6" },
-  prefijoText: { fontSize: 12, fontWeight: "700", color: COLOR_MARCA },
-  prefijoTextVacio: { color: COLORES.textMuted },
+  prefijoBoxVacio: { opacity: 0.6 },
+  prefijoText: { fontSize: 12, fontWeight: "700" },
+  prefijoTextVacio: {},
   inputCelular: { flex: 1 },
 });

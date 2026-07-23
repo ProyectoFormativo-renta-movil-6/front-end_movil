@@ -5,15 +5,16 @@ import { useUsuarioStore } from "@/store/usuarioStore";
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { AlertModal } from "../../../components/ui/AlertModal";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 import {
   COLOR_MARCA,
-  COLORES,
   getPrefijoPorNacionalidad,
   NACIONALIDADES,
   PORCENTAJE_CARGOS_ADMINISTRATIVOS,
   PORCENTAJE_IVA,
   RECARGO_LOGISTICO,
-  TIPOS_DOCUMENTO,
+  getTiposDocumento,
 } from "../constants/reserva.constants";
 import { TipoDocumento } from "../types/reserva.types";
 import BarraTotalConfirmar from "./BarraTotalConfirmar";
@@ -23,24 +24,11 @@ import { diasEntre } from "./ResumenReservaModal.piezas";
 import TarjetaTerminosCondiciones from "./TarjetaTerminosCondiciones";
 import TarjetaVerificacionDocumental from "./TarjetaVerificacionDocumental";
 
-const OPCIONES_TIPO_DOCUMENTO = TIPOS_DOCUMENTO.map((t) => ({
-  id: t.id,
-  label: t.label,
-}));
 const OPCIONES_NACIONALIDAD = NACIONALIDADES.map((n) => ({
   id: n.nombre,
   label: n.nombre,
 }));
 
-// ── Sincronización nombreCompleto (reserva) ↔ nombres/apellidos (perfil) ──
-// reservaStore guarda un solo campo de texto libre; usuarioStore guarda
-// nombres y apellidos separados. No hay forma 100% confiable de separar
-// un string libre en nombres/apellidos, así que usamos la convención
-// colombiana típica (2 nombres + 2 apellidos): se reparten las palabras
-// a la mitad, redondeando hacia arriba para "nombres".
-//   "Juan Pérez"                 -> nombres: "Juan",        apellidos: "Pérez"
-//   "Juan Carlos Pérez Gómez"    -> nombres: "Juan Carlos",  apellidos: "Pérez Gómez"
-//   "Juan Carlos Pérez" (3 pal.) -> nombres: "Juan Carlos",  apellidos: "Pérez"
 function combinarNombreCompleto(nombres: string, apellidos: string): string {
   return [nombres, apellidos].filter(Boolean).join(" ").trim();
 }
@@ -64,6 +52,9 @@ interface Props {
 }
 
 export default function FormDatosPersonales({ vehiculo }: Props) {
+  const c = useTemaColores();
+  const { t } = useTranslation();
+  const OPCIONES_TIPO_DOCUMENTO = useMemo(() => getTiposDocumento(t), [t]);
   const datosPersonales = useReservaStore((s) => s.datosPersonales);
   const actualizarDatosPersonales = useReservaStore(
     (s) => s.actualizarDatosPersonales,
@@ -78,9 +69,9 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
   const [modalReservaVisible, setModalReservaVisible] = useState(false);
   const [alertaFaltantesVisible, setAlertaFaltantesVisible] = useState(false);
 
-  // Precarga al entrar al tab: el correo siempre que exista (viene del
-  // login), el resto solo si el usuario ya completó su perfil antes de
-  // reservar. Nunca pisa algo que el usuario ya haya escrito aquí.
+  const primaryAccent = c.oscuro ? "#60A5FA" : COLOR_MARCA;
+  const brandBg = c.oscuro ? "#3B82F6" : COLOR_MARCA;
+
   useEffect(() => {
     const precarga: Partial<typeof datosPersonales> = {};
     if (
@@ -110,19 +101,13 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
     if (Object.keys(precarga).length > 0) {
       actualizarDatosPersonales(precarga);
     }
-    // Solo al entrar al tab — no queremos pisar lo que el usuario ya
-    // escribió si usuarioGlobal cambia después por otra vía.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Vacío hasta que el usuario elige nacionalidad — no cae a +57 por defecto.
   const prefijoTelefono = getPrefijoPorNacionalidad(
     datosPersonales.nacionalidad || null,
   );
   const hayPrefijo = prefijoTelefono !== "";
 
-  // Todo lo que se pide en este tab tiene que estar diligenciado antes
-  // de habilitar el flujo de confirmación (datos + documentos + términos).
   const datosCompletos =
     !!datosPersonales.nombreCompleto.trim() &&
     !!datosPersonales.nacionalidad &&
@@ -134,8 +119,6 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
     !!documentos.licenciaConduccion &&
     !!datosPersonales.terminosAceptados;
 
-  // Mismo cálculo que en ResumenReservaModal.tsx, para que el total
-  // que ve el usuario en esta barra sea idéntico al del modal de resumen.
   const total = useMemo(() => {
     const seguros = vehiculo.seguros ?? [];
     const kmLimitado = vehiculo.tarifas?.kmLimitado;
@@ -178,51 +161,46 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
       setAlertaFaltantesVisible(true);
       return;
     }
-    // Aquí luego va la llamada real al backend para crear la reserva
-    // como "pendiente" antes de abrir el modal.
     setModalReservaVisible(true);
   };
 
   const handlePagarWompi = () => {
     setModalReservaVisible(false);
-    // Aquí luego va la redirección real al checkout de Wompi.
   };
 
   return (
     <View>
-      {/* Título fuera de la tarjeta, igual que en el resto de los tabs */}
-      <Text style={styles.seccionLabel}>Datos personales</Text>
+      <Text style={[styles.seccionLabel, { color: c.textMuted }]}>{t("reserva.datosPersonales.titulo")}</Text>
 
-      <View style={styles.card}>
-        {/* Subtarjeta: aquí vive todo el contenido (subtítulo, nota y formulario) */}
-        <View style={styles.subcard}>
-          <Text style={styles.subtitulo}>
-            Informa tus datos para que podamos realizar tu reserva.
+      <View style={[styles.card, { backgroundColor: c.bgCard }]}>
+        <View style={[styles.subcard, { backgroundColor: c.bgCard, borderColor: brandBg }]}>
+          <Text style={[styles.subtitulo, { color: c.textMuted }]}>
+            {t("reserva.datosPersonales.subtitulo")}
           </Text>
-          <Text style={styles.nota}>
-            Los campos marcados con asterisco (*) son obligatorios.
+          <Text style={[styles.nota, { color: primaryAccent }]}>
+            {t("reserva.datosPersonales.camposObligatorios")}
           </Text>
 
-          <View style={styles.separador} />
+          <View style={[styles.separador, { backgroundColor: c.border }]} />
 
           <View style={styles.campo}>
-            <Text style={styles.inputLabel}>NOMBRE COMPLETO *</Text>
+            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>{t("reserva.datosPersonales.nombreCompleto")}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: c.bgInput, borderColor: brandBg, color: c.textPrimary }]}
               value={datosPersonales.nombreCompleto}
               onChangeText={(v) => {
                 actualizarDatosPersonales({ nombreCompleto: v });
                 const { nombres, apellidos } = separarNombreCompleto(v);
                 actualizarUsuarioGlobal({ nombres, apellidos });
               }}
-              placeholderTextColor={COLORES.textMuted}
+              placeholderTextColor={c.textMuted}
               autoCapitalize="words"
             />
           </View>
 
           <View style={styles.campo}>
             <CampoSelectorLista
-              etiqueta="NACIONALIDAD *"
+              etiqueta={t("reserva.datosPersonales.nacionalidad")}
               valorSeleccionado={datosPersonales.nacionalidad || null}
               opciones={OPCIONES_NACIONALIDAD}
               onSeleccionar={(id) => {
@@ -233,33 +211,35 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
           </View>
 
           <View style={styles.campo}>
-            <Text style={styles.inputLabel}>CORREO ELECTRÓNICO *</Text>
+            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>{t("reserva.datosPersonales.correoElectronico")}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: c.bgInput, borderColor: brandBg, color: c.textPrimary }]}
               value={datosPersonales.correo}
               onChangeText={(v) => {
                 actualizarDatosPersonales({ correo: v });
                 actualizarUsuarioGlobal({ correo: v });
               }}
-              placeholderTextColor={COLORES.textMuted}
+              placeholderTextColor={c.textMuted}
               keyboardType="email-address"
               autoCapitalize="none"
             />
           </View>
 
           <View style={styles.campo}>
-            <Text style={styles.inputLabel}>NÚMERO DE CELULAR *</Text>
+            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>{t("reserva.datosPersonales.numeroCelular")}</Text>
             <View style={styles.filaCelular}>
               <View
                 style={[
                   styles.prefijoBox,
-                  !hayPrefijo && styles.prefijoBoxVacio,
+                  { backgroundColor: c.primaryBg, borderColor: brandBg },
+                  !hayPrefijo && { backgroundColor: c.oscuro ? "#1F2937" : "#F3F4F6" },
                 ]}
               >
                 <Text
                   style={[
                     styles.prefijoText,
-                    !hayPrefijo && styles.prefijoTextVacio,
+                    { color: primaryAccent },
+                    !hayPrefijo && { color: c.textMuted },
                   ]}
                 >
                   {hayPrefijo ? prefijoTelefono : ""}
@@ -269,7 +249,8 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
                 style={[
                   styles.input,
                   styles.inputCelular,
-                  !hayPrefijo && styles.inputDeshabilitado,
+                  { backgroundColor: c.bgInput, borderColor: brandBg, color: c.textPrimary },
+                  !hayPrefijo && { backgroundColor: c.oscuro ? "#1F2937" : "#F3F4F6", color: c.textMuted },
                 ]}
                 value={datosPersonales.celular}
                 onChangeText={(v) => {
@@ -279,7 +260,7 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
                 }}
                 keyboardType="phone-pad"
                 placeholder={hayPrefijo ? undefined : ""}
-                placeholderTextColor={COLORES.textMuted}
+                placeholderTextColor={c.textMuted}
                 editable={hayPrefijo}
               />
             </View>
@@ -287,7 +268,7 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
 
           <View style={styles.campo}>
             <CampoSelectorLista
-              etiqueta="TIPO DE DOCUMENTO *"
+              etiqueta={t("reserva.datosPersonales.tipoDeDocumento")}
               valorSeleccionado={datosPersonales.tipoDocumento}
               opciones={OPCIONES_TIPO_DOCUMENTO}
               onSeleccionar={(id) => {
@@ -302,15 +283,15 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
           </View>
 
           <View style={[styles.campo, { marginBottom: 0 }]}>
-            <Text style={styles.inputLabel}>NÚMERO DE DOCUMENTO *</Text>
+            <Text style={[styles.inputLabel, { color: c.textSecondary }]}>{t("reserva.datosPersonales.numeroDeDocumento")}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: c.bgInput, borderColor: brandBg, color: c.textPrimary }]}
               value={datosPersonales.numeroDocumento}
               onChangeText={(v) => {
                 actualizarDatosPersonales({ numeroDocumento: v });
                 actualizarUsuarioGlobal({ numeroDocumento: v });
               }}
-              placeholderTextColor={COLORES.textMuted}
+              placeholderTextColor={c.textMuted}
               keyboardType="numeric"
             />
           </View>
@@ -331,8 +312,8 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
       <AlertModal
         visible={alertaFaltantesVisible}
         icono="alert-circle-outline"
-        titulo="Faltan datos por completar"
-        mensaje="Completa tus datos personales, sube tus documentos y acepta los términos y condiciones antes de confirmar la reserva."
+        titulo={t("reserva.datosPersonales.alertaFaltantesTitulo")}
+        mensaje={t("reserva.datosPersonales.alertaFaltantesMensaje")}
         botones={[]}
         onCerrar={() => setAlertaFaltantesVisible(false)}
       />
@@ -344,13 +325,11 @@ const styles = StyleSheet.create({
   seccionLabel: {
     fontSize: 12,
     fontWeight: "800",
-    color: COLORES.textMuted,
     letterSpacing: 0.3,
     textTransform: "uppercase",
     marginBottom: 8,
   },
   card: {
-    backgroundColor: COLORES.panelBg,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -362,16 +341,13 @@ const styles = StyleSheet.create({
   },
   subcard: {
     borderWidth: 1.3,
-    borderColor: COLOR_MARCA,
     borderRadius: 12,
     padding: 12,
-    backgroundColor: COLORES.panelBg,
   },
-  subtitulo: { fontSize: 12, color: COLORES.textMuted, marginBottom: 8 },
-  nota: { fontSize: 10.5, color: COLOR_MARCA, fontStyle: "italic" },
+  subtitulo: { fontSize: 12, marginBottom: 8 },
+  nota: { fontSize: 10.5, fontStyle: "italic" },
   separador: {
     height: 1,
-    backgroundColor: COLORES.panelBorder,
     marginTop: 14,
     marginBottom: 14,
   },
@@ -381,40 +357,31 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 10,
     fontWeight: "700",
-    color: COLORES.textSecondary,
     letterSpacing: 0.3,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1.3,
-    borderColor: COLOR_MARCA,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 9,
     fontSize: 12,
-    color: COLORES.textPrimary,
-    backgroundColor: "#fafbfd",
   },
   inputDeshabilitado: {
-    backgroundColor: "#F3F4F6",
-    color: COLORES.textMuted,
+    color: "#9CA3AF",
   },
 
   filaCelular: { flexDirection: "row", gap: 10 },
   prefijoBox: {
     borderWidth: 1.3,
-    borderColor: COLOR_MARCA,
     borderRadius: 8,
     paddingHorizontal: 10,
     justifyContent: "center",
     minWidth: 46,
     alignItems: "center",
-    backgroundColor: "#eef2fb",
   },
-  prefijoBoxVacio: {
-    backgroundColor: "#F3F4F6",
-  },
-  prefijoText: { fontSize: 12, fontWeight: "700", color: COLOR_MARCA },
-  prefijoTextVacio: { color: COLORES.textMuted },
+  prefijoBoxVacio: {},
+  prefijoText: { fontSize: 12, fontWeight: "700" },
+  prefijoTextVacio: {},
   inputCelular: { flex: 1 },
 });

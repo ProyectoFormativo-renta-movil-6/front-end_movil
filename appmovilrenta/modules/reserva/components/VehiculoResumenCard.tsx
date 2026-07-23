@@ -9,6 +9,10 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Vehiculo } from "@/modules/catalogo/types/catalogo.types";
 import { COLORES } from "../constants/reserva.constants";
+import { useMonedaStore } from "@/store/monedaStore";
+import { formatCurrency } from "@/utils/monedaUtils";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   vehiculo: Vehiculo;
@@ -24,7 +28,8 @@ function getSafeImages(vehiculo: Vehiculo): string[] {
 }
 
 function formatPrecio(precio: number): string {
-  return `$${precio.toLocaleString("es-CO")}`;
+  const { monedaActual, tasaUSD } = useMonedaStore.getState();
+  return formatCurrency(precio, monedaActual, tasaUSD);
 }
 
 interface CaracteristicaItem {
@@ -33,13 +38,21 @@ interface CaracteristicaItem {
 }
 
 export default function VehiculoResumenCard({ vehiculo }: Props) {
+  // Nos suscribimos al store de moneda para re-renderizar los precios
+  // cuando cambie COP↔USD o llegue una tasa nueva.
+  useMonedaStore();
+  const c = useTemaColores();
+  const { t } = useTranslation();
   const [fotoActiva, setFotoActiva] = useState(0);
   const imagenes = getSafeImages(vehiculo);
 
+  const trTransmision = (v?: string) => v ? t(`catalogo.transmisionValores.${v}`, { defaultValue: v }) : "—";
+  const trCombustible = (v?: string) => v ? t(`catalogo.combustibleValores.${v}`, { defaultValue: v }) : "—";
+
   const specs: CaracteristicaItem[] = [
-    { icono: <Ionicons name="settings-outline" size={14} color={COLORES.accentText} />, label: vehiculo.transmision ?? "—" },
-    { icono: <MaterialCommunityIcons name="gas-station-outline" size={14} color={COLORES.accentText} />, label: vehiculo.combustible ?? "—" },
-    { icono: <Ionicons name="people-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.pasajeros ?? 5} personas` },
+    { icono: <Ionicons name="settings-outline" size={14} color={COLORES.accentText} />, label: trTransmision(vehiculo.transmision) },
+    { icono: <MaterialCommunityIcons name="gas-station-outline" size={14} color={COLORES.accentText} />, label: trCombustible(vehiculo.combustible) },
+    { icono: <Ionicons name="people-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.pasajeros ?? 5} ${t("catalogo.detalles.personas")}` },
   ];
 
   // Mismas 7 características que maneja VehiculoDetalles.tsx en el catálogo — nada extra,
@@ -47,25 +60,25 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
   const caracteristicas: CaracteristicaItem[] = [];
 
   if (vehiculo.aireAcondicionado) {
-    caracteristicas.push({ icono: <Ionicons name="snow-outline" size={14} color={COLORES.accentText} />, label: "Aire acondicionado" });
+    caracteristicas.push({ icono: <Ionicons name="snow-outline" size={14} color={COLORES.accentText} />, label: t("catalogo.detalles.aireAcondicionado") });
   }
   if (vehiculo.vidriosElectricos) {
-    caracteristicas.push({ icono: <Ionicons name="flash-outline" size={14} color={COLORES.accentText} />, label: "Eleva vidrios eléctrico" });
+    caracteristicas.push({ icono: <Ionicons name="flash-outline" size={14} color={COLORES.accentText} />, label: t("catalogo.detalles.vidriosElectricos") });
   }
   if (vehiculo.cierreCentralizado) {
-    caracteristicas.push({ icono: <Ionicons name="lock-closed-outline" size={14} color={COLORES.accentText} />, label: "Cierre centralizado" });
+    caracteristicas.push({ icono: <Ionicons name="lock-closed-outline" size={14} color={COLORES.accentText} />, label: t("catalogo.detalles.cierreCentralizado") });
   }
   if (vehiculo.maletero) {
-    caracteristicas.push({ icono: <MaterialCommunityIcons name="bag-suitcase-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.maletero}L maletero` });
+    caracteristicas.push({ icono: <MaterialCommunityIcons name="bag-suitcase-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.maletero}L ${t("catalogo.detalles.maletero")}` });
   }
   if (vehiculo.transmision) {
-    caracteristicas.push({ icono: <Ionicons name="settings-outline" size={14} color={COLORES.accentText} />, label: vehiculo.transmision });
+    caracteristicas.push({ icono: <Ionicons name="settings-outline" size={14} color={COLORES.accentText} />, label: trTransmision(vehiculo.transmision) });
   }
   if (vehiculo.combustible) {
-    caracteristicas.push({ icono: <MaterialCommunityIcons name="gas-station-outline" size={14} color={COLORES.accentText} />, label: vehiculo.combustible });
+    caracteristicas.push({ icono: <MaterialCommunityIcons name="gas-station-outline" size={14} color={COLORES.accentText} />, label: trCombustible(vehiculo.combustible) });
   }
   if (vehiculo.pasajeros) {
-    caracteristicas.push({ icono: <Ionicons name="people-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.pasajeros} personas` });
+    caracteristicas.push({ icono: <Ionicons name="people-outline" size={14} color={COLORES.accentText} />, label: `${vehiculo.pasajeros} ${t("catalogo.detalles.personas")}` });
   }
 
   const filasCaracteristicas: CaracteristicaItem[][] = [];
@@ -74,8 +87,8 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.imagenPrincipal}>
+    <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+      <View style={[styles.imagenPrincipal, { backgroundColor: c.bgInput }]}>
         {imagenes.length > 0 ? (
           <>
             <Image
@@ -85,7 +98,7 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
             />
             <View style={styles.badgeGaleria}>
               <Ionicons name="images-outline" size={11} color="#0f6e56" />
-              <Text style={styles.badgeGaleriaText}>En galería</Text>
+              <Text style={styles.badgeGaleriaText}>{t("reserva.resumenVehiculo.enGaleria")}</Text>
             </View>
           </>
         ) : (
@@ -114,19 +127,19 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
         </View>
       )}
 
-      <View style={styles.separador} />
+      <View style={[styles.separador, { backgroundColor: c.border }]} />
 
       <View style={styles.filaNombrePrecio}>
-        <Text style={styles.nombre} numberOfLines={1}>{vehiculo.nombre}</Text>
-        <Text style={styles.precio}>
+        <Text style={[styles.nombre, { color: c.textPrimary }]} numberOfLines={1}>{vehiculo.nombre}</Text>
+        <Text style={[styles.precio, { color: c.textPrimary }]}>
           {formatPrecio(vehiculo.precio)}
-          <Text style={styles.precioDia}>/día</Text>
+          <Text style={[styles.precioDia, { color: c.textMuted }]}>/{t("catalogo.porDia")}</Text>
         </Text>
       </View>
 
       <View style={styles.tagsRow}>
         <View style={styles.tagCategoria}>
-          <Text style={styles.tagCategoriaText}>{vehiculo.categoria ?? "Económico"}</Text>
+          <Text style={styles.tagCategoriaText}>{t(`catalogo.categoriaValores.${vehiculo.categoria ?? "Economico"}`, { defaultValue: vehiculo.categoria ?? "Económico" })}</Text>
         </View>
 
         {vehiculo.sucursal && (
@@ -143,21 +156,21 @@ export default function VehiculoResumenCard({ vehiculo }: Props) {
         {specs.map((s, i) => (
           <View key={i} style={styles.specItem}>
             {s.icono}
-            <Text style={styles.specText}>{s.label}</Text>
+            <Text style={[styles.specText, { color: c.textSecondary }]}>{s.label}</Text>
           </View>
         ))}
       </View>
 
       {filasCaracteristicas.length > 0 && (
         <>
-          <Text style={styles.seccionLabel}>CARACTERÍSTICAS</Text>
+          <Text style={[styles.seccionLabel, { color: c.textMuted }]}>{t("reserva.resumenVehiculo.caracteristicas")}</Text>
           <View style={styles.caracteristicasGrid}>
             {filasCaracteristicas.map((fila, fi) => (
               <View key={fi} style={styles.caracteristicasFila}>
                 {fila.map((item, ci) => (
-                  <View key={ci} style={styles.caracteristicaChip}>
+                  <View key={ci} style={[styles.caracteristicaChip, { backgroundColor: c.bgInput, borderColor: c.border }]}>
                     {item.icono}
-                    <Text style={styles.caracteristicaChipText} numberOfLines={1}>{item.label}</Text>
+                    <Text style={[styles.caracteristicaChipText, { color: c.textSecondary }]} numberOfLines={1}>{item.label}</Text>
                   </View>
                 ))}
                 {fila.length === 1 && <View style={styles.caracteristicaChipVacio} />}

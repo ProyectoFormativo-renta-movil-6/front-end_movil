@@ -2,13 +2,14 @@ import { AlertModal } from "@/components/ui/AlertModal";
 import BuscadorCatalogo from "@/modules/catalogo/components/BuscadorCatalogo";
 import FiltrosCatalogo from "@/modules/catalogo/components/FiltrosCatalogo";
 import VehiculoCard from "@/modules/catalogo/components/VehiculoCard";
-import { COLORES } from "@/modules/catalogo/constants/catalogo.constants";
 import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
 import { useFavoritos } from "@/modules/catalogo/hooks/useFavoritos";
 import { useAuthStore } from "@/store/authStore";
+import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -20,38 +21,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const ORDEN_OPCIONES = [
-  { valor: "precio_asc", label: "Precio: menor a mayor" },
-  { valor: "precio_desc", label: "Precio: mayor a menor" },
-  { valor: "calificacion", label: "Mejor calificacion" },
-];
-
-const ALERT_CONTENT = {
-  busqueda: {
-    icono: "calendar-outline" as const,
-    titulo: "Elegi fechas y lugar",
-    mensaje:
-      "Inicia sesion para buscar por fecha de recogida, devolucion y sucursal.",
-  },
-  reservar: {
-    icono: "car-sport-outline" as const,
-    titulo: "Reserva este vehiculo",
-    mensaje: "Necesitas una cuenta activa para realizar reservas en Drivique.",
-  },
-  favorito: {
-    icono: "heart-outline" as const,
-    titulo: "Guarda en favoritos",
-    mensaje: "Inicia sesion para guardar tus vehiculos favoritos.",
-  },
-  sinResultados: {
-    icono: "car-outline" as const,
-    titulo: "Sin disponibilidad",
-    mensaje:
-      "No encontramos vehículos disponibles para esa ciudad, sucursal o esas fechas. Te mostramos el catálogo completo mientras tanto.",
-  },
-};
-
-type AlertTipo = keyof typeof ALERT_CONTENT;
+type AlertTipo = "busqueda" | "reservar" | "favorito" | "sinResultados";
 
 function nombreDesdeCorreo(correo?: string): string {
   if (!correo) return "Usuario";
@@ -69,19 +39,22 @@ function ListFooter({
   totalPaginas,
   onAnterior,
   onSiguiente,
+  c,
 }: {
   paginaActual: number;
   totalPaginas: number;
   onAnterior: () => void;
   onSiguiente: () => void;
+  c: ReturnType<typeof useTemaColores>;
 }) {
+  const { t } = useTranslation();
   if (totalPaginas <= 1) return null;
   return (
     <View style={styles.paginacionContainer}>
       <TouchableOpacity
         style={[
           styles.paginaBtn,
-          paginaActual === 1 && styles.paginaBtnDisabled,
+          paginaActual === 1 && [styles.paginaBtnDisabled, { backgroundColor: c.bgInput }],
         ]}
         onPress={onAnterior}
         disabled={paginaActual === 1}
@@ -90,26 +63,26 @@ function ListFooter({
         <Ionicons
           name="arrow-back"
           size={16}
-          color={paginaActual === 1 ? "#CBD5E1" : "#1E40AF"}
+          color={paginaActual === 1 ? c.textMuted : "#1E40AF"}
         />
         <Text
           style={[
             styles.paginaBtnText,
-            paginaActual === 1 && styles.paginaBtnTextDisabled,
+            paginaActual === 1 && [styles.paginaBtnTextDisabled, { color: c.textMuted }],
           ]}
         >
-          Anterior
+          {t("catalogo.anterior")}
         </Text>
       </TouchableOpacity>
 
-      <Text style={styles.paginaInfoTexto}>
+      <Text style={[styles.paginaInfoTexto, { color: c.textSecondary }]}>
         {paginaActual} / {totalPaginas}
       </Text>
 
       <TouchableOpacity
         style={[
           styles.paginaBtn,
-          paginaActual === totalPaginas && styles.paginaBtnDisabled,
+          paginaActual === totalPaginas && [styles.paginaBtnDisabled, { backgroundColor: c.bgInput }],
         ]}
         onPress={onSiguiente}
         disabled={paginaActual === totalPaginas}
@@ -118,15 +91,15 @@ function ListFooter({
         <Text
           style={[
             styles.paginaBtnText,
-            paginaActual === totalPaginas && styles.paginaBtnTextDisabled,
+            paginaActual === totalPaginas && [styles.paginaBtnTextDisabled, { color: c.textMuted }],
           ]}
         >
-          Siguiente
+          {t("catalogo.siguiente")}
         </Text>
         <Ionicons
           name="arrow-forward"
           size={16}
-          color={paginaActual === totalPaginas ? "#CBD5E1" : "#1E40AF"}
+          color={paginaActual === totalPaginas ? c.textMuted : "#1E40AF"}
         />
       </TouchableOpacity>
     </View>
@@ -135,11 +108,48 @@ function ListFooter({
 
 export default function Catalogo() {
   const insets = useSafeAreaInsets();
+  const c = useTemaColores();
+  const { t } = useTranslation();
   const usuario = useAuthStore((state) => state.usuario);
   const [textBusqueda, setTextBusqueda] = useState("");
   const [modalFormVisible, setModalFormVisible] = useState(false);
   const [sweetAlertVisible, setSweetAlertVisible] = useState(false);
   const [alertTipo, setAlertTipo] = useState("busqueda" as AlertTipo);
+
+  const ORDEN_OPCIONES = useMemo(
+    () => [
+      { valor: "precio_asc", label: t("catalogo.ordenar.precioAsc") },
+      { valor: "precio_desc", label: t("catalogo.ordenar.precioDesc") },
+      { valor: "calificacion", label: t("catalogo.ordenar.calificacion") },
+    ],
+    [t]
+  );
+
+  const ALERT_CONTENT = useMemo(
+    () => ({
+      busqueda: {
+        icono: "calendar-outline" as const,
+        titulo: t("catalogo.alertas.busquedaTitulo"),
+        mensaje: t("catalogo.alertas.busquedaMensaje"),
+      },
+      reservar: {
+        icono: "car-sport-outline" as const,
+        titulo: t("catalogo.alertas.reservarTitulo"),
+        mensaje: t("catalogo.alertas.reservarMensaje"),
+      },
+      favorito: {
+        icono: "heart-outline" as const,
+        titulo: t("catalogo.alertas.favoritoTitulo"),
+        mensaje: t("catalogo.alertas.favoritoMensaje"),
+      },
+      sinResultados: {
+        icono: "car-outline" as const,
+        titulo: t("catalogo.alertas.sinResultadosTitulo"),
+        mensaje: t("catalogo.alertas.sinResultadosMensaje"),
+      },
+    }),
+    [t]
+  );
 
   const usuarioId = usuario ? String(usuario.id ?? usuario.correo ?? "user") : null;
   const { favoritos, toggleFavorito, esFavorito } = useFavoritos(usuarioId);
@@ -187,7 +197,7 @@ export default function Catalogo() {
 
   const ordenLabel =
     ORDEN_OPCIONES.find((o) => o.valor === filtros.orden)?.label ??
-    "Ordenar por";
+    t("catalogo.ordenar.porDefecto");
 
   const filtrosActivos =
     filtros.sucursal !== "Todas las sucursales" ||
@@ -240,19 +250,19 @@ export default function Catalogo() {
     alertTipo === "sinResultados"
       ? [
           {
-            texto: "Entendido",
+            texto: t("catalogo.alertas.entendido"),
             variante: "primario" as const,
             onPress: () => setSweetAlertVisible(false),
           },
         ]
       : [
           {
-            texto: "Cancelar",
+            texto: t("catalogo.alertas.cancelar"),
             variante: "secundario" as const,
             onPress: () => setSweetAlertVisible(false),
           },
           {
-            texto: "Iniciar sesion",
+            texto: t("catalogo.alertas.iniciarSesion"),
             variante: "primario" as const,
             onPress: () => {
               setSweetAlertVisible(false);
@@ -267,14 +277,14 @@ export default function Catalogo() {
   const inicialUsuario = nombreUsuario.charAt(0).toUpperCase();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
       <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#ffffff"
+        barStyle={c.oscuro ? "light-content" : "dark-content"}
+        backgroundColor={c.bgHeader}
         translucent={true}
       />
 
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Drivique</Text>
         </View>
@@ -284,8 +294,8 @@ export default function Catalogo() {
             onPress={irAPerfil}
             activeOpacity={0.7}
           >
-            <Text style={styles.headerUsuarioTexto} numberOfLines={1}>
-              Bienvenido, {nombreUsuario}
+            <Text style={[styles.headerUsuarioTexto, { color: c.textSecondary }]} numberOfLines={1}>
+              {t("catalogo.bienvenido", { nombre: nombreUsuario })}
             </Text>
             <View style={styles.headerAvatar}>
               <Text style={styles.headerAvatarTexto}>{inicialUsuario}</Text>
@@ -297,13 +307,13 @@ export default function Catalogo() {
               style={styles.loginBtn}
               onPress={() => router.push("/(auth)/login")}
             >
-              <Text style={styles.loginBtnText}>Ingresar</Text>
+              <Text style={styles.loginBtnText}>{t("catalogo.ingresar")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.registerBtn}
               onPress={() => router.push("/(auth)/registro")}
             >
-              <Text style={styles.registerBtnText}>Registro</Text>
+              <Text style={styles.registerBtnText}>{t("catalogo.registro")}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -323,37 +333,38 @@ export default function Catalogo() {
         setModalFormVisible={setModalFormVisible}
       />
 
-      <View style={styles.controlsBar}>
+      <View style={[styles.controlsBar, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
         <TouchableOpacity
-          style={[styles.filtrosBtn, filtrosActivos && styles.filtrosBtnActivo]}
+          style={[styles.filtrosBtn, { backgroundColor: c.bgInput }, filtrosActivos && styles.filtrosBtnActivo]}
           onPress={() => setFiltrosVisible(true)}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Ionicons
               name="options-outline"
               size={16}
-              color={filtrosActivos ? "#fff" : COLORES.textSecondary}
+              color={filtrosActivos ? "#fff" : c.textSecondary}
             />
             <Text
               style={[
                 styles.filtrosBtnText,
+                { color: c.textSecondary },
                 filtrosActivos && styles.filtrosBtnTextActivo,
               ]}
             >
-              Filtros
+              {t("catalogo.filtrosBtn")}
             </Text>
           </View>
         </TouchableOpacity>
 
         <View style={styles.controlsRight}>
-          <Text style={styles.contadorText}>
-            {vehiculosAMostrar.length} vehiculos
+          <Text style={[styles.contadorText, { color: c.textSecondary }]}>
+            {t("catalogo.vehiculosContador", { count: vehiculosAMostrar.length })}
           </Text>
           <TouchableOpacity
-            style={styles.ordenBtn}
+            style={[styles.ordenBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}
             onPress={() => setOrdenVisible(!ordenVisible)}
           >
-            <Text style={styles.ordenBtnText} numberOfLines={1}>
+            <Text style={[styles.ordenBtnText, { color: c.textPrimary }]} numberOfLines={1}>
               {ordenLabel} ▼
             </Text>
           </TouchableOpacity>
@@ -361,13 +372,13 @@ export default function Catalogo() {
       </View>
 
       {ordenVisible && (
-        <View style={styles.ordenDropdown}>
+        <View style={[styles.ordenDropdown, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           {ORDEN_OPCIONES.map((op) => (
             <TouchableOpacity
               key={op.valor}
               style={[
                 styles.ordenOpcion,
-                filtros.orden === op.valor && styles.ordenOpcionActiva,
+                filtros.orden === op.valor && { backgroundColor: c.primaryBg },
               ]}
               onPress={() => {
                 setFiltro("orden", op.valor);
@@ -377,6 +388,7 @@ export default function Catalogo() {
               <Text
                 style={[
                   styles.ordenOpcionText,
+                  { color: c.textPrimary },
                   filtros.orden === op.valor && styles.ordenOpcionTextActiva,
                 ]}
               >
@@ -416,9 +428,9 @@ export default function Catalogo() {
           ListEmptyComponent={
             soloFavoritos ? (
               <View style={styles.estadoCentro}>
-                <Ionicons name="heart-outline" size={48} color="#CBD5E1" />
-                <Text style={styles.emptyText}>
-                  Aún no tienes favoritos guardados
+                <Ionicons name="heart-outline" size={48} color={c.textMuted} />
+                <Text style={[styles.emptyText, { color: c.textMuted }]}>
+                  {t("catalogo.sinFavoritosGuardados")}
                 </Text>
               </View>
             ) : null
@@ -429,6 +441,7 @@ export default function Catalogo() {
               totalPaginas={totalPaginas}
               onAnterior={paginaAnterior}
               onSiguiente={paginaSiguiente}
+              c={c}
             />
           )}
         />

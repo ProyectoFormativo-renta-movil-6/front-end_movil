@@ -31,3 +31,14 @@ export function buscarUsuarioDemo(
   );
   return encontrado ?? null;
 }
+
+// RF52 — Eliminar cuenta (mock). Como todavía no hay backend, simulamos
+// el borrado quitando al usuario de USUARIOS_DEMO: mientras la app
+// siga abierta, ese correo ya no podrá volver a iniciar sesión. En
+// producción esto se reemplaza por la llamada real DELETE /usuarios/:id.
+export function eliminarUsuarioDemo(correo: string): void {
+  const indice = USUARIOS_DEMO.findIndex(
+    (u) => u.correo === correo.trim().toLowerCase(),
+  );
+  if (indice !== -1) USUARIOS_DEMO.splice(indice, 1);
+}
