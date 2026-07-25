@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Alert } from "react-native";
+import { useTranslation } from "react-i18next";
 import {
   FILTROS_BASE,
   VEHICULOS_MOCK,
@@ -63,6 +64,7 @@ const BUSQUEDA_FORM_BASE: BusquedaForm = {
 };
 
 export function useCatalogo() {
+  const { t } = useTranslation();
   const [vehiculos] = useState<Vehiculo[]>(VEHICULOS_MOCK);
   const [cargando] = useState(false);
   const [error] = useState<string | null>(null);
@@ -93,26 +95,26 @@ export function useCatalogo() {
 
   const handleBuscarInvitado = () => {
     Alert.alert(
-      "Modo invitado",
-      "Inicia sesion o regístrate para guardar y realizar búsquedas avanzadas.",
+      t("auth.login.modoInvitado"),
+      t("catalogo.alertas.modoInvitadoMensaje"),
       [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Ir a registrarse", onPress: () => {} },
+        { text: t("catalogo.alertas.cancelar"), style: "cancel" },
+        { text: t("catalogo.alertas.irARegistrarse"), onPress: () => {} },
       ],
     );
   };
 
   const handleBuscar = () => {
     if (!busquedaForm.lugarRecogida || !busquedaForm.lugarDevolucion) {
-      setErrorBusqueda("Selecciona la ciudad y la sucursal");
+      setErrorBusqueda(t("catalogo.buscador.errorCiudadSucursal"));
       return;
     }
     if (!busquedaForm.fechaInicio || !busquedaForm.fechaFin) {
-      setErrorBusqueda("Selecciona las fechas de recogida y devolución");
+      setErrorBusqueda(t("catalogo.buscador.errorFechas"));
       return;
     }
     if (busquedaForm.fechaFin <= busquedaForm.fechaInicio) {
-      setErrorBusqueda("La fecha de devolución debe ser posterior a la de recogida");
+      setErrorBusqueda(t("catalogo.buscador.errorFechaDevolucionPosterior"));
       return;
     }
     setErrorBusqueda("");

@@ -11,6 +11,7 @@
 
 import { useUsuarioStore } from "@/store/usuarioStore";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ErroresCambiarCorreo,
   ErroresCompletarPerfil,
@@ -21,6 +22,7 @@ import {
 } from "../types/perfil.types";
 
 export function usePerfil() {
+  const { t } = useTranslation();
   const usuario = useUsuarioStore((s) => s.usuario);
   const actualizarUsuarioGlobal = useUsuarioStore((s) => s.actualizarUsuario);
 
@@ -34,6 +36,8 @@ export function usePerfil() {
     apellidos: usuario.apellidos,
     telefono: usuario.telefono,
     fechaNacimiento: usuario.fechaNacimiento,
+    nacionalidad: usuario.nacionalidad,
+    codigoPostal: usuario.codigoPostal,
   });
 
   // Si el usuario global cambia (p. ej. porque lo llenó desde el
@@ -46,6 +50,8 @@ export function usePerfil() {
         apellidos: usuario.apellidos,
         telefono: usuario.telefono,
         fechaNacimiento: usuario.fechaNacimiento,
+        nacionalidad: usuario.nacionalidad,
+        codigoPostal: usuario.codigoPostal,
       });
     }
   }, [usuario, editando]);
@@ -79,28 +85,37 @@ export function usePerfil() {
     const nuevosErrores: ErroresPerfil = {};
 
     if (!form.nombres.trim()) {
-      nuevosErrores.nombres = "Los nombres son obligatorios";
+      nuevosErrores.nombres = t("perfil.validacion.nombresObligatorio");
     } else if (form.nombres.trim().length < 2) {
-      nuevosErrores.nombres = "Los nombres deben tener al menos 2 caracteres";
+      nuevosErrores.nombres = t("perfil.validacion.nombresMinimo");
     }
 
     if (!form.apellidos.trim()) {
-      nuevosErrores.apellidos = "Los apellidos son obligatorios";
+      nuevosErrores.apellidos = t("perfil.validacion.apellidosObligatorio");
     } else if (form.apellidos.trim().length < 2) {
-      nuevosErrores.apellidos =
-        "Los apellidos deben tener al menos 2 caracteres";
+      nuevosErrores.apellidos = t("perfil.validacion.apellidosMinimo");
     }
 
     if (!form.telefono.trim()) {
-      nuevosErrores.telefono = "El teléfono es obligatorio";
+      nuevosErrores.telefono = t("perfil.validacion.telefonoObligatorio");
     } else if (!/^\+?[\d\s\-(). ]{7,20}$/.test(form.telefono.trim())) {
-      nuevosErrores.telefono = "Número inválido (ej: +57 300 123 4567)";
+      nuevosErrores.telefono = t("perfil.validacion.telefonoInvalido");
     }
 
     if (!form.fechaNacimiento) {
-      nuevosErrores.fechaNacimiento = "La fecha de nacimiento es obligatoria";
+      nuevosErrores.fechaNacimiento = t("perfil.validacion.fechaNacObligatoria");
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.fechaNacimiento)) {
-      nuevosErrores.fechaNacimiento = "Formato: YYYY-MM-DD";
+      nuevosErrores.fechaNacimiento = t("perfil.validacion.fechaFormato");
+    }
+
+    if (!form.nacionalidad) {
+      nuevosErrores.nacionalidad = t("perfil.validacion.nacionalidadSeleccionar");
+    }
+
+    // El código postal es opcional: solo se valida el formato si el
+    // usuario escribió algo.
+    if (form.codigoPostal.trim() && !/^[A-Za-z0-9\- ]{3,10}$/.test(form.codigoPostal.trim())) {
+      nuevosErrores.codigoPostal = t("perfil.validacion.codigoPostalFormato");
     }
 
     setErrores(nuevosErrores);
@@ -111,22 +126,21 @@ export function usePerfil() {
     const nuevosErrores: ErroresCambiarCorreo = {};
 
     if (!formCorreo.nuevoCorreo.trim()) {
-      nuevosErrores.nuevoCorreo = "El correo es obligatorio";
+      nuevosErrores.nuevoCorreo = t("perfil.validacion.correoObligatorio");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formCorreo.nuevoCorreo)) {
-      nuevosErrores.nuevoCorreo = "Formato de correo inválido";
+      nuevosErrores.nuevoCorreo = t("perfil.validacion.correoInvalido");
     } else if (formCorreo.nuevoCorreo === usuario.correo) {
-      nuevosErrores.nuevoCorreo =
-        "El nuevo correo debe ser diferente al actual";
+      nuevosErrores.nuevoCorreo = t("perfil.validacion.correoDebeSerDiferente");
     }
 
     if (!formCorreo.confirmarCorreo.trim()) {
-      nuevosErrores.confirmarCorreo = "Confirme el correo";
+      nuevosErrores.confirmarCorreo = t("perfil.validacion.confirmeCorreo");
     } else if (formCorreo.nuevoCorreo !== formCorreo.confirmarCorreo) {
-      nuevosErrores.confirmarCorreo = "Los correos no coinciden";
+      nuevosErrores.confirmarCorreo = t("perfil.validacion.correosNoCoinciden");
     }
 
     if (!formCorreo.contrasenaActual.trim()) {
-      nuevosErrores.contrasenaActual = "La contraseña actual es obligatoria";
+      nuevosErrores.contrasenaActual = t("perfil.validacion.contrasenaActualObligatoria");
     }
 
     setErroresCorreo(nuevosErrores);
@@ -148,6 +162,8 @@ export function usePerfil() {
         apellidos: form.apellidos.trim(),
         telefono: form.telefono.trim(),
         fechaNacimiento: form.fechaNacimiento,
+        nacionalidad: form.nacionalidad,
+        codigoPostal: form.codigoPostal.trim(),
       });
       setEditando(false);
       setCargando(false);
@@ -162,6 +178,8 @@ export function usePerfil() {
       apellidos: usuario.apellidos,
       telefono: usuario.telefono,
       fechaNacimiento: usuario.fechaNacimiento,
+      nacionalidad: usuario.nacionalidad,
+      codigoPostal: usuario.codigoPostal,
     });
     setErrores({});
     setEditando(false);
@@ -226,6 +244,7 @@ export function usePerfil() {
 }
 
 export function useCompletarPerfil() {
+  const { t } = useTranslation();
   const usuario = useUsuarioStore((s) => s.usuario);
   const actualizarUsuarioGlobal = useUsuarioStore((s) => s.actualizarUsuario);
 
@@ -249,32 +268,32 @@ export function useCompletarPerfil() {
   const validar = (): boolean => {
     const e: ErroresCompletarPerfil = {};
 
-    if (!form.nombres.trim()) e.nombres = "Los nombres son obligatorios";
+    if (!form.nombres.trim()) e.nombres = t("perfil.validacion.nombresObligatorio");
     else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(form.nombres))
-      e.nombres = "Solo letras y espacios";
+      e.nombres = t("perfil.validacion.nombresSoloLetras");
 
-    if (!form.apellidos.trim()) e.apellidos = "Los apellidos son obligatorios";
+    if (!form.apellidos.trim()) e.apellidos = t("perfil.validacion.apellidosObligatorio");
     else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(form.apellidos))
-      e.apellidos = "Solo letras y espacios";
+      e.apellidos = t("perfil.validacion.apellidosSoloLetras");
 
-    if (!form.telefono.trim()) e.telefono = "El teléfono es obligatorio";
+    if (!form.telefono.trim()) e.telefono = t("perfil.validacion.telefonoObligatorio");
     else if (!/^\+?[\d\s\-(). ]{7,20}$/.test(form.telefono.trim()))
-      e.telefono = "Número inválido (ej: +57 300 123 4567)";
+      e.telefono = t("perfil.validacion.telefonoInvalido");
 
     if (!form.fechaNacimiento)
-      e.fechaNacimiento = "La fecha de nacimiento es obligatoria";
+      e.fechaNacimiento = t("perfil.validacion.fechaNacObligatoria");
     else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.fechaNacimiento))
-      e.fechaNacimiento = "Formato: YYYY-MM-DD";
+      e.fechaNacimiento = t("perfil.validacion.fechaFormato");
 
     if (!form.tipoDocumento)
-      e.tipoDocumento = "Selecciona el tipo de documento";
+      e.tipoDocumento = t("perfil.validacion.tipoDocumentoSeleccionar");
 
     if (!form.numeroDocumento.trim())
-      e.numeroDocumento = "El número de documento es obligatorio";
+      e.numeroDocumento = t("perfil.validacion.numeroDocumentoObligatorio");
     else if (!/^\d{6,10}$/.test(form.numeroDocumento))
-      e.numeroDocumento = "Entre 6 y 10 dígitos numéricos";
+      e.numeroDocumento = t("perfil.validacion.numeroDocumentoFormato");
 
-    if (!form.nacionalidad) e.nacionalidad = "Selecciona tu nacionalidad";
+    if (!form.nacionalidad) e.nacionalidad = t("perfil.validacion.nacionalidadSeleccionar");
 
     setErrores(e);
     return Object.keys(e).length === 0;

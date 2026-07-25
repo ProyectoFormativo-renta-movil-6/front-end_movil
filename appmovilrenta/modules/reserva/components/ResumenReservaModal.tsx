@@ -116,7 +116,11 @@ export default function ResumenReservaModal({
   const seguroElegido = useMemo(() => seguros.find((s) => s.nombre === planes.proteccion) ?? null, [seguros, planes.proteccion]);
   const kmElegido = planes.tipoKilometraje === "limitado" ? kmLimitado : planes.tipoKilometraje === "ilimitado" ? kmIlimitado : null;
   const labelKm = planes.tipoKilometraje === "limitado" ? t("reserva.planes.limitado") : planes.tipoKilometraje === "ilimitado" ? t("reserva.planes.ilimitado") : t("reserva.resumen.sinElegir");
-  const serviciosTexto = planes.serviciosSeleccionados.length > 0 ? planes.serviciosSeleccionados.join(", ") : t("reserva.resumen.ninguno");
+  const serviciosTexto = planes.serviciosSeleccionados.length > 0
+    ? planes.serviciosSeleccionados
+        .map((n) => t(`reserva.planes.nombreServicio.${n}`, { defaultValue: n }))
+        .join(", ")
+    : t("reserva.resumen.ninguno");
 
   const desglose = useMemo(() => {
     const dias = diasEntre(fechasLugar.fechaRetiro, fechasLugar.fechaDevolucion);
@@ -264,7 +268,7 @@ export default function ResumenReservaModal({
                     {modo !== "editarPlanes" ? (
                       <>
                         <SubcardHeader icono="shield-checkmark-outline" titulo={t("reserva.resumen.planesYServicios")} onEditar={() => { setDraftPlanes(planes); setModo("editarPlanes"); }} />
-                        <FilaDato icono="shield-checkmark-outline" label={t("reserva.resumen.proteccion")} valor={planes.proteccion || t("reserva.resumen.sinElegir")} />
+                        <FilaDato icono="shield-checkmark-outline" label={t("reserva.resumen.proteccion")} valor={planes.proteccion ? t(`reserva.planes.nombreSeguro.${planes.proteccion}`, { defaultValue: planes.proteccion }) : t("reserva.resumen.sinElegir")} />
                         <FilaDato icono="speedometer-outline" label={t("reserva.resumen.kilometraje")} valor={labelKm} />
                         <FilaDato icono="add-circle-outline" label={t("reserva.resumen.serviciosAdicionales")} valor={serviciosTexto} ultima />
                       </>
@@ -276,7 +280,7 @@ export default function ResumenReservaModal({
                           <>
                             <Text style={[piezas.label, { color: c.textMuted, marginTop: 12 }]}>{t("reserva.resumen.proteccionMayus")}</Text>
                             {seguros.map((s) => (
-                              <OpcionCard key={s.nombre} titulo={s.nombre} desc={`${fmt(s.precio)} ${t("reserva.planes.porDia")}`} activo={draftPlanes.proteccion === s.nombre} onPress={() => setDraftPlanes((p) => ({ ...p, proteccion: s.nombre }))} />
+                              <OpcionCard key={s.nombre} titulo={t(`reserva.planes.nombreSeguro.${s.nombre}`, { defaultValue: s.nombre })} desc={`${fmt(s.precio)} ${t("reserva.planes.porDia")}`} activo={draftPlanes.proteccion === s.nombre} onPress={() => setDraftPlanes((p) => ({ ...p, proteccion: s.nombre }))} />
                             ))}
                           </>
                         )}
@@ -349,7 +353,7 @@ export default function ResumenReservaModal({
                         {desglose.proteccion > 0 && (
                           <>
                             <Text style={[piezas.desgloseSeccionTitulo, { color: c.textPrimary }]}>{t("reserva.resumen.protecciones")}</Text>
-                            <Text style={[piezas.desgloseSubtexto, { color: c.textSecondary }]}>{planes.proteccion}</Text>
+                            <Text style={[piezas.desgloseSubtexto, { color: c.textSecondary }]}>{t(`reserva.planes.nombreSeguro.${planes.proteccion}`, { defaultValue: planes.proteccion })}</Text>
                             <LineaPrecio
                               label={`${desglose.dias} ${desglose.dias > 1 ? t("reserva.resumen.diaPlural") : t("reserva.resumen.diaSingular")} × ${fmt(seguroElegido?.precio ?? 0)}`}
                               valor={fmt(desglose.proteccion)}

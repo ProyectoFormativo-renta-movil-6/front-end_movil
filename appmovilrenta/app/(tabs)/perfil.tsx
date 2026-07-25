@@ -36,6 +36,15 @@ import { DateField } from "@/components/ui/DateField";
 import { useMoneda } from "@/hooks/useMoneda";
 import { AlertModal } from "@/components/ui/AlertModal";
 import { Moneda } from "@/utils/monedaUtils";
+import { Nacionalidad } from "@/modules/perfil/types/perfil.types";
+
+const NACIONALIDADES: { valor: Nacionalidad; bandera: string }[] = [
+  { valor: "Colombia", bandera: "🇨🇴" },
+  { valor: "USA", bandera: "🇺🇸" },
+  { valor: "Francia", bandera: "🇫🇷" },
+  { valor: "Portugal", bandera: "🇵🇹" },
+  { valor: "Brasil", bandera: "🇧🇷" },
+];
 
 export default function PerfilScreen() {
   const { t } = useTranslation();
@@ -43,6 +52,7 @@ export default function PerfilScreen() {
   const { monedaActual, cambiarMoneda } = useMoneda();
   const c = useTemaColores();
   const insets = useSafeAreaInsets();
+  const [showNacionalidad, setShowNacionalidad] = useState(false);
   const [editando, setEditando] = useState(false);
   const [completando, setCompletando] = useState(false);
   const [mostrarAvisoUSD, setMostrarAvisoUSD] = useState(false);
@@ -364,6 +374,65 @@ export default function PerfilScreen() {
                 maximumDate={new Date()}
                 colores={c}
               />
+            </View>
+
+            <View style={styles.editCampoWrap}>
+              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.nacionalidad")}</Text>
+              <TouchableOpacity
+                style={[
+                  styles.editSelector,
+                  { borderColor: errores.nacionalidad ? "#DC2626" : c.border, backgroundColor: c.bgInput },
+                ]}
+                onPress={() => setShowNacionalidad((v) => !v)}
+              >
+                <Text style={[styles.editSelectorText, { color: form.nacionalidad ? c.textPrimary : c.textMuted }]}>
+                  {form.nacionalidad
+                    ? `${NACIONALIDADES.find((n) => n.valor === form.nacionalidad)?.bandera ?? ""} ${form.nacionalidad}`
+                    : t("perfil.seleccionar")}
+                </Text>
+                <Text style={{ color: c.textSecondary }}>▾</Text>
+              </TouchableOpacity>
+              {showNacionalidad && (
+                <View style={[styles.editDropdown, { borderColor: c.border, backgroundColor: c.bgCard }]}>
+                  {NACIONALIDADES.map(({ valor, bandera }) => (
+                    <TouchableOpacity
+                      key={valor}
+                      style={[
+                        styles.editDropdownItem,
+                        form.nacionalidad === valor && { backgroundColor: c.primaryBg },
+                      ]}
+                      onPress={() => {
+                        actualizarCampo("nacionalidad", valor);
+                        setShowNacionalidad(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.editDropdownText,
+                          { color: form.nacionalidad === valor ? c.primary : c.textPrimary },
+                        ]}
+                      >
+                        {bandera} {valor}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+              {errores.nacionalidad && <Text style={styles.editErrorText}>{errores.nacionalidad}</Text>}
+            </View>
+
+            <View style={styles.editCampoWrap}>
+              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.codigoPostal")}</Text>
+              <TextInput
+                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.codigoPostal ? styles.editInputError : null]}
+                value={form.codigoPostal}
+                onChangeText={(val) => actualizarCampo("codigoPostal", val)}
+                placeholder={t("perfil.placeholderCodigoPostal")}
+                placeholderTextColor={c.textMuted}
+                autoCapitalize="characters"
+                maxLength={10}
+              />
+              {errores.codigoPostal && <Text style={styles.editErrorText}>{errores.codigoPostal}</Text>}
             </View>
           </View>
 

@@ -196,7 +196,7 @@ export function ServicioRow({
     >
       <Ionicons name={activo ? "checkbox" : "square-outline"} size={18} color={activo ? primaryAccent : c.textMuted} />
       <Ionicons name={icono as any} size={14} color={activo ? primaryAccent : c.textMuted} style={{ marginHorizontal: 8 }} />
-      <Text style={[styles.servicioNombre, { color: c.textSecondary }, activo && { color: c.textPrimary, fontWeight: "700" }]} numberOfLines={2}>{nombre}</Text>
+      <Text style={[styles.servicioNombre, { color: c.textSecondary }, activo && { color: c.textPrimary, fontWeight: "700" }]} numberOfLines={2}>{t(`reserva.planes.nombreServicio.${nombre}`, { defaultValue: nombre })}</Text>
       {precio > 0 && <Text style={[styles.servicioPrecio, { color: c.textMuted }]}>{fmt(precio)}{t("reserva.planes.porDia")}</Text>}
     </TouchableOpacity>
   );

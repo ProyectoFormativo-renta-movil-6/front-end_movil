@@ -147,7 +147,7 @@ export default function VehiculoDetalles({ vehiculo }: Props) {
         {seguros.length > 0 ? (
           seguros.map((seg, i) => (
             <View key={i} style={styles.tarifaRow}>
-              <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>{seg.nombre}</Text>
+              <Text style={[styles.tarifaLabel, { color: c.textSecondary }]}>{t(`reserva.planes.nombreSeguro.${seg.nombre}`, { defaultValue: seg.nombre })}</Text>
               <Text style={[styles.tarifaValor, { color: c.textPrimary }]}>
                 {formatPrecio(seg.precio)}/{t("catalogo.porDia")}
               </Text>

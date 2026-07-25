@@ -18,6 +18,7 @@ export interface UsuarioPerfil {
   numeroDocumento: string;
   fechaNacimiento: string;
   nacionalidad: Nacionalidad | "";
+  codigoPostal: string;
   perfilCompleto: boolean;
 }
 
@@ -26,6 +27,8 @@ export interface FormEditarPerfil {
   apellidos: string;
   telefono: string;
   fechaNacimiento: string;
+  nacionalidad: Nacionalidad | "";
+  codigoPostal: string;
 }
 
 export interface FormCompletarPerfil {
@@ -49,6 +52,8 @@ export interface ErroresPerfil {
   apellidos?: string;
   telefono?: string;
   fechaNacimiento?: string;
+  nacionalidad?: string;
+  codigoPostal?: string;
 }
 
 export interface ErroresCompletarPerfil {
