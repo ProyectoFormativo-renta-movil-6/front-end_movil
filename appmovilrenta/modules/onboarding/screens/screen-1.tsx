@@ -6,7 +6,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { IdiomaKey, IDIOMAS } from "@/modules/i18n";
-import { useIdioma, useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useIdioma, useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { screen1Styles as styles } from "@/modules/onboarding/styles/screen1.styles";
 
 export default function OnboardingScreen1() {

@@ -37,7 +37,6 @@ export function usePerfil() {
     telefono: usuario.telefono,
     fechaNacimiento: usuario.fechaNacimiento,
     nacionalidad: usuario.nacionalidad,
-    codigoPostal: usuario.codigoPostal,
   });
 
   // Si el usuario global cambia (p. ej. porque lo llenó desde el
@@ -51,7 +50,6 @@ export function usePerfil() {
         telefono: usuario.telefono,
         fechaNacimiento: usuario.fechaNacimiento,
         nacionalidad: usuario.nacionalidad,
-        codigoPostal: usuario.codigoPostal,
       });
     }
   }, [usuario, editando]);
@@ -112,12 +110,6 @@ export function usePerfil() {
       nuevosErrores.nacionalidad = t("perfil.validacion.nacionalidadSeleccionar");
     }
 
-    // El código postal es opcional: solo se valida el formato si el
-    // usuario escribió algo.
-    if (form.codigoPostal.trim() && !/^[A-Za-z0-9\- ]{3,10}$/.test(form.codigoPostal.trim())) {
-      nuevosErrores.codigoPostal = t("perfil.validacion.codigoPostalFormato");
-    }
-
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
@@ -163,7 +155,6 @@ export function usePerfil() {
         telefono: form.telefono.trim(),
         fechaNacimiento: form.fechaNacimiento,
         nacionalidad: form.nacionalidad,
-        codigoPostal: form.codigoPostal.trim(),
       });
       setEditando(false);
       setCargando(false);
@@ -179,7 +170,6 @@ export function usePerfil() {
       telefono: usuario.telefono,
       fechaNacimiento: usuario.fechaNacimiento,
       nacionalidad: usuario.nacionalidad,
-      codigoPostal: usuario.codigoPostal,
     });
     setErrores({});
     setEditando(false);

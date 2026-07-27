@@ -218,6 +218,9 @@ export default function PagoRespuestaScreen() {
         referencia: reserva.referencia,
         formatPrecio: fmt,
         formatearFecha: (iso) => (iso ? fechaCorta(iso) : "—"),
+        tipoDocumentoTexto: datosPersonalesSnap.tipoDocumento
+          ? t(`reserva.datosPersonales.tiposDocumento.${datosPersonalesSnap.tipoDocumento === "Doc. Extranjero" ? "DocExtranjero" : datosPersonalesSnap.tipoDocumento}`, { defaultValue: datosPersonalesSnap.tipoDocumento })
+          : "",
         textos,
       });
       await compartirContratoPdf(uri);

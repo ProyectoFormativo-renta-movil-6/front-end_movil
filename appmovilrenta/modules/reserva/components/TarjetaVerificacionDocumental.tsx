@@ -9,11 +9,25 @@ import { COLOR_MARCA, TAMANO_MAXIMO_ARCHIVO_BYTES } from "../constants/reserva.c
 import { useReservaStore } from "@/store/reservaStore";
 import CampoSubidaDocumento from "./CampoSubidaDocumento";
 
-export default function TarjetaVerificacionDocumental() {
+interface Props {
+  /** Tipo de documento elegido en el formulario de datos personales (CC, TI, Doc. Extranjero, Pasaporte). */
+  tipoDocumento?: string;
+  /** true si el usuario ya tiene documentos verificados de una reserva anterior. */
+  docsVerificados?: boolean;
+}
+
+export default function TarjetaVerificacionDocumental({ tipoDocumento, docsVerificados = false }: Props) {
   const documentos = useReservaStore((s) => s.documentos);
   const actualizarDocumento = useReservaStore((s) => s.actualizarDocumento);
   const c = useTemaColores();
   const { t } = useTranslation();
+
+  const etiquetaDocumentoId = tipoDocumento
+    ? t(
+        `reserva.datosPersonales.tiposDocumento.${tipoDocumento === "Doc. Extranjero" ? "DocExtranjero" : tipoDocumento}`,
+        { defaultValue: t("reserva.documentos.cedulaEtiqueta") }
+      )
+    : t("reserva.documentos.cedulaEtiqueta");
 
   const [errorCedula, setErrorCedula] = useState("");
   const [errorLicencia, setErrorLicencia] = useState("");
@@ -56,17 +70,29 @@ export default function TarjetaVerificacionDocumental() {
   return (
     <View>
       {/* Título fuera de la tarjeta, mismo patrón que "Datos personales" */}
-      <Text style={[styles.seccionLabel, { color: c.textMuted }]}>{t("reserva.documentos.seccionLabel")}</Text>
+      <Text style={[styles.seccionLabel, { color: c.textMuted }]}>
+        {docsVerificados ? t("reserva.documentos.seccionLabelVerificados") : t("reserva.documentos.seccionLabel")}
+      </Text>
 
       <View style={[styles.card, { backgroundColor: c.bgCard }]}>
-        {/* Cédula arriba, licencia abajo — apiladas, no lado a lado */}
+        {docsVerificados && (
+          <View style={[styles.avisoVerificado, { backgroundColor: "#f0fdf4", borderColor: "#bbf7d0" }]}>
+            <Ionicons name="checkmark-circle" size={18} color="#16a34a" style={styles.notaIcono} />
+            <Text style={[styles.avisoVerificadoTexto, { color: "#166534" }]}>
+              {t("reserva.documentos.yaVerificadosAviso")}
+            </Text>
+          </View>
+        )}
+
+        {/* Cédula/documento arriba, licencia abajo — apiladas, no lado a lado */}
         <View style={styles.columnaSubtarjetas}>
           <CampoSubidaDocumento
-            etiqueta={t("reserva.documentos.cedulaEtiqueta")}
+            etiqueta={etiquetaDocumentoId}
             ayuda={t("reserva.documentos.cedulaAyuda")}
             archivo={documentos.cedulaFrente}
             cargando={cargandoCedula}
             error={errorCedula}
+            requerido={!docsVerificados}
             onSeleccionar={() => seleccionarArchivo("cedulaFrente", setCargandoCedula, setErrorCedula)}
             onQuitar={() => actualizarDocumento("cedulaFrente", null)}
           />
@@ -76,6 +102,7 @@ export default function TarjetaVerificacionDocumental() {
             archivo={documentos.licenciaConduccion}
             cargando={cargandoLicencia}
             error={errorLicencia}
+            requerido={!docsVerificados}
             onSeleccionar={() => seleccionarArchivo("licenciaConduccion", setCargandoLicencia, setErrorLicencia)}
             onQuitar={() => actualizarDocumento("licenciaConduccion", null)}
           />
@@ -114,6 +141,21 @@ const styles = StyleSheet.create({
   columnaSubtarjetas: {
     gap: 12,
     marginBottom: 14,
+  },
+  avisoVerificado: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 14,
+  },
+  avisoVerificadoTexto: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "600",
   },
   filaSubtarjetas: {
     flexDirection: "row",

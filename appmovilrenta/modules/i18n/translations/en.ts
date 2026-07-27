@@ -437,7 +437,6 @@ export default {
       numeroDocumentoObligatorio: 'Document number is required',
       numeroDocumentoFormato: 'Between 6 and 10 numeric digits',
       nacionalidadSeleccionar: 'Select your nationality',
-      codigoPostalFormato: 'Invalid postal code',
     },
     cambiarCorreo: {
       titulo: 'Change email',
@@ -484,8 +483,6 @@ export default {
     placeholderNombres: 'Your first names',
     placeholderApellidos: 'Your last names',
     placeholderTelefono: 'e.g. +1 555 123 4567',
-    codigoPostal: 'Postal code',
-    placeholderCodigoPostal: 'e.g. 110111',
     notaCamposNoEditables: 'Document and date of birth are not editable. To change them, contact support.',
     btnGuardar: '✓  Save changes',
     invitadoTitulo: 'You are in guest mode',
@@ -865,6 +862,8 @@ export default {
       archivoDemasiadoGrande: 'The file exceeds the maximum size of 5MB.',
       subiendoArchivo: 'Uploading file...',
       subirPdf: 'Upload PDF',
+      seccionLabelVerificados: 'Document Verification',
+      yaVerificadosAviso: "Documents already on file: you've already uploaded your ID document and driver's license before. You don't have to upload them again, but you can replace them with new PDF files if you'd like.",
     },
     contrato: {
       badgeLabel: 'Digital document',

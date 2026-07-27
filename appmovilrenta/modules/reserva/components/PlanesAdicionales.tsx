@@ -11,7 +11,6 @@ import {
   COLOR_MARCA,
   ICONOS_SERVICIOS,
   ICONO_SERVICIO_DEFECTO,
-  getInfoKilometrajeColombia,
 } from "../constants/reserva.constants";
 import { AlertModal } from "../../../components/ui/AlertModal";
 import { useMonedaStore } from "@/store/monedaStore";
@@ -83,7 +82,6 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
   const { t } = useTranslation();
   const BENEFICIOS_PROTECCION = useMemo(() => getBeneficiosProteccion(t), [t]);
   const BENEFICIOS_KILOMETRAJE = useMemo(() => getBeneficiosKilometraje(t), [t]);
-  const INFO_KILOMETRAJE_COLOMBIA = getInfoKilometrajeColombia(t);
   const planes = useReservaStore((s) => s.planes);
   const fechasLugar = useReservaStore((s) => s.fechasLugar);
   const actualizarPlanes = useReservaStore((s) => s.actualizarPlanes);
@@ -194,7 +192,6 @@ export default function PlanesAdicionales({ vehiculo, onContinuar }: Props) {
       {(kmLimitado || kmIlimitado) && (
         <>
           <Text style={[styles.seccionLabel, { color: c.textMuted, marginTop: 20 }]}>{t("reserva.planes.tipoKilometraje")}</Text>
-          <Text style={[styles.infoGeneral, { color: c.textMuted }]}>{INFO_KILOMETRAJE_COLOMBIA}</Text>
           <View style={styles.kmFila}>
             {kmLimitado && (
               <TouchableOpacity

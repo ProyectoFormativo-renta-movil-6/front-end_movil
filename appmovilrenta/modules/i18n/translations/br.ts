@@ -437,7 +437,6 @@ export default {
       numeroDocumentoObligatorio: 'O número de documento é obrigatório',
       numeroDocumentoFormato: 'Entre 6 e 10 dígitos numéricos',
       nacionalidadSeleccionar: 'Selecione sua nacionalidade',
-      codigoPostalFormato: 'CEP inválido',
     },
     cambiarCorreo: {
       titulo: 'Alterar e-mail',
@@ -484,8 +483,6 @@ export default {
     placeholderNombres: 'Seus nomes',
     placeholderApellidos: 'Seus sobrenomes',
     placeholderTelefono: 'Ex: +55 11 91234-5678',
-    codigoPostal: 'CEP',
-    placeholderCodigoPostal: 'Ex: 110111',
     notaCamposNoEditables: 'Documento e data de nascimento não são editáveis. Para alterá-los, entre em contato com o suporte.',
     btnGuardar: '✓  Salvar alterações',
     invitadoTitulo: 'Você está no modo convidado',
@@ -865,6 +862,8 @@ export default {
       archivoDemasiadoGrande: 'O arquivo excede o tamanho máximo de 5MB.',
       subiendoArchivo: 'Enviando arquivo...',
       subirPdf: 'Enviar PDF',
+      seccionLabelVerificados: 'Verificação Documental',
+      yaVerificadosAviso: 'Documentos já registrados: você já enviou seu documento de identidade e sua carteira de habilitação anteriormente. Não é obrigatório enviá-los novamente, mas se quiser pode substituí-los por novos arquivos PDF.',
     },
     contrato: {
       badgeLabel: 'Documento digital',

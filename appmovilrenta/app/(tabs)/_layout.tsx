@@ -5,7 +5,7 @@ import { Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/authStore";
 import { AlertModal } from "@/components/ui/AlertModal";
-import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { useTranslation } from "react-i18next";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
@@ -63,7 +63,7 @@ export default function TabLayout() {
         }}
       >
         <Tabs.Screen
-          name="catalogo"
+          name="catalog"
           options={{
             title: t("tabs.inicio"),
             tabBarIcon: ({ focused }) => <TabIcon name="car" focused={focused} c={c} />,
@@ -75,7 +75,7 @@ export default function TabLayout() {
             se intercepta la navegación y se muestra el AlertModal en vez
             de dejarlo entrar. */}
         <Tabs.Screen
-          name="mis-reservas"
+          name="my-bookings"
           options={{
             title: t("tabs.misReservas"),
             tabBarIcon: ({ focused }) => (
@@ -93,7 +93,7 @@ export default function TabLayout() {
         />
 
         <Tabs.Screen
-          name="perfil"
+          name="profile"
           options={{
             title: t("tabs.perfil"),
             tabBarIcon: ({ focused }) => (
@@ -102,7 +102,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="buscar"
+          name="search"
           options={{
             title: t("tabs.explorar"),
             tabBarIcon: ({ focused }) => (
@@ -113,15 +113,15 @@ export default function TabLayout() {
 
         {/* El flujo de reserva ya no vive en la barra de navegación — se
             llega a él desde el botón "Reservar ahora" de la tarjeta del
-            catálogo (VehiculoCard -> router.push("/(tabs)/reservar")).
+            catálogo (VehiculoCard -> router.push("/(tabs)/reserve")).
             La ruta sigue existiendo, solo se oculta del tab bar. */}
-        <Tabs.Screen name="reservar" options={{ href: null }} />
+        <Tabs.Screen name="reserve" options={{ href: null }} />
 
         {/* Pantallas sin tab */}
         <Tabs.Screen name="index" options={{ href: null }} />
-        <Tabs.Screen name="busqueda" options={{ href: null }} />
+        <Tabs.Screen name="search-query" options={{ href: null }} />
         <Tabs.Screen name="explore" options={{ href: null }} />
-        <Tabs.Screen name="notificaciones" options={{ href: null }} />
+        <Tabs.Screen name="notifications" options={{ href: null }} />
       </Tabs>
 
       <AlertModal

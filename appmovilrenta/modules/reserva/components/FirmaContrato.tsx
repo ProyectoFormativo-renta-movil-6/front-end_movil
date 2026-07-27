@@ -136,6 +136,13 @@ export default function FirmaContrato({
     ? t(`reserva.planes.nombreSeguro.${planes.proteccion}`, { defaultValue: planes.proteccion })
     : "—";
 
+  const tipoDocumentoTexto = datosPersonales.tipoDocumento
+    ? t(
+        `reserva.datosPersonales.tiposDocumento.${datosPersonales.tipoDocumento === "Doc. Extranjero" ? "DocExtranjero" : datosPersonales.tipoDocumento}`,
+        { defaultValue: datosPersonales.tipoDocumento }
+      )
+    : "";
+
   const handleFirmar = async () => {
     if (!canvasRef.current || canvasRef.current.estaVacio()) {
       setErrorFirma(t("reserva.contrato.signatureRequired"));
@@ -208,7 +215,7 @@ export default function FirmaContrato({
           <Text style={[styles.intro, { color: c.textPrimary }]}>
             {t("reserva.contrato.intro", {
               nombre: datosPersonales.nombreCompleto,
-              tipoDoc: datosPersonales.tipoDocumento,
+              tipoDoc: tipoDocumentoTexto,
               numDoc: datosPersonales.numeroDocumento,
             })}
           </Text>
@@ -219,7 +226,7 @@ export default function FirmaContrato({
               <Campo label={t("reserva.contrato.fullName")} valor={datosPersonales.nombreCompleto} c={c} />
               <Campo
                 label={t("reserva.contrato.document")}
-                valor={`${datosPersonales.tipoDocumento || ""} ${datosPersonales.numeroDocumento || ""}`.trim()}
+                valor={`${tipoDocumentoTexto} ${datosPersonales.numeroDocumento || ""}`.trim()}
                 c={c}
               />
               <Campo label={t("reserva.contrato.email")} valor={datosPersonales.correo} c={c} />
@@ -353,7 +360,7 @@ export default function FirmaContrato({
                   </Text>
                   <Text style={[styles.firmaDato, { color: c.textPrimary }]}>
                     <Text style={styles.clausulaNegrita}>{t("reserva.contrato.document")}:</Text>{" "}
-                    {`${datosPersonales.tipoDocumento || ""} ${datosPersonales.numeroDocumento || ""}`.trim()}
+                    {`${tipoDocumentoTexto} ${datosPersonales.numeroDocumento || ""}`.trim()}
                   </Text>
                 </View>
               </View>

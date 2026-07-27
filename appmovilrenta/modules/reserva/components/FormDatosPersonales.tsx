@@ -29,6 +29,7 @@ import {
   HORAS_LIMITE_PAGO_EFECTIVO,
   reservaPersistService,
 } from "../services/reservaPersistService";
+import { documentosService } from "../services/documentosService";
 import BarraTotalConfirmar from "./BarraTotalConfirmar";
 import CampoSelectorLista from "./CampoSelectorLista";
 import FirmaContrato from "./FirmaContrato";
@@ -81,6 +82,17 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
   const limpiarReserva = useReservaStore((s) => s.limpiarReserva);
 
   const [modalReservaVisible, setModalReservaVisible] = useState(false);
+  const [docsVerificados, setDocsVerificados] = useState(false);
+
+  useEffect(() => {
+    let activo = true;
+    documentosService.tieneDocumentos(usuarioGlobal.id).then((valor) => {
+      if (activo) setDocsVerificados(valor);
+    });
+    return () => {
+      activo = false;
+    };
+  }, [usuarioGlobal.id]);
   const [alertaFaltantesVisible, setAlertaFaltantesVisible] = useState(false);
   const [alertaEfectivoVisible, setAlertaEfectivoVisible] = useState(false);
   const [alertaErrorPagoVisible, setAlertaErrorPagoVisible] = useState(false);
@@ -134,8 +146,8 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
     !!datosPersonales.celular.trim() &&
     !!datosPersonales.tipoDocumento &&
     !!datosPersonales.numeroDocumento.trim() &&
-    !!documentos.cedulaFrente &&
-    !!documentos.licenciaConduccion &&
+    (docsVerificados || !!documentos.cedulaFrente) &&
+    (docsVerificados || !!documentos.licenciaConduccion) &&
     !!datosPersonales.terminosAceptados;
 
   const total = useMemo(() => {
@@ -183,6 +195,16 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
 
     const referencia = generarReferenciaUnica();
     const metodoPago = fechasLugar.metodoPago;
+
+    // Si subió un documento nuevo (o todavía no tenía ninguno guardado),
+    // lo dejamos registrado para no volver a pedírselo en la próxima
+    // reserva — igual que en la web.
+    if (documentos.cedulaFrente || documentos.licenciaConduccion || !docsVerificados) {
+      await documentosService.guardarDocumentos(usuarioGlobal.id, {
+        identificacion: documentos.cedulaFrente,
+        licencia: documentos.licenciaConduccion,
+      });
+    }
 
     await reservaPersistService.guardarReserva({
       referencia,
@@ -422,7 +444,10 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
         </View>
       </View>
 
-      <TarjetaVerificacionDocumental />
+      <TarjetaVerificacionDocumental
+        tipoDocumento={datosPersonales.tipoDocumento}
+        docsVerificados={docsVerificados}
+      />
       <TarjetaTerminosCondiciones />
 
       <BarraTotalConfirmar total={total} onConfirmar={handleConfirmarReserva} />

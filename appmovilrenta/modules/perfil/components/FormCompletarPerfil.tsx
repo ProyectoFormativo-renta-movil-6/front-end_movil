@@ -15,6 +15,7 @@ import { Nacionalidad, TipoDocumento } from "@/modules/perfil/types/perfil.types
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { InputField } from "@/components/ui/InputField";
 import { DateField } from "@/components/ui/DateField";
+import { getPrefijoPorNacionalidad } from "@/modules/reserva/constants/reserva.constants";
 
 const TIPOS_DOCUMENTO: TipoDocumento[] = ["CC", "TI", "Doc. Extranjero", "Pasaporte"];
 
@@ -36,6 +37,8 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
   const { form, errores, cargando, actualizarCampo, guardar } = useCompletarPerfil();
   const [showTipoDoc, setShowTipoDoc] = useState(false);
   const [showNacionalidad, setShowNacionalidad] = useState(false);
+  const prefijoTelefono = getPrefijoPorNacionalidad(form.nacionalidad || null);
+  const hayPrefijo = prefijoTelefono !== "";
 
   const handleGuardar = () => {
     guardar(
@@ -73,14 +76,64 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
         onChangeText={v => actualizarCampo("apellidos", v)}
         error={errores.apellidos}
       />
-      <InputField
-        label={t("perfil.telefono")}
-        placeholder="3001234567"
-        keyboardType="phone-pad"
-        value={form.telefono}
-        onChangeText={v => actualizarCampo("telefono", v)}
-        error={errores.telefono}
-      />
+      {/* Nacionalidad (primero, para poder derivar el prefijo del teléfono) */}
+      <Text style={[s.label, { color: c.textSecondary }]}>{t("perfil.nacionalidad")}</Text>
+      <TouchableOpacity
+        style={[s.selector, { borderColor: errores.nacionalidad ? "#EF4444" : c.border, backgroundColor: c.bgInput }]}
+        onPress={() => setShowNacionalidad(v => !v)}
+      >
+        <Text style={[s.selectorText, { color: form.nacionalidad ? c.textPrimary : "#9CA3AF" }]}>
+          {form.nacionalidad
+            ? `${NACIONALIDADES.find(n => n.valor === form.nacionalidad)?.bandera} ${form.nacionalidad}`
+            : t("perfil.seleccionar")}
+        </Text>
+        <Text style={{ color: c.textSecondary }}>▾</Text>
+      </TouchableOpacity>
+      {showNacionalidad && (
+        <View style={[s.dropdown, { borderColor: c.border, backgroundColor: c.bgCard }]}>
+          {NACIONALIDADES.map(({ valor, bandera }) => (
+            <TouchableOpacity
+              key={valor}
+              style={[s.dropdownItem, form.nacionalidad === valor && { backgroundColor: c.primaryBg }]}
+              onPress={() => { actualizarCampo("nacionalidad", valor); setShowNacionalidad(false); }}
+            >
+              <Text style={[s.dropdownText, { color: form.nacionalidad === valor ? "#1D4ED8" : c.textPrimary }]}>
+                {bandera} {valor}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+      {errores.nacionalidad && <Text style={s.error}>{errores.nacionalidad}</Text>}
+
+      {/* Teléfono: el prefijo del país se completa solo según la nacionalidad elegida arriba */}
+      <Text style={[s.label, { color: c.textSecondary }]}>{t("perfil.telefono")}</Text>
+      <View style={s.filaCelular}>
+        <View
+          style={[
+            s.prefijoBox,
+            { backgroundColor: c.primaryBg, borderColor: c.border },
+            !hayPrefijo && { backgroundColor: c.oscuro ? "#1F2937" : "#F3F4F6" },
+          ]}
+        >
+          <Text style={[s.prefijoText, { color: "#1D4ED8" }, !hayPrefijo && { color: c.textMuted }]}>
+            {hayPrefijo ? prefijoTelefono : ""}
+          </Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <InputField
+            label=""
+            placeholder={hayPrefijo ? "3001234567" : t("perfil.eligeNacionalidadPrimero")}
+            keyboardType="phone-pad"
+            value={form.telefono}
+            onChangeText={v => actualizarCampo("telefono", v.replace(/\D/g, ""))}
+            error={errores.telefono}
+            editable={hayPrefijo}
+            style={!hayPrefijo ? { backgroundColor: c.oscuro ? "#1F2937" : "#F3F4F6", color: c.textMuted } : undefined}
+          />
+        </View>
+      </View>
+
       <DateField
         label={t("perfil.fechaNac")}
         value={form.fechaNacimiento}
@@ -130,36 +183,6 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
         error={errores.numeroDocumento}
       />
 
-      {/* Nacionalidad */}
-      <Text style={[s.label, { color: c.textSecondary }]}>{t("perfil.nacionalidad")}</Text>
-      <TouchableOpacity
-        style={[s.selector, { borderColor: errores.nacionalidad ? "#EF4444" : c.border, backgroundColor: c.bgInput }]}
-        onPress={() => setShowNacionalidad(v => !v)}
-      >
-        <Text style={[s.selectorText, { color: form.nacionalidad ? c.textPrimary : "#9CA3AF" }]}>
-          {form.nacionalidad
-            ? `${NACIONALIDADES.find(n => n.valor === form.nacionalidad)?.bandera} ${form.nacionalidad}`
-            : t("perfil.seleccionar")}
-        </Text>
-        <Text style={{ color: c.textSecondary }}>▾</Text>
-      </TouchableOpacity>
-      {showNacionalidad && (
-        <View style={[s.dropdown, { borderColor: c.border, backgroundColor: c.bgCard }]}>
-          {NACIONALIDADES.map(({ valor, bandera }) => (
-            <TouchableOpacity
-              key={valor}
-              style={[s.dropdownItem, form.nacionalidad === valor && { backgroundColor: c.primaryBg }]}
-              onPress={() => { actualizarCampo("nacionalidad", valor); setShowNacionalidad(false); }}
-            >
-              <Text style={[s.dropdownText, { color: form.nacionalidad === valor ? "#1D4ED8" : c.textPrimary }]}>
-                {bandera} {valor}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-      {errores.nacionalidad && <Text style={s.error}>{errores.nacionalidad}</Text>}
-
       <View style={{ marginTop: 24 }}>
         <PrimaryButton titulo={t("perfil.guardarDatos")} onPress={handleGuardar} cargando={cargando} />
       </View>
@@ -207,6 +230,22 @@ const s = StyleSheet.create({
     marginBottom: 8,
     marginTop: 2,
   },
+  filaCelular: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "flex-start",
+    marginBottom: 4,
+  },
+  prefijoBox: {
+    height: 48,
+    minWidth: 52,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8,
+  },
+  prefijoText: { fontSize: 13, fontWeight: "700" },
   botonConfirmarFecha: {
     alignSelf: "flex-end",
     paddingHorizontal: 16,

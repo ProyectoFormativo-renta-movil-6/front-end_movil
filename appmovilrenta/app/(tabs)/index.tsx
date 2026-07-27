@@ -1,12 +1,12 @@
 // app/(tabs)/index.tsx
 
-import BuscadorCatalogo from "@/modules/catalogo/components/BuscadorCatalogo";
-import FiltrosCatalogo from "@/modules/catalogo/components/FiltrosCatalogo";
-import VehiculoCard from "@/modules/catalogo/components/VehiculoCard";
-import { COLORES } from "@/modules/catalogo/constants/catalogo.constants";
-import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
+import BuscadorCatalogo from "@/modules/catalog/components/CatalogSearch";
+import FiltrosCatalogo from "@/modules/catalog/components/CatalogFilters";
+import VehiculoCard from "@/modules/catalog/components/VehicleCard";
+import { COLORES } from "@/modules/catalog/constants/catalog.constants";
+import { useCatalogo } from "@/modules/catalog/hooks/useCatalog";
 import { useAuthStore } from "@/store/authStore";
-import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -107,7 +107,7 @@ export default function InicioScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.registerBtnWrap}
-              onPress={() => router.push("/(auth)/registro")}
+              onPress={() => router.push("/(auth)/register")}
               activeOpacity={0.85}
             >
               <LinearGradient
@@ -385,7 +385,7 @@ export default function InicioScreen() {
                 style={styles.alertBtnPrimarioWrap}
                 onPress={() => {
                   setAlertaVisible(false);
-                  router.push("/(auth)/registro");
+                  router.push("/(auth)/register");
                 }}
                 activeOpacity={0.85}
               >

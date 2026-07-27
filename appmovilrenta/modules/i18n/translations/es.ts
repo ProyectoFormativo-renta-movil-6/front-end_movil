@@ -450,7 +450,6 @@ export default {
       numeroDocumentoObligatorio: 'El número de documento es obligatorio',
       numeroDocumentoFormato: 'Entre 6 y 10 dígitos numéricos',
       nacionalidadSeleccionar: 'Selecciona tu nacionalidad',
-      codigoPostalFormato: 'Código postal inválido',
     },
     cambiarCorreo: {
       titulo: 'Cambiar correo',
@@ -512,8 +511,6 @@ export default {
     placeholderNombres: 'Tus nombres',
     placeholderApellidos: 'Tus apellidos',
     placeholderTelefono: 'Ej: +57 300 123 4567',
-    codigoPostal: 'Código postal',
-    placeholderCodigoPostal: 'Ej: 110111',
     notaCamposNoEditables: 'Documento y fecha de nacimiento no son editables. Para cambiarlos contacta al soporte.',
     btnGuardar: '✓  Guardar cambios',
     verIntro: 'Ver introducción',
@@ -880,6 +877,8 @@ export default {
       archivoDemasiadoGrande: 'El archivo supera el peso máximo de 5MB.',
       subiendoArchivo: 'Subiendo archivo...',
       subirPdf: 'Subir PDF',
+      seccionLabelVerificados: 'Verificación Documental',
+      yaVerificadosAviso: 'Documentos ya registrados: ya has subido tu documento de identidad y tu licencia de conducción anteriormente. No es obligatorio volver a cargarlos, pero si quieres puedes reemplazarlos subiendo nuevos archivos PDF.',
     },
     contrato: {
       badgeLabel: 'Documento digital',

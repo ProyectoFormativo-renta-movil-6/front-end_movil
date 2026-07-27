@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { screen3Styles as styles } from "@/modules/onboarding/styles/screen3.styles";
 

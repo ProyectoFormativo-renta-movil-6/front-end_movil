@@ -9,8 +9,8 @@ import { SocialAuthButtons } from "@/modules/auth/components/SocialAuthButtons";
 import { useLogin } from "@/modules/auth/hooks/useAuth";
 import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
 import { useAuthStore } from "@/store/authStore";
-import { useUsuarioStore } from "@/store/usuarioStore";
-import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useUsuarioStore } from "@/store/userStore";
+import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -99,12 +99,12 @@ export default function LoginScreen() {
         correo: usuarioEncontrado.correo,
       });
       setLoginExitoso(true);
-      setTimeout(() => router.replace("/(tabs)/catalogo"), 1500);
+      setTimeout(() => router.replace("/(tabs)/catalog"), 1500);
     });
   }
 
   function handleInvitado() {
-    router.replace("/(tabs)/catalogo");
+    router.replace("/(tabs)/catalog");
   }
 
   return (
@@ -240,7 +240,7 @@ export default function LoginScreen() {
                         }
                       />
                       <TouchableOpacity
-                        onPress={() => router.push("/(auth)/olvide-contrasena")}
+                        onPress={() => router.push("/(auth)/forgot-password")}
                         style={styles.enlaceOlvide}
                       >
                         <Text style={styles.textoEnlace}>
@@ -278,7 +278,7 @@ export default function LoginScreen() {
                         {t("auth.login.noTienesCuenta")}
                       </Text>
                       <TouchableOpacity
-                        onPress={() => router.push("/(auth)/registro")}
+                        onPress={() => router.push("/(auth)/register")}
                       >
                         <Text style={[loginLocalS.registroLink, { color: c.primary }]}>
                           {t("auth.login.registrateAqui")}

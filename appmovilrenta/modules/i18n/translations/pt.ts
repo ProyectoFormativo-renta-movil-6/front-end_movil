@@ -437,7 +437,6 @@ export default {
       numeroDocumentoObligatorio: 'O número de documento é obrigatório',
       numeroDocumentoFormato: 'Entre 6 e 10 dígitos numéricos',
       nacionalidadSeleccionar: 'Selecione a sua nacionalidade',
-      codigoPostalFormato: 'Código postal inválido',
     },
     cambiarCorreo: {
       titulo: 'Alterar e-mail',
@@ -484,8 +483,6 @@ export default {
     placeholderNombres: 'Os seus nomes',
     placeholderApellidos: 'Os seus apelidos',
     placeholderTelefono: 'Ex: +351 912 345 678',
-    codigoPostal: 'Código postal',
-    placeholderCodigoPostal: 'Ex: 110111',
     notaCamposNoEditables: 'Documento e data de nascimento não são editáveis. Para os alterar, contacte o suporte.',
     btnGuardar: '✓  Guardar alterações',
     invitadoTitulo: 'Está no modo convidado',
@@ -865,6 +862,8 @@ export default {
       archivoDemasiadoGrande: 'O ficheiro excede o tamanho máximo de 5MB.',
       subiendoArchivo: 'A carregar ficheiro...',
       subirPdf: 'Carregar PDF',
+      seccionLabelVerificados: 'Verificação Documental',
+      yaVerificadosAviso: 'Documentos já registados: já carregou o seu documento de identidade e a sua carta de condução anteriormente. Não é obrigatório voltar a carregá-los, mas se quiser pode substituí-los por novos ficheiros PDF.',
     },
     contrato: {
       badgeLabel: 'Documento digital',

@@ -1,5 +1,5 @@
 import { useOnboarding } from "@/modules/onboarding/hooks/use-onboarding";
-import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { Animated, Image, Text, TouchableOpacity, View } from "react-native";
@@ -32,7 +32,7 @@ export default function OnboardingScreen5() {
 
   const handleRegistro = () => {
     completeOnboarding();
-    router.replace("/(auth)/registro");
+    router.replace("/(auth)/register");
   };
 
   const handleLogin = () => {

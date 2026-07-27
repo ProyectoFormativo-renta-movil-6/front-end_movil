@@ -65,6 +65,8 @@ interface GenerarPdfParams {
   referencia: string;
   formatPrecio: (n: number) => string;
   formatearFecha: (iso: string | null) => string;
+  /** Etiqueta ya traducida del tipo de documento (Cédula/Tarjeta de identidad/etc.), no el código crudo. */
+  tipoDocumentoTexto: string;
   /** Textos ya traducidos (t("reserva.contrato.xxx")) para no depender de i18next dentro del HTML. */
   textos: Record<string, string>;
 }
@@ -80,6 +82,7 @@ export async function generarContratoPdf(params: GenerarPdfParams): Promise<stri
     referencia,
     formatPrecio,
     formatearFecha,
+    tipoDocumentoTexto,
     textos: tx,
   } = params;
 
@@ -139,7 +142,7 @@ export async function generarContratoPdf(params: GenerarPdfParams): Promise<stri
         ${esc(
           tx.intro
             .replace("{{nombre}}", datosPersonales.nombreCompleto)
-            .replace("{{tipoDoc}}", datosPersonales.tipoDocumento)
+            .replace("{{tipoDoc}}", tipoDocumentoTexto)
             .replace("{{numDoc}}", datosPersonales.numeroDocumento)
         )}
       </div>
@@ -147,7 +150,7 @@ export async function generarContratoPdf(params: GenerarPdfParams): Promise<stri
       <h2>${esc(tx.userDataTitle)}</h2>
       <div class="grid">
         <div class="campo"><div class="campo-label">${esc(tx.fullName)}</div><div class="campo-valor">${esc(datosPersonales.nombreCompleto)}</div></div>
-        <div class="campo"><div class="campo-label">${esc(tx.document)}</div><div class="campo-valor">${esc(datosPersonales.tipoDocumento)} ${esc(datosPersonales.numeroDocumento)}</div></div>
+        <div class="campo"><div class="campo-label">${esc(tx.document)}</div><div class="campo-valor">${esc(tipoDocumentoTexto)} ${esc(datosPersonales.numeroDocumento)}</div></div>
         <div class="campo"><div class="campo-label">${esc(tx.email)}</div><div class="campo-valor">${esc(datosPersonales.correo)}</div></div>
         <div class="campo"><div class="campo-label">${esc(tx.phone)}</div><div class="campo-valor">${esc(datosPersonales.celular)}</div></div>
       </div>
@@ -173,7 +176,7 @@ export async function generarContratoPdf(params: GenerarPdfParams): Promise<stri
             <svg viewBox="0 0 400 160" width="100%" height="140">${svgFirma}</svg>
           </div>
           <div class="meta" style="margin-top:10px;"><b>${esc(tx.fullName)}:</b> ${esc(datosPersonales.nombreCompleto)}</div>
-          <div class="meta"><b>${esc(tx.document)}:</b> ${esc(datosPersonales.tipoDocumento)} ${esc(datosPersonales.numeroDocumento)}</div>
+          <div class="meta"><b>${esc(tx.document)}:</b> ${esc(tipoDocumentoTexto)} ${esc(datosPersonales.numeroDocumento)}</div>
         </div>
         <div class="firma-card">
           <div class="firma-titulo">${esc(tx.platformSignature)}</div>

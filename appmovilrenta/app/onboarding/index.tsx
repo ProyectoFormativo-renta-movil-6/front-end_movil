@@ -5,7 +5,7 @@ import PagerView from "@/modules/onboarding/components/cross-pager";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useOnboarding } from "@/modules/onboarding/hooks/use-onboarding";
-import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import OnboardingNavigation from "@/modules/onboarding/components/navigation";
 import OnboardingPagination from "@/modules/onboarding/components/pagination";
 import OnboardingScreen1 from "@/modules/onboarding/screens/screen-1";
@@ -39,7 +39,7 @@ export default function OnboardingFlow() {
       pagerRef.current?.setPage(currentPage + 1);
     } else {
       completeOnboarding();
-      router.replace("/(auth)/registro");
+      router.replace("/(auth)/register");
     }
   };
 

@@ -33,18 +33,17 @@ import { useAuthStore } from "@/store/authStore";
 import { useUsuarioStore } from "@/store/usuarioStore";
 import { eliminarUsuarioDemo } from "@/mocks/usuariosDemo";
 import { DateField } from "@/components/ui/DateField";
+import { Ionicons } from "@expo/vector-icons";
+import { getPrefijoPorNacionalidad, NACIONALIDADES } from "@/modules/reserva/constants/reserva.constants";
+import CampoSelectorLista from "@/modules/reserva/components/CampoSelectorLista";
 import { useMoneda } from "@/hooks/useMoneda";
 import { AlertModal } from "@/components/ui/AlertModal";
 import { Moneda } from "@/utils/monedaUtils";
-import { Nacionalidad } from "@/modules/perfil/types/perfil.types";
 
-const NACIONALIDADES: { valor: Nacionalidad; bandera: string }[] = [
-  { valor: "Colombia", bandera: "🇨🇴" },
-  { valor: "USA", bandera: "🇺🇸" },
-  { valor: "Francia", bandera: "🇫🇷" },
-  { valor: "Portugal", bandera: "🇵🇹" },
-  { valor: "Brasil", bandera: "🇧🇷" },
-];
+const OPCIONES_NACIONALIDAD = NACIONALIDADES.map((n) => ({
+  id: n.nombre,
+  label: n.nombre,
+}));
 
 export default function PerfilScreen() {
   const { t } = useTranslation();
@@ -52,7 +51,6 @@ export default function PerfilScreen() {
   const { monedaActual, cambiarMoneda } = useMoneda();
   const c = useTemaColores();
   const insets = useSafeAreaInsets();
-  const [showNacionalidad, setShowNacionalidad] = useState(false);
   const [editando, setEditando] = useState(false);
   const [completando, setCompletando] = useState(false);
   const [mostrarAvisoUSD, setMostrarAvisoUSD] = useState(false);
@@ -86,6 +84,8 @@ export default function PerfilScreen() {
     cerrarModalCorreo,
     marcarPerfilCompleto,
   } = usePerfil();
+
+  const prefijoTelefono = getPrefijoPorNacionalidad(form.nacionalidad || null);
 
   const handleGuardar = () => {
     guardarCambios(
@@ -311,9 +311,6 @@ export default function PerfilScreen() {
             <Text style={styles.editAvatarText}>
               {usuario.nombres.charAt(0)}{usuario.apellidos.charAt(0)}
             </Text>
-            <View style={styles.editAvatarPlus}>
-              <Text style={styles.editAvatarPlusText}>+</Text>
-            </View>
           </View>
         </View>
 
@@ -351,16 +348,45 @@ export default function PerfilScreen() {
             </View>
 
             <View style={styles.editCampoWrap}>
-              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.telefono")}</Text>
-              <TextInput
-                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.telefono ? styles.editInputError : null]}
-                value={form.telefono}
-                onChangeText={(val) => actualizarCampo("telefono", val)}
-                placeholder={t("perfil.placeholderTelefono")}
-                placeholderTextColor={c.textMuted}
-                keyboardType="phone-pad"
-                maxLength={20}
+              <CampoSelectorLista
+                etiqueta={t("perfil.nacionalidad")}
+                valorSeleccionado={form.nacionalidad || null}
+                opciones={OPCIONES_NACIONALIDAD}
+                onSeleccionar={(id) => actualizarCampo("nacionalidad", id)}
+                placeholder={t("perfil.seleccionar")}
               />
+              {errores.nacionalidad && <Text style={styles.editErrorText}>{errores.nacionalidad}</Text>}
+            </View>
+
+            <View style={styles.editCampoWrap}>
+              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.telefono")}</Text>
+              <View style={styles.editFilaCelular}>
+                <View
+                  style={[
+                    styles.editPrefijoBox,
+                    { backgroundColor: c.primaryBg, borderColor: c.border },
+                    !prefijoTelefono && { backgroundColor: c.oscuro ? "#1F2937" : "#F3F4F6" },
+                  ]}
+                >
+                  <Text style={[styles.editPrefijoText, { color: prefijoTelefono ? c.primary : c.textMuted }]}>
+                    {prefijoTelefono}
+                  </Text>
+                </View>
+                <TextInput
+                  style={[
+                    styles.editInput,
+                    styles.editInputCelular,
+                    { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary },
+                    errores.telefono ? styles.editInputError : null,
+                  ]}
+                  value={form.telefono}
+                  onChangeText={(val) => actualizarCampo("telefono", val)}
+                  placeholder={t("perfil.placeholderTelefono")}
+                  placeholderTextColor={c.textMuted}
+                  keyboardType="phone-pad"
+                  maxLength={20}
+                />
+              </View>
               {errores.telefono && <Text style={styles.editErrorText}>{errores.telefono}</Text>}
             </View>
 
@@ -374,65 +400,6 @@ export default function PerfilScreen() {
                 maximumDate={new Date()}
                 colores={c}
               />
-            </View>
-
-            <View style={styles.editCampoWrap}>
-              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.nacionalidad")}</Text>
-              <TouchableOpacity
-                style={[
-                  styles.editSelector,
-                  { borderColor: errores.nacionalidad ? "#DC2626" : c.border, backgroundColor: c.bgInput },
-                ]}
-                onPress={() => setShowNacionalidad((v) => !v)}
-              >
-                <Text style={[styles.editSelectorText, { color: form.nacionalidad ? c.textPrimary : c.textMuted }]}>
-                  {form.nacionalidad
-                    ? `${NACIONALIDADES.find((n) => n.valor === form.nacionalidad)?.bandera ?? ""} ${form.nacionalidad}`
-                    : t("perfil.seleccionar")}
-                </Text>
-                <Text style={{ color: c.textSecondary }}>▾</Text>
-              </TouchableOpacity>
-              {showNacionalidad && (
-                <View style={[styles.editDropdown, { borderColor: c.border, backgroundColor: c.bgCard }]}>
-                  {NACIONALIDADES.map(({ valor, bandera }) => (
-                    <TouchableOpacity
-                      key={valor}
-                      style={[
-                        styles.editDropdownItem,
-                        form.nacionalidad === valor && { backgroundColor: c.primaryBg },
-                      ]}
-                      onPress={() => {
-                        actualizarCampo("nacionalidad", valor);
-                        setShowNacionalidad(false);
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.editDropdownText,
-                          { color: form.nacionalidad === valor ? c.primary : c.textPrimary },
-                        ]}
-                      >
-                        {bandera} {valor}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-              {errores.nacionalidad && <Text style={styles.editErrorText}>{errores.nacionalidad}</Text>}
-            </View>
-
-            <View style={styles.editCampoWrap}>
-              <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.codigoPostal")}</Text>
-              <TextInput
-                style={[styles.editInput, { backgroundColor: c.bgInput, borderColor: c.border, color: c.textPrimary }, errores.codigoPostal ? styles.editInputError : null]}
-                value={form.codigoPostal}
-                onChangeText={(val) => actualizarCampo("codigoPostal", val)}
-                placeholder={t("perfil.placeholderCodigoPostal")}
-                placeholderTextColor={c.textMuted}
-                autoCapitalize="characters"
-                maxLength={10}
-              />
-              {errores.codigoPostal && <Text style={styles.editErrorText}>{errores.codigoPostal}</Text>}
             </View>
           </View>
 
@@ -511,9 +478,13 @@ export default function PerfilScreen() {
         {/* Card usuario */}
         <View style={[styles.userCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {usuario.nombres.charAt(0)}{usuario.apellidos.charAt(0)}
-            </Text>
+            {usuario.nombres || usuario.apellidos ? (
+              <Text style={styles.avatarText}>
+                {usuario.nombres.charAt(0)}{usuario.apellidos.charAt(0)}
+              </Text>
+            ) : (
+              <Ionicons name="person" size={22} color="#fff" />
+            )}
           </View>
           <View style={styles.userInfo}>
             <Text style={[styles.userName, { color: c.textPrimary }]}>
@@ -548,7 +519,7 @@ export default function PerfilScreen() {
         <View style={[styles.menuSection, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           <TouchableOpacity
             style={[styles.menuItem, styles.menuItemBorder, { borderBottomColor: c.borderLight }]}
-            onPress={() => console.log("Historial")}
+            onPress={() => router.push("/(tabs)/mis-reservas")}
           >
             <View style={[styles.menuIconWrap, { backgroundColor: c.primaryBg }]}>
               <Text style={styles.menuIcon}>📋</Text>

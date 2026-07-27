@@ -437,7 +437,6 @@ export default {
       numeroDocumentoObligatorio: 'Le numéro de document est obligatoire',
       numeroDocumentoFormato: 'Entre 6 et 10 chiffres',
       nacionalidadSeleccionar: 'Sélectionnez votre nationalité',
-      codigoPostalFormato: 'Code postal invalide',
     },
     cambiarCorreo: {
       titulo: "Changer l'e-mail",
@@ -484,8 +483,6 @@ export default {
     placeholderNombres: 'Vos prénoms',
     placeholderApellidos: 'Vos noms de famille',
     placeholderTelefono: 'Ex : +33 6 12 34 56 78',
-    codigoPostal: 'Code postal',
-    placeholderCodigoPostal: 'Ex : 110111',
     notaCamposNoEditables: 'Document et date de naissance ne sont pas modifiables. Pour les changer, contactez le support.',
     btnGuardar: '✓  Enregistrer',
     invitadoTitulo: 'Vous êtes en mode invité',
@@ -865,6 +862,8 @@ export default {
       archivoDemasiadoGrande: 'Le fichier dépasse la taille maximale de 5 Mo.',
       subiendoArchivo: 'Téléchargement du fichier...',
       subirPdf: 'Télécharger le PDF',
+      seccionLabelVerificados: 'Vérification documentaire',
+      yaVerificadosAviso: "Documents déjà enregistrés : vous avez déjà téléchargé votre pièce d'identité et votre permis de conduire auparavant. Ce n'est pas obligatoire de les téléverser à nouveau, mais vous pouvez les remplacer par de nouveaux fichiers PDF si vous le souhaitez.",
     },
     contrato: {
       badgeLabel: 'Document numérique',
