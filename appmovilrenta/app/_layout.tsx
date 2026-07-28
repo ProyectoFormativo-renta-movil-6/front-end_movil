@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { I18nextProvider } from "react-i18next";
 import i18n from "@/modules/i18n";
-import { useIdioma } from "@/modules/i18n/hooks/useIdioma";
+import { useIdioma } from "@/modules/i18n/hooks/useLanguage";
 
 export default function RootLayout() {
   const { temaActual } = useIdioma();
@@ -17,6 +17,7 @@ export default function RootLayout() {
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="payment-response" options={{ headerShown: false }} />
         </Stack>
 
         <StatusBar style={temaActual === "oscuro" ? "light" : "dark"} /> 

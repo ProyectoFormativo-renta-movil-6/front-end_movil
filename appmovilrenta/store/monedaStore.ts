@@ -65,4 +65,13 @@ export const useMonedaStore = create<MonedaStore>()(
 // usuario entre a Perfil para que la tasa esté lista. TASA_RESPALDO (4000)
 // solo se usa si las 3 APIs fallan; nunca es el valor por defecto mostrado
 // al convertir, es un último recurso.
-useMonedaStore.getState().inicializar();
+//
+// Guard: en `expo export -p web` (static rendering) este módulo se importa
+// dentro de un proceso Node para pre-renderizar las rutas, donde no existe
+// `window` ni `localStorage`. Si se llama a inicializar() ahí, AsyncStorage
+// intenta usar localStorage y explota con "window is not defined",
+// tumbando el build. En un navegador real `window` sí existe, así que la
+// inicialización sigue ocurriendo con normalidad ni bien carga la app.
+if (typeof window !== "undefined") {
+  useMonedaStore.getState().inicializar();
+}

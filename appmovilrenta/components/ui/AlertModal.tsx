@@ -8,7 +8,7 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 
 interface BotonAlerta {
   texto: string;

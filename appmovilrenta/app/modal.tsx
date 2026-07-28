@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useTemaColores } from '@/modules/i18n/hooks/useIdioma';
+import { useTemaColores } from '@/modules/i18n/hooks/useLanguage';
 
 export default function ModalScreen() {
   const c = useTemaColores();
