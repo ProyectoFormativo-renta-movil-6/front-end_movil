@@ -381,7 +381,7 @@ export default function PerfilScreen() {
                   ]}
                   value={form.telefono}
                   onChangeText={(val) => actualizarCampo("telefono", val)}
-                  placeholder={t("perfil.placeholderTelefono")}
+                  placeholder={prefijoTelefono ? "1234567890" : t("perfil.placeholderTelefono")}
                   placeholderTextColor={c.textMuted}
                   keyboardType="phone-pad"
                   maxLength={20}

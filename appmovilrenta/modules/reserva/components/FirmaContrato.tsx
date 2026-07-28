@@ -33,7 +33,8 @@ import {
 } from "../types/reserva.types";
 import { fmt } from "./ResumenReservaModal.piezas";
 import { contratoService, ContratoGuardado } from "../services/contratoService";
-import FirmaCanvas, { FirmaCanvasHandle } from "./FirmaCanvas";
+import * as DocumentPicker from "expo-document-picker";
+import CampoSubidaDocumento from "./CampoSubidaDocumento";
 
 const LOCALES_FECHA: Record<string, string> = {
   es: "es-CO",
@@ -72,12 +73,42 @@ export default function FirmaContrato({
 }: Props) {
   const { t, i18n } = useTranslation();
   const c = useTemaColores();
-  const canvasRef = useRef<FirmaCanvasHandle>(null);
-
-  const [firmaVacia, setFirmaVacia] = useState(true);
+  const [pdfFirma, setPdfFirma] = useState<{ uri: string; nombre: string; tamanoBytes: number; tipoMime: string } | null>(null);
+  const [cargandoFirma, setCargandoFirma] = useState(false);
   const [errorFirma, setErrorFirma] = useState("");
   const [firmando, setFirmando] = useState(false);
   const [codigoContrato, setCodigoContrato] = useState("");
+
+  const seleccionarPdfFirma = async () => {
+    setErrorFirma("");
+    try {
+      const resultado = await DocumentPicker.getDocumentAsync({
+        type: "application/pdf",
+        copyToCacheDirectory: true,
+      });
+      if (resultado.canceled) return;
+
+      const archivo = resultado.assets[0];
+      if (archivo.size && archivo.size > 5 * 1024 * 1024) {
+        setErrorFirma(t("reserva.documentos.archivoDemasiadoGrande") || "El archivo supera los 5MB");
+        return;
+      }
+
+      setCargandoFirma(true);
+      setTimeout(() => {
+        setPdfFirma({
+          uri: archivo.uri,
+          nombre: archivo.name,
+          tamanoBytes: archivo.size ?? 0,
+          tipoMime: archivo.mimeType ?? "application/pdf",
+        });
+        setCargandoFirma(false);
+      }, 800);
+    } catch (err) {
+      console.error("Error al seleccionar firma", err);
+      setErrorFirma("Error al seleccionar el archivo");
+    }
+  };
 
   React.useEffect(() => {
     contratoService.obtenerOCrearCodigo(referencia).then(setCodigoContrato);
@@ -144,18 +175,17 @@ export default function FirmaContrato({
     : "";
 
   const handleFirmar = async () => {
-    if (!canvasRef.current || canvasRef.current.estaVacio()) {
-      setErrorFirma(t("reserva.contrato.signatureRequired"));
+    if (!pdfFirma) {
+      setErrorFirma(t("reserva.contrato.signatureRequired") || "Debe anexar un archivo PDF con su firma.");
       return;
     }
     setErrorFirma("");
     setFirmando(true);
 
     try {
-      const firmaTrazos = canvasRef.current.obtenerFirmaData();
       const contrato = await contratoService.guardarFirma(referencia, {
         codigo: codigoContrato,
-        firmaTrazos,
+        firmaTrazos: pdfFirma.uri,
         ciudad: ciudadSucursal,
         fecha: new Date().toISOString(),
       });
@@ -329,30 +359,15 @@ export default function FirmaContrato({
 
             <View style={styles.firmasFila}>
               <View style={[styles.firmaTarjeta, { backgroundColor: c.bgInput, borderColor: c.border }]}>
-                <Text style={[styles.firmaTitulo, { color: c.textPrimary }]}>
-                  {t("reserva.contrato.userSignature")}
-                </Text>
-                <FirmaCanvas
-                  ref={canvasRef}
-                  onCambiar={(vacia) => {
-                    setFirmaVacia(vacia);
-                    if (!vacia) setErrorFirma("");
-                  }}
+                <CampoSubidaDocumento
+                  etiqueta={t("reserva.contrato.userSignature")}
+                  ayuda={t("reserva.contrato.uploadSignaturePdfHelp") || "Anexe un documento PDF firmado"}
+                  archivo={pdfFirma}
+                  cargando={cargandoFirma}
+                  error={errorFirma}
+                  onSeleccionar={seleccionarPdfFirma}
+                  onQuitar={() => setPdfFirma(null)}
                 />
-                {!firmaVacia && (
-                  <TouchableOpacity
-                    style={styles.limpiarBtn}
-                    onPress={() => {
-                      canvasRef.current?.limpiar();
-                      setFirmaVacia(true);
-                    }}
-                  >
-                    <Text style={[styles.limpiarBtnTexto, { color: c.textMuted }]}>
-                      {t("reserva.contrato.clearSignature")}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {!!errorFirma && <Text style={styles.errorFirma}>{errorFirma}</Text>}
                 <View style={{ marginTop: 12 }}>
                   <Text style={[styles.firmaDato, { color: c.textPrimary }]}>
                     <Text style={styles.clausulaNegrita}>{t("reserva.contrato.fullName")}:</Text>{" "}

@@ -405,7 +405,7 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
                   actualizarUsuarioGlobal({ telefono: digits });
                 }}
                 keyboardType="phone-pad"
-                placeholder={hayPrefijo ? undefined : ""}
+                placeholder={hayPrefijo ? "1234567890" : ""}
                 placeholderTextColor={c.textMuted}
                 editable={hayPrefijo}
               />
@@ -445,7 +445,7 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
       </View>
 
       <TarjetaVerificacionDocumental
-        tipoDocumento={datosPersonales.tipoDocumento}
+        tipoDocumento={datosPersonales.tipoDocumento ?? undefined}
         docsVerificados={docsVerificados}
       />
       <TarjetaTerminosCondiciones />

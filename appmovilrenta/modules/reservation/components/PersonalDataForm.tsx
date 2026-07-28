@@ -445,7 +445,7 @@ export default function FormDatosPersonales({ vehiculo }: Props) {
       </View>
 
       <TarjetaVerificacionDocumental
-        tipoDocumento={datosPersonales.tipoDocumento}
+        tipoDocumento={datosPersonales.tipoDocumento ?? undefined}
         docsVerificados={docsVerificados}
       />
       <TarjetaTerminosCondiciones />

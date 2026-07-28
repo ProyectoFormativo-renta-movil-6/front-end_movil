@@ -5,6 +5,7 @@ import VehiculoCard from "@/modules/catalogo/components/VehiculoCard";
 import { useCatalogo } from "@/modules/catalogo/hooks/useCatalogo";
 import { useFavoritos } from "@/modules/catalogo/hooks/useFavoritos";
 import { useAuthStore } from "@/store/authStore";
+import { useUsuarioStore } from "@/store/usuarioStore";
 import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -110,7 +111,8 @@ export default function Catalogo() {
   const insets = useSafeAreaInsets();
   const c = useTemaColores();
   const { t } = useTranslation();
-  const usuario = useAuthStore((state) => state.usuario);
+  const authUsuario = useAuthStore((state) => state.usuario);
+  const usuarioDetalle = useUsuarioStore((state) => state.usuario);
   const [textBusqueda, setTextBusqueda] = useState("");
   const [modalFormVisible, setModalFormVisible] = useState(false);
   const [sweetAlertVisible, setSweetAlertVisible] = useState(false);
@@ -151,7 +153,7 @@ export default function Catalogo() {
     [t]
   );
 
-  const usuarioId = usuario ? String(usuario.id ?? usuario.correo ?? "user") : null;
+  const usuarioId = authUsuario ? String(authUsuario.id ?? authUsuario.correo ?? "user") : null;
   const { favoritos, toggleFavorito, esFavorito } = useFavoritos(usuarioId);
   const [soloFavoritos, setSoloFavoritos] = useState(false);
 
@@ -271,10 +273,10 @@ export default function Catalogo() {
           },
         ];
 
-  const nombreUsuario = usuario
-    ? (usuario.nombres?.trim() || nombreDesdeCorreo(usuario.correo))
+  const nombreUsuario = authUsuario
+    ? (usuarioDetalle.nombres?.trim() || nombreDesdeCorreo(authUsuario.correo))
     : "";
-  const inicialUsuario = nombreUsuario.charAt(0).toUpperCase();
+  const inicialUsuario = nombreUsuario ? nombreUsuario.charAt(0).toUpperCase() : "";
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
@@ -288,7 +290,7 @@ export default function Catalogo() {
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Drivique</Text>
         </View>
-        {usuario ? (
+        {authUsuario ? (
           <TouchableOpacity
             style={styles.headerUsuario}
             onPress={irAPerfil}
@@ -319,18 +321,18 @@ export default function Catalogo() {
         )}
       </View>
 
-      <BuscadorCatalogo
-        form={busquedaForm}
-        setForm={setForm}
-        textBusqueda={textBusqueda}
-        setTextBusqueda={setTextBusqueda}
-        onBuscar={handleBuscar}
-        onLimpiarBusqueda={limpiarBusqueda}
-        errorBusqueda={errorBusqueda}
-        disabled={!usuario}
-        onPressRestringida={() => abrirSweetAlert("busqueda")}
-        modalFormVisible={modalFormVisible}
-        setModalFormVisible={setModalFormVisible}
+        <BuscadorCatalogo
+          form={busquedaForm}
+          setForm={setForm}
+          textBusqueda={textBusqueda}
+          setTextBusqueda={setTextBusqueda}
+          onBuscar={handleBuscar}
+          onLimpiarBusqueda={limpiarBusqueda}
+          errorBusqueda={errorBusqueda}
+          disabled={!authUsuario}
+          onPressRestringida={() => abrirSweetAlert("busqueda")}
+          modalFormVisible={modalFormVisible}
+          setModalFormVisible={setModalFormVisible}
       />
 
       <View style={[styles.controlsBar, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>

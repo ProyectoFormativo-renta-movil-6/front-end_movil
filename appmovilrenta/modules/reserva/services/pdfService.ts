@@ -27,6 +27,11 @@ interface Punto {
 
 function trazosASvgPaths(firmaTrazosJson: string): string {
   try {
+    if (!firmaTrazosJson) return "";
+    if (!firmaTrazosJson.trim().startsWith("[")) {
+      const filename = firmaTrazosJson.split("/").pop() || firmaTrazosJson;
+      return `<text x="20" y="80" font-family="sans-serif" font-size="12" fill="#374151">PDF de firma: ${esc(filename)}</text>`;
+    }
     const trazos: Punto[][] = JSON.parse(firmaTrazosJson);
     return trazos
       .filter((t) => t.length > 0)
@@ -38,7 +43,8 @@ function trazosASvgPaths(firmaTrazosJson: string): string {
       })
       .join("");
   } catch {
-    return "";
+    const filename = firmaTrazosJson ? (firmaTrazosJson.split("/").pop() || firmaTrazosJson) : "";
+    return `<text x="20" y="80" font-family="sans-serif" font-size="12" fill="#374151">PDF de firma: ${esc(filename)}</text>`;
   }
 }
 

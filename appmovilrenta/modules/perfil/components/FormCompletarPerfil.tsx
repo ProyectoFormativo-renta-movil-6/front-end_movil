@@ -123,7 +123,7 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
         <View style={{ flex: 1 }}>
           <InputField
             label=""
-            placeholder={hayPrefijo ? "3001234567" : t("perfil.eligeNacionalidadPrimero")}
+            placeholder={hayPrefijo ? "1234567890" : t("perfil.eligeNacionalidadPrimero")}
             keyboardType="phone-pad"
             value={form.telefono}
             onChangeText={v => actualizarCampo("telefono", v.replace(/\D/g, ""))}
