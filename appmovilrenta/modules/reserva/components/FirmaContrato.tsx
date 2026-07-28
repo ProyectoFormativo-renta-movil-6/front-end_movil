@@ -475,7 +475,7 @@ function Campo({
   ancho?: string;
 }) {
   return (
-    <View style={[styles.campo, { backgroundColor: c.bgCard, borderColor: c.border }, ancho ? { width: ancho } : null]}>
+    <View style={[styles.campo, { backgroundColor: c.bgCard, borderColor: c.border }, ancho ? { width: ancho as any } : null]}>
       <Text style={[styles.campoLabel, { color: c.textMuted }]}>{label}</Text>
       <Text style={[styles.campoValor, { color: c.textPrimary }]} numberOfLines={3}>
         {valor || "—"}
