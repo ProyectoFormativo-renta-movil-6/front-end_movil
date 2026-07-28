@@ -30,7 +30,7 @@ import { ModalCambiarCorreo } from "@/modules/profile/components/ChangeEmailModa
 import { FormCompletarPerfil } from "@/modules/profile/components/CompleteProfileForm";
 import { perfilStyles as styles } from "@/modules/profile/styles/profile.styles";
 import { useAuthStore } from "@/store/authStore";
-import { useUsuarioStore } from "@/store/usuarioStore";
+import { useUsuarioStore } from "@/store/userStore";
 import { eliminarUsuarioDemo } from "@/mocks/demoUsers";
 import { DateField } from "@/components/ui/DateField";
 import { Ionicons } from "@expo/vector-icons";

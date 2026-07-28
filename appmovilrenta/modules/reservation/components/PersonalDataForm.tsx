@@ -1,7 +1,7 @@
 // modules/reserva/components/FormDatosPersonales.tsx
 import { Vehiculo } from "@/modules/catalog/types/catalog.types";
 import { useReservaStore } from "@/store/reservationStore";
-import { useUsuarioStore } from "@/store/usuarioStore";
+import { useUsuarioStore } from "@/store/userStore";
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import * as WebBrowser from "expo-web-browser";

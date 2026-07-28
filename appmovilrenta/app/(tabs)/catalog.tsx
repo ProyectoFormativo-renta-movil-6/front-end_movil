@@ -5,7 +5,7 @@ import VehiculoCard from "@/modules/catalog/components/VehicleCard";
 import { useCatalogo } from "@/modules/catalog/hooks/useCatalog";
 import { useFavoritos } from "@/modules/catalog/hooks/useFavorites";
 import { useAuthStore } from "@/store/authStore";
-import { useUsuarioStore } from "@/store/usuarioStore";
+import { useUsuarioStore } from "@/store/userStore";
 import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";

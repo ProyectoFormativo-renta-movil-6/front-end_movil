@@ -9,7 +9,7 @@
  * RF50.6: Cancelar edición perfil
  */
 
-import { useUsuarioStore } from "@/store/usuarioStore";
+import { useUsuarioStore } from "@/store/userStore";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {

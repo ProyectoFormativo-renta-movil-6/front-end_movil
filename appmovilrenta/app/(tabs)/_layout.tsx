@@ -123,14 +123,6 @@ export default function TabLayout() {
         <Tabs.Screen name="explore" options={{ href: null }} />
         <Tabs.Screen name="notifications" options={{ href: null }} />
 
-        {/* Pantallas duplicadas/español ocultas */}
-        <Tabs.Screen name="buscar" options={{ href: null }} />
-        <Tabs.Screen name="busqueda" options={{ href: null }} />
-        <Tabs.Screen name="catalogo" options={{ href: null }} />
-        <Tabs.Screen name="mis-reservas" options={{ href: null }} />
-        <Tabs.Screen name="notificaciones" options={{ href: null }} />
-        <Tabs.Screen name="perfil" options={{ href: null }} />
-        <Tabs.Screen name="reservar" options={{ href: null }} />
       </Tabs>
 
       <AlertModal
