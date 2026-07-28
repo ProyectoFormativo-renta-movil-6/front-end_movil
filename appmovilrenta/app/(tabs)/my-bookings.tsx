@@ -6,6 +6,7 @@ import {
   Image,
   ScrollView,
   SectionList,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -105,12 +106,18 @@ export default function MisReservasScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
-      <View style={[styles.header, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
-        <Text style={[styles.headerTitulo, { color: c.textPrimary }]}>{t("misReservas.titulo")}</Text>
-        <Text style={[styles.headerSubtitulo, { color: c.textSecondary }]}>
+      <StatusBar barStyle="light-content" backgroundColor="#1e3a8a" />
+      <LinearGradient
+        colors={GRADIENTES.boton.colors}
+        start={GRADIENTES.boton.start}
+        end={GRADIENTES.boton.end}
+        style={styles.header}
+      >
+        <Text style={[styles.headerTitulo, { color: "#ffffff" }]}>{t("misReservas.titulo")}</Text>
+        <Text style={[styles.headerSubtitulo, { color: "rgba(255,255,255,0.7)" }]}>
           {t("misReservas.subtitulo")}
         </Text>
-      </View>
+      </LinearGradient>
 
       {!cargando && reservas.length > 0 && (
         <View style={[styles.filtrosWrap, { borderBottomColor: c.border, backgroundColor: c.bgHeader }]}>

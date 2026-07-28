@@ -5,6 +5,7 @@ import {
   FILTROS_BASE,
   VEHICULOS_MOCK,
   getCiudadPorSucursal,
+  getDisponibilidadVehiculo,
 } from "../constants/catalog.constants";
 import {
   BusquedaForm,
@@ -17,14 +18,15 @@ function estaDisponibleEnRango(
   fechaInicio: string,
   fechaFin: string,
 ): boolean {
-  const ocupados = vehiculo.disponibilidad?.ocupados ?? [];
+  const disp = getDisponibilidadVehiculo(vehiculo.id);
+  const ocupados = disp.ocupados ?? [];
   if (ocupados.length === 0) return true;
 
   const inicio = new Date(fechaInicio + "T00:00:00");
   const fin = new Date(fechaFin + "T00:00:00");
 
-  return !ocupados.some((fechaStr) => {
-    const fecha = new Date(fechaStr + "T00:00:00");
+  return !ocupados.some((fo) => {
+    const fecha = new Date(fo.fecha + "T00:00:00");
     return fecha >= inicio && fecha < fin;
   });
 }

@@ -26,7 +26,7 @@ export default function BusquedaScreen() {
     useCallback(() => {
       if (invitado) {
         // Redirige directamente al catálogo de manera limpia sin dejar historial intermedio
-        router.replace("/catalogo");
+        router.replace("/catalog");
       }
     }, [invitado]),
   );
@@ -34,7 +34,7 @@ export default function BusquedaScreen() {
   // Estados mínimos requeridos para evitar errores de renderizado en el buscador
   const [textBusqueda, setTextBusqueda] = useState("");
   const [modalFormVisible, setModalFormVisible] = useState(false);
-  const { busquedaForm, setForm, handleBuscar, errorBusqueda } = useCatalogo();
+  const { busquedaForm, setForm, handleBuscar, errorBusqueda, limpiarBusqueda } = useCatalogo();
 
   // SI ES INVITADO: Retorna vacío inmediatamente para que no se renderice ni el Buscador ni sus modales
   if (invitado) {
@@ -77,6 +77,7 @@ export default function BusquedaScreen() {
           textBusqueda={textBusqueda}
           setTextBusqueda={setTextBusqueda}
           onBuscar={handleBuscar}
+          onLimpiarBusqueda={limpiarBusqueda}
           errorBusqueda={errorBusqueda}
           disabled={false}
           modalFormVisible={modalFormVisible}

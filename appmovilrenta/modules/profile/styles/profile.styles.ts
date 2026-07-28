@@ -5,7 +5,7 @@ const P = "#1D4ED8";
 export const perfilStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F6FB",
+    backgroundColor: "#E9EDF8",
   },
   // Header
   header: {
@@ -165,7 +165,7 @@ export const perfilStyles = StyleSheet.create({
   // Pantalla editar
   editContainer: {
     flex: 1,
-    backgroundColor: "#F4F6FB",
+    backgroundColor: "#E9EDF8",
   },
   editHeader: {
     backgroundColor: "#FFFFFF",

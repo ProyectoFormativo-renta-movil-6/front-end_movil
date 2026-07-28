@@ -66,7 +66,7 @@ export function useTemaColores() {
 
   return {
     // Fondos
-    bg: oscuro ? "#0D1117" : "#F4F6FB",
+    bg: oscuro ? "#0D1117" : "#E9EDF8",
     bgCard: oscuro ? "#1C2330" : "#FFFFFF",
     bgInput: oscuro ? "#161B22" : "#F9FAFB",
     bgHeader: oscuro ? "#161B22" : "#FFFFFF",

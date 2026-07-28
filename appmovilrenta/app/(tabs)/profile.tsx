@@ -31,6 +31,8 @@ import { FormCompletarPerfil } from "@/modules/profile/components/CompleteProfil
 import { perfilStyles as styles } from "@/modules/profile/styles/profile.styles";
 import { useAuthStore } from "@/store/authStore";
 import { useUsuarioStore } from "@/store/userStore";
+import { LinearGradient } from "expo-linear-gradient";
+import { GRADIENTES } from "@/constants/gradients";
 import { eliminarUsuarioDemo } from "@/mocks/demoUsers";
 import { DateField } from "@/components/ui/DateField";
 import { Ionicons } from "@expo/vector-icons";
@@ -258,16 +260,21 @@ export default function PerfilScreen() {
   if (completando) {
     return (
       <View style={[styles.editContainer, { paddingTop: insets.top, backgroundColor: c.bg }]}>
-        <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
-        <View style={[styles.editHeader, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
+        <StatusBar barStyle="light-content" backgroundColor="#1e3a8a" />
+        <LinearGradient
+          colors={GRADIENTES.boton.colors}
+          start={GRADIENTES.boton.start}
+          end={GRADIENTES.boton.end}
+          style={styles.editHeader}
+        >
           <TouchableOpacity
-            style={[styles.editHeaderBack, { backgroundColor: c.bgInput }]}
+            style={[styles.editHeaderBack, { backgroundColor: "rgba(255, 255, 255, 0.2)" }]}
             onPress={() => setCompletando(false)}
           >
-            <Text style={[styles.editHeaderBackText, { color: c.textPrimary }]}>←</Text>
+            <Text style={[styles.editHeaderBackText, { color: "#ffffff" }]}>←</Text>
           </TouchableOpacity>
-          <Text style={[styles.editHeaderTitle, { color: c.textPrimary }]}>{t("perfil.completarPerfil")}</Text>
-        </View>
+          <Text style={[styles.editHeaderTitle, { color: "#ffffff" }]}>{t("perfil.completarPerfil")}</Text>
+        </LinearGradient>
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -288,18 +295,21 @@ export default function PerfilScreen() {
   if (editando) {
     return (
       <View style={[styles.editContainer, { paddingTop: insets.top, backgroundColor: c.bg }]}>
-        <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
-
-        {/* Header */}
-        <View style={[styles.editHeader, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
+        <StatusBar barStyle="light-content" backgroundColor="#1e3a8a" />
+        <LinearGradient
+          colors={GRADIENTES.boton.colors}
+          start={GRADIENTES.boton.start}
+          end={GRADIENTES.boton.end}
+          style={styles.editHeader}
+        >
           <TouchableOpacity
-            style={[styles.editHeaderBack, { backgroundColor: c.bgInput }]}
+            style={[styles.editHeaderBack, { backgroundColor: "rgba(255, 255, 255, 0.2)" }]}
             onPress={handleCancelar}
           >
-            <Text style={[styles.editHeaderBackText, { color: c.textPrimary }]}>←</Text>
+            <Text style={[styles.editHeaderBackText, { color: "#ffffff" }]}>←</Text>
           </TouchableOpacity>
-          <Text style={[styles.editHeaderTitle, { color: c.textPrimary }]}>{t("perfil.editarTitulo")}</Text>
-        </View>
+          <Text style={[styles.editHeaderTitle, { color: "#ffffff" }]}>{t("perfil.editarTitulo")}</Text>
+        </LinearGradient>
 
         {/* Avatar */}
         <View style={styles.editAvatarWrap}>
@@ -445,12 +455,15 @@ export default function PerfilScreen() {
   if (esInvitado) {
     return (
       <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
-        <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
-
-        {/* Header */}
-        <View style={[styles.header, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
-          <Text style={[styles.headerTitle, { color: c.textPrimary }]}>{t("perfil.titulo")}</Text>
-        </View>
+        <StatusBar barStyle="light-content" backgroundColor="#1e3a8a" />
+        <LinearGradient
+          colors={GRADIENTES.boton.colors}
+          start={GRADIENTES.boton.start}
+          end={GRADIENTES.boton.end}
+          style={styles.header}
+        >
+          <Text style={[styles.headerTitle, { color: "#ffffff" }]}>{t("perfil.titulo")}</Text>
+        </LinearGradient>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -481,12 +494,15 @@ export default function PerfilScreen() {
   // ── Vista principal perfil ─────────────────────────────────────────────────
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
-      <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
-
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: c.bgHeader, borderBottomColor: c.border }]}>
-        <Text style={[styles.headerTitle, { color: c.textPrimary }]}>{t("perfil.titulo")}</Text>
-      </View>
+      <StatusBar barStyle="light-content" backgroundColor="#1e3a8a" />
+      <LinearGradient
+        colors={GRADIENTES.boton.colors}
+        start={GRADIENTES.boton.start}
+        end={GRADIENTES.boton.end}
+        style={styles.header}
+      >
+        <Text style={[styles.headerTitle, { color: "#ffffff" }]}>{t("perfil.titulo")}</Text>
+      </LinearGradient>
 
       <ScrollView
         showsVerticalScrollIndicator={false}

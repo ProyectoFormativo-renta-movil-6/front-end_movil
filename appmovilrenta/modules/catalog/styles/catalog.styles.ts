@@ -8,7 +8,7 @@ const isSmall = width < 380;
 export const catalogoStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F6FB",
+    backgroundColor: "#E9EDF8",
   },
   // Header
   header: {
