@@ -24,7 +24,7 @@ export default function OnboardingNavigation({
 
   const handleRegistro = () => {
     completeOnboarding();
-    router.push("/(auth)/registro");
+    router.push("/(auth)/register");
   };
 
   const handleLogin = () => {

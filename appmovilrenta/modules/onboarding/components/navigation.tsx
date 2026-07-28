@@ -4,7 +4,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useOnboarding } from "@/modules/onboarding/hooks/use-onboarding";
-import { useTemaColores } from "@/modules/i18n/hooks/useIdioma";
+import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { GRADIENTES } from "@/constants/gradients";
 
 interface Props {
@@ -30,7 +30,7 @@ export default function OnboardingNavigation({
 
   const handleRegistro = () => {
     completeOnboarding();
-    router.replace("/(auth)/registro");
+    router.replace("/(auth)/register");
   };
 
   const handleLogin = () => {

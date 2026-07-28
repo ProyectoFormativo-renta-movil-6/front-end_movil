@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet, ScrollView } from 'react-native';
-import { useTemaColores } from '@/modules/i18n/hooks/useIdioma';
+import { useTemaColores } from '@/modules/i18n/hooks/useLanguage';
 
 // Pantalla temporal de exploración — se reemplaza en módulos siguientes
 export default function ExplorarScreen() {

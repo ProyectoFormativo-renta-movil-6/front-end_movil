@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LoginForm, RegistroForm, OlvideContrasenaForm, AuthError } from '../types/auth.types';
-import { buscarUsuarioDemo, UsuarioDemo } from '../../../mocks/usuariosDemo';
+import { buscarUsuarioDemo, UsuarioDemo } from '../../../mocks/demoUsers';
 
 function validarCorreo(correo: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) && !correo.includes(' ');

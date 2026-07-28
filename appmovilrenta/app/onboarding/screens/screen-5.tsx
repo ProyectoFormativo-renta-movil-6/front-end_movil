@@ -42,7 +42,7 @@ export default function OnboardingScreen5() {
 
   const handleRegistro = () => {
     completeOnboarding();
-    router.replace("/(auth)/registro");
+    router.replace("/(auth)/register");
   };
 
   const handleLogin = () => {
