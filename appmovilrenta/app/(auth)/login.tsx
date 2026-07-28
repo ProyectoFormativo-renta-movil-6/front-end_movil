@@ -9,7 +9,7 @@ import { SocialAuthButtons } from "@/modules/auth/components/SocialAuthButtons";
 import { useLogin } from "@/modules/auth/hooks/useAuth";
 import { loginStyles as styles } from "@/modules/auth/styles/login.styles";
 import { useAuthStore } from "@/store/authStore";
-import { useUsuarioStore } from "@/store/userStore";
+import { useUsuarioStore } from "@/store/usuarioStore";
 import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";

@@ -104,6 +104,23 @@ export function usePerfil() {
       nuevosErrores.fechaNacimiento = t("perfil.validacion.fechaNacObligatoria");
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.fechaNacimiento)) {
       nuevosErrores.fechaNacimiento = t("perfil.validacion.fechaFormato");
+    } else {
+      const fechaNac = new Date(form.fechaNacimiento);
+      if (isNaN(fechaNac.getTime())) {
+        nuevosErrores.fechaNacimiento = t("perfil.validacion.fechaFormato");
+      } else {
+        const hoy = new Date();
+        let edad = hoy.getFullYear() - fechaNac.getFullYear();
+        const mesDiff = hoy.getMonth() - fechaNac.getMonth();
+        if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < fechaNac.getDate())) {
+          edad--;
+        }
+        if (hoy < fechaNac) {
+          nuevosErrores.fechaNacimiento = t("perfil.validacion.fechaFutura", { defaultValue: "La fecha no puede ser futura" });
+        } else if (edad < 16) {
+          nuevosErrores.fechaNacimiento = t("perfil.validacion.menorEdad", { defaultValue: "Debes tener al menos 16 años" });
+        }
+      }
     }
 
     if (!form.nacionalidad) {
@@ -270,10 +287,28 @@ export function useCompletarPerfil() {
     else if (!/^\+?[\d\s\-(). ]{7,20}$/.test(form.telefono.trim()))
       e.telefono = t("perfil.validacion.telefonoInvalido");
 
-    if (!form.fechaNacimiento)
+    if (!form.fechaNacimiento) {
       e.fechaNacimiento = t("perfil.validacion.fechaNacObligatoria");
-    else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.fechaNacimiento))
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.fechaNacimiento)) {
       e.fechaNacimiento = t("perfil.validacion.fechaFormato");
+    } else {
+      const fechaNac = new Date(form.fechaNacimiento);
+      if (isNaN(fechaNac.getTime())) {
+        e.fechaNacimiento = t("perfil.validacion.fechaFormato");
+      } else {
+        const hoy = new Date();
+        let edad = hoy.getFullYear() - fechaNac.getFullYear();
+        const mesDiff = hoy.getMonth() - fechaNac.getMonth();
+        if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < fechaNac.getDate())) {
+          edad--;
+        }
+        if (hoy < fechaNac) {
+          e.fechaNacimiento = t("perfil.validacion.fechaFutura", { defaultValue: "La fecha no puede ser futura" });
+        } else if (edad < 16) {
+          e.fechaNacimiento = t("perfil.validacion.menorEdad", { defaultValue: "Debes tener al menos 16 años" });
+        }
+      }
+    }
 
     if (!form.tipoDocumento)
       e.tipoDocumento = t("perfil.validacion.tipoDocumentoSeleccionar");

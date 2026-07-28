@@ -5,6 +5,7 @@ import VehiculoCard from "@/modules/catalog/components/VehicleCard";
 import { useCatalogo } from "@/modules/catalog/hooks/useCatalog";
 import { useFavoritos } from "@/modules/catalog/hooks/useFavorites";
 import { useAuthStore } from "@/store/authStore";
+import { useUsuarioStore } from "@/store/usuarioStore";
 import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -111,6 +112,7 @@ export default function Catalogo() {
   const c = useTemaColores();
   const { t } = useTranslation();
   const usuario = useAuthStore((state) => state.usuario);
+  const usuarioDetalle = useUsuarioStore((state) => state.usuario);
   const [textBusqueda, setTextBusqueda] = useState("");
   const [modalFormVisible, setModalFormVisible] = useState(false);
   const [sweetAlertVisible, setSweetAlertVisible] = useState(false);
@@ -272,9 +274,16 @@ export default function Catalogo() {
         ];
 
   const nombreUsuario = usuario
-    ? (usuario.nombres?.trim() || nombreDesdeCorreo(usuario.correo))
+    ? ((usuarioDetalle.nombres?.trim() || usuarioDetalle.apellidos?.trim())
+      ? `${usuarioDetalle.nombres} ${usuarioDetalle.apellidos}`.trim()
+      : nombreDesdeCorreo(usuarioDetalle.correo || usuario.correo))
     : "";
-  const inicialUsuario = nombreUsuario.charAt(0).toUpperCase();
+
+  const inicialUsuario = usuario
+    ? ((usuarioDetalle.nombres || usuarioDetalle.apellidos)
+      ? `${usuarioDetalle.nombres.charAt(0)}${usuarioDetalle.apellidos.charAt(0)}`.toUpperCase()
+      : nombreDesdeCorreo(usuarioDetalle.correo || usuario.correo).charAt(0).toUpperCase())
+    : "";
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>

@@ -30,7 +30,7 @@ import { ModalCambiarCorreo } from "@/modules/profile/components/ChangeEmailModa
 import { FormCompletarPerfil } from "@/modules/profile/components/CompleteProfileForm";
 import { perfilStyles as styles } from "@/modules/profile/styles/profile.styles";
 import { useAuthStore } from "@/store/authStore";
-import { useUsuarioStore } from "@/store/userStore";
+import { useUsuarioStore } from "@/store/usuarioStore";
 import { eliminarUsuarioDemo } from "@/mocks/demoUsers";
 import { DateField } from "@/components/ui/DateField";
 import { Ionicons } from "@expo/vector-icons";
@@ -54,6 +54,9 @@ export default function PerfilScreen() {
   const [editando, setEditando] = useState(false);
   const [completando, setCompletando] = useState(false);
   const [mostrarAvisoUSD, setMostrarAvisoUSD] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [errorMensaje, setErrorMensaje] = useState("");
 
   // Al elegir USD, la moneda solo cambia la referencia visual de los
   // precios; el cobro real con Wompi siempre se hace en COP. Se avisa
@@ -90,18 +93,11 @@ export default function PerfilScreen() {
   const handleGuardar = () => {
     guardarCambios(
       () => {
-        Alert.alert(
-          t("perfil.cambiosGuardados"),
-          t("perfil.cambiosGuardadosMsg"),
-          [{ text: t("perfil.ok"), onPress: () => setEditando(false) }]
-        );
+        setSuccessModalVisible(true);
       },
       () => {
-        Alert.alert(
-          t("perfil.errorTitulo"),
-          t("perfil.errorMsg"),
-          [{ text: t("perfil.errorBtn") }]
-        );
+        setErrorMensaje(t("perfil.errorMsg"));
+        setErrorModalVisible(true);
       }
     );
   };
@@ -416,6 +412,27 @@ export default function PerfilScreen() {
             )}
           </TouchableOpacity>
         </ScrollView>
+
+        {/* Modal Éxito al guardar cambios */}
+        <AlertModal
+          visible={successModalVisible}
+          icono="checkmark-circle-outline"
+          titulo={t("perfil.cambiosGuardados")}
+          mensaje={t("perfil.cambiosGuardadosMsg")}
+          onCerrar={() => {
+            setSuccessModalVisible(false);
+            setEditando(false);
+          }}
+        />
+
+        {/* Modal Error al guardar cambios */}
+        <AlertModal
+          visible={errorModalVisible}
+          icono="alert-circle-outline"
+          titulo={t("perfil.errorTitulo")}
+          mensaje={errorMensaje}
+          onCerrar={() => setErrorModalVisible(false)}
+        />
       </View>
     );
   }
@@ -599,6 +616,27 @@ export default function PerfilScreen() {
           </Text>
         }
         onCerrar={() => setMostrarAvisoUSD(false)}
+      />
+
+      {/* Modal Éxito al guardar cambios */}
+      <AlertModal
+        visible={successModalVisible}
+        icono="checkmark-circle-outline"
+        titulo={t("perfil.cambiosGuardados")}
+        mensaje={t("perfil.cambiosGuardadosMsg")}
+        onCerrar={() => {
+          setSuccessModalVisible(false);
+          setEditando(false);
+        }}
+      />
+
+      {/* Modal Error al guardar cambios */}
+      <AlertModal
+        visible={errorModalVisible}
+        icono="alert-circle-outline"
+        titulo={t("perfil.errorTitulo")}
+        mensaje={errorMensaje}
+        onCerrar={() => setErrorModalVisible(false)}
       />
     </View>
   );

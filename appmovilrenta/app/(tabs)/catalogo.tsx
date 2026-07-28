@@ -274,9 +274,16 @@ export default function Catalogo() {
         ];
 
   const nombreUsuario = authUsuario
-    ? (usuarioDetalle.nombres?.trim() || nombreDesdeCorreo(authUsuario.correo))
+    ? ((usuarioDetalle.nombres?.trim() || usuarioDetalle.apellidos?.trim())
+      ? `${usuarioDetalle.nombres} ${usuarioDetalle.apellidos}`.trim()
+      : nombreDesdeCorreo(usuarioDetalle.correo || authUsuario.correo))
     : "";
-  const inicialUsuario = nombreUsuario ? nombreUsuario.charAt(0).toUpperCase() : "";
+
+  const inicialUsuario = authUsuario
+    ? ((usuarioDetalle.nombres || usuarioDetalle.apellidos)
+      ? `${usuarioDetalle.nombres.charAt(0)}${usuarioDetalle.apellidos.charAt(0)}`.toUpperCase()
+      : nombreDesdeCorreo(usuarioDetalle.correo || authUsuario.correo).charAt(0).toUpperCase())
+    : "";
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
@@ -418,10 +425,10 @@ export default function Catalogo() {
           renderItem={({ item }) => (
             <VehiculoCard
               vehiculo={item as any}
-              invitado={!usuario}
+              invitado={!authUsuario}
               esFavorito={esFavorito(item.id)}
-              onAccionRestringida={!usuario ? abrirSweetAlert : undefined}
-              onToggleFavorito={usuario ? toggleFavorito : undefined}
+              onAccionRestringida={!authUsuario ? abrirSweetAlert : undefined}
+              onToggleFavorito={authUsuario ? toggleFavorito : undefined}
               datosPrecarga={datosPrecargaReserva}
             />
           )}
@@ -458,7 +465,7 @@ export default function Catalogo() {
           limpiarFiltros();
           setSoloFavoritos(false);
         }}
-        usuario={!!usuario}
+        usuario={!!authUsuario}
         soloFavoritos={soloFavoritos}
         onToggleSoloFavoritos={handleToggleSoloFavoritos}
         totalFavoritos={favoritos.length}

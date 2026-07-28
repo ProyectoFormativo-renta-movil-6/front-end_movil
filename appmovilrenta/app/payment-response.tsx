@@ -233,10 +233,47 @@ export default function PagoRespuestaScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ backgroundColor: c.bg }}
-      contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 24 }]}
-    >
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      {/* Header */}
+      <View style={{
+        flexDirection: "row",
+        alignItems: "center",
+        paddingTop: insets.top,
+        height: insets.top + 56,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: c.border,
+        backgroundColor: c.bgHeader,
+      }}>
+        <TouchableOpacity
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: c.bgInput,
+          }}
+          onPress={irAMisReservas}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color={c.textPrimary} />
+        </TouchableOpacity>
+        <Text style={{
+          fontSize: 16,
+          fontWeight: "700",
+          color: c.textPrimary,
+          marginLeft: 12,
+        }}>
+          {t("misReservas.detalle.tituloHeader", { defaultValue: "Detalle de Reserva" })}
+        </Text>
+      </View>
+
+      <ScrollView
+        style={{ backgroundColor: c.bg }}
+        contentContainerStyle={[styles.scroll, { paddingTop: 24 }]}
+        showsVerticalScrollIndicator={false}
+      >
       {foto ? (
         <Image source={{ uri: foto }} style={styles.foto} />
       ) : (
@@ -304,36 +341,30 @@ export default function PagoRespuestaScreen() {
       </View>
 
       <TouchableOpacity
-        style={[
-          styles.btnDescargarWrap,
-          { borderColor: c.border, backgroundColor: c.bgCard },
-          !contratoActual && { opacity: 0.5 },
-        ]}
+        style={[styles.btnWrap, { marginBottom: 12 }, !contratoActual && { opacity: 0.5 }]}
         onPress={handleDescargarPdf}
         activeOpacity={0.85}
-        disabled={generandoPdf}
+        disabled={generandoPdf || !contratoActual}
       >
-        {generandoPdf ? (
-          <ActivityIndicator color={COLOR_MARCA} />
-        ) : (
-          <Ionicons name="document-text-outline" size={18} color={COLOR_MARCA} />
-        )}
-        <Text style={[styles.btnDescargarTexto, { color: COLOR_MARCA }]}>
-          {generandoPdf ? t("misReservas.generandoPdf") : t("misReservas.descargarContrato")}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.btnWrap} onPress={irAMisReservas} activeOpacity={0.85}>
         <LinearGradient
           colors={GRADIENTES.boton.colors}
           start={GRADIENTES.boton.start}
           end={GRADIENTES.boton.end}
-          style={styles.btn}
+          style={[styles.btn, { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8 }]}
         >
-          <Text style={styles.btnTexto}>{t("reserva.confirmacion.respuesta.volverAMisReservas")}</Text>
+          {generandoPdf ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
+          )}
+          <Text style={styles.btnTexto}>
+            {generandoPdf ? t("misReservas.generandoPdf") : t("misReservas.descargarContrato")}
+          </Text>
         </LinearGradient>
       </TouchableOpacity>
+
     </ScrollView>
+    </View>
   );
 }
 
