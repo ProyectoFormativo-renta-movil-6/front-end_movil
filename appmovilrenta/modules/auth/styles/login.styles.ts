@@ -10,46 +10,29 @@ export const loginStyles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  // ── Barra superior blanca (Volver / Modo invitado) ─────────────
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
-    backgroundColor: "#FFFFFF",
-  },
-  volverBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 4,
-  },
-  volverTexto: {
-    color: "#1E3A8A",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  invitadoBtn: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1.5,
-    borderColor: "#1E3A8A",
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 8,
-  },
-  invitadoBtnTexto: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#1E3A8A",
-  },
-
   // ── Header (azul gradiente) ──────────────────────────────────────
   header: {
+    position: "relative",
     paddingHorizontal: 20,
-    paddingTop: 22,
+    paddingTop: 48,
     paddingBottom: 20,
+  },
+  invitadoBtn: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    zIndex: 1,
+  },
+  invitadoBtnTexto: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   marcaWrapper: {
     alignItems: "center",

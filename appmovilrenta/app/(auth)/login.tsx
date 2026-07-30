@@ -109,9 +109,9 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.flex}>
-      <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bgHeader} />
+      <StatusBar barStyle="light-content" backgroundColor={GRADIENTES.heroOscuro.colors[0]} />
 
-      <View style={{ height: insets.top, backgroundColor: c.bgHeader }} />
+      <View style={{ height: insets.top, backgroundColor: GRADIENTES.heroOscuro.colors[0] }} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -126,24 +126,6 @@ export default function LoginScreen() {
           overScrollMode="never"
         >
           <View>
-            {/* BARRA SUPERIOR BLANCA */}
-            <View style={[styles.topBar, { backgroundColor: c.bgHeader }]}>
-              <TouchableOpacity
-                style={styles.volverBtn}
-                onPress={() => router.back()}
-              >
-                <Ionicons name="chevron-back" size={20} color={c.primary} />
-                <Text style={[styles.volverTexto, { color: c.primary }]}>{t("auth.login.volver")}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.invitadoBtn, { backgroundColor: c.bgHeader, borderColor: c.primary }]}
-                onPress={handleInvitado}
-              >
-                <Text style={[styles.invitadoBtnTexto, { color: c.primary }]}>{t("auth.login.modoInvitado")}</Text>
-              </TouchableOpacity>
-            </View>
-
             {/* HEADER AZUL GRADIENTE */}
             <LinearGradient
               colors={GRADIENTES.heroOscuro.colors}
@@ -152,6 +134,13 @@ export default function LoginScreen() {
               end={GRADIENTES.heroOscuro.end}
               style={styles.header}
             >
+              <TouchableOpacity
+                style={styles.invitadoBtn}
+                onPress={handleInvitado}
+              >
+                <Text style={styles.invitadoBtnTexto}>{t("auth.login.modoInvitado")}</Text>
+              </TouchableOpacity>
+
               <View style={styles.marcaWrapper}>
                 <Text style={styles.marca}>Drivique</Text>
                 <Text style={styles.marcaTagline}>
