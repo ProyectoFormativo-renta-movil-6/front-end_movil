@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useRef, useState } from "react";
 import { StatusBar, StyleSheet, View } from "react-native";
 import PagerView from "@/modules/onboarding/components/cross-pager";
@@ -24,8 +24,13 @@ const SCREENS = [
 
 export default function OnboardingFlow() {
   const c = useTemaColores();
+  const { page } = useLocalSearchParams<{ page?: string }>();
+  const initialPage = Math.min(
+    Math.max(Number(page) || 0, 0),
+    SCREENS.length - 1,
+  );
   const pagerRef = useRef<PagerView>(null);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const { completeOnboarding } = useOnboarding();
   const insets = useSafeAreaInsets();
 
@@ -49,6 +54,8 @@ export default function OnboardingFlow() {
     }
   };
 
+  const isLast = currentPage === SCREENS.length - 1;
+
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
       <StatusBar barStyle={c.oscuro ? "light-content" : "dark-content"} backgroundColor={c.bg} />
@@ -56,7 +63,7 @@ export default function OnboardingFlow() {
       <PagerView
         ref={pagerRef}
         style={styles.pager}
-        initialPage={0}
+        initialPage={initialPage}
         onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
       >
         {SCREENS.map((Screen, i) => (
@@ -66,16 +73,18 @@ export default function OnboardingFlow() {
         ))}
       </PagerView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 12, backgroundColor: c.bg, borderTopColor: c.borderLight }]}>
-        <OnboardingPagination total={SCREENS.length} current={currentPage} />
-        <OnboardingNavigation
-          currentPage={currentPage}
-          totalPages={SCREENS.length}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          onSkip={goToLogin}
-        />
-      </View>
+      {!isLast && (
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 12, backgroundColor: c.bg, borderTopColor: c.borderLight }]}>
+          <OnboardingPagination total={SCREENS.length} current={currentPage} />
+          <OnboardingNavigation
+            currentPage={currentPage}
+            totalPages={SCREENS.length}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onSkip={goToLogin}
+          />
+        </View>
+      )}
     </View>
   );
 }
