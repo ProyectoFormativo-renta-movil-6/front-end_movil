@@ -161,14 +161,16 @@ export default function PerfilScreen() {
         {t("config.tema")} &amp; {t("config.idioma")}
       </Text>
 
-      <View style={configStyles.filaLabel}>
-        <Text style={[configStyles.label, { color: c.textPrimary }]}>🎨 {t("config.tema")}</Text>
+      <View style={[configStyles.filaLabel, configStyles.filaLabelRow]}>
+        <Ionicons name="color-palette-outline" size={16} color="#1D4ED8" />
+        <Text style={[configStyles.label, { color: c.textPrimary }]}>{t("config.tema")}</Text>
       </View>
       <View style={configStyles.temaRow}>
         <TouchableOpacity
           style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, temaActual === "claro" && configStyles.temaBtnActivo]}
           onPress={() => cambiarTema("claro")}
         >
+          <Ionicons name="sunny-outline" size={15} color={temaActual === "claro" ? "#1D4ED8" : c.textSecondary} />
           <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, temaActual === "claro" && configStyles.temaBtnTextoActivo]}>
             {t("config.claro")}
           </Text>
@@ -177,14 +179,16 @@ export default function PerfilScreen() {
           style={[configStyles.temaBtn, { borderColor: c.border, backgroundColor: c.bgInput }, temaActual === "oscuro" && configStyles.temaBtnActivoDark]}
           onPress={() => cambiarTema("oscuro")}
         >
+          <Ionicons name="moon-outline" size={15} color={temaActual === "oscuro" ? "#F0F4FF" : c.textSecondary} />
           <Text style={[configStyles.temaBtnTexto, { color: c.textPrimary }, temaActual === "oscuro" && { color: "#F0F4FF" }]}>
             {t("config.oscuro")}
           </Text>
         </TouchableOpacity>
       </View>
 
-      <View style={[configStyles.filaLabel, { marginTop: 16 }]}>
-        <Text style={[configStyles.label, { color: c.textPrimary }]}>🌐 {t("config.idioma")}</Text>
+      <View style={[configStyles.filaLabel, configStyles.filaLabelRow, { marginTop: 16 }]}>
+        <Ionicons name="language-outline" size={16} color="#1D4ED8" />
+        <Text style={[configStyles.label, { color: c.textPrimary }]}>{t("config.idioma")}</Text>
       </View>
       <View style={configStyles.idiomasWrap}>
         {(Object.keys(IDIOMAS) as IdiomaKey[]).map((key) => (
@@ -206,8 +210,9 @@ export default function PerfilScreen() {
         ))}
       </View>
 
-      <View style={[configStyles.filaLabel, { marginTop: 16 }]}>
-        <Text style={[configStyles.label, { color: c.textPrimary }]}>💱 {t("config.moneda")}</Text>
+      <View style={[configStyles.filaLabel, configStyles.filaLabelRow, { marginTop: 16 }]}>
+        <Ionicons name="cash-outline" size={16} color="#1D4ED8" />
+        <Text style={[configStyles.label, { color: c.textPrimary }]}>{t("config.moneda")}</Text>
       </View>
       <View style={configStyles.temaRow}>
         <TouchableOpacity
@@ -268,10 +273,12 @@ export default function PerfilScreen() {
           style={styles.editHeader}
         >
           <TouchableOpacity
-            style={[styles.editHeaderBack, { backgroundColor: "rgba(255, 255, 255, 0.2)" }]}
+            style={styles.editHeaderBack}
             onPress={() => setCompletando(false)}
+            activeOpacity={0.75}
           >
-            <Text style={[styles.editHeaderBackText, { color: "#ffffff" }]}>←</Text>
+            <Ionicons name="chevron-back" size={18} color="#1D4ED8" />
+            <Text style={styles.editHeaderBackText}>{t("perfil.volver")}</Text>
           </TouchableOpacity>
           <Text style={[styles.editHeaderTitle, { color: "#ffffff" }]}>{t("perfil.completarPerfil")}</Text>
         </LinearGradient>
@@ -303,10 +310,12 @@ export default function PerfilScreen() {
           style={styles.editHeader}
         >
           <TouchableOpacity
-            style={[styles.editHeaderBack, { backgroundColor: "rgba(255, 255, 255, 0.2)" }]}
+            style={styles.editHeaderBack}
             onPress={handleCancelar}
+            activeOpacity={0.75}
           >
-            <Text style={[styles.editHeaderBackText, { color: "#ffffff" }]}>←</Text>
+            <Ionicons name="chevron-back" size={18} color="#1D4ED8" />
+            <Text style={styles.editHeaderBackText}>{t("perfil.volver")}</Text>
           </TouchableOpacity>
           <Text style={[styles.editHeaderTitle, { color: "#ffffff" }]}>{t("perfil.editarTitulo")}</Text>
         </LinearGradient>
@@ -471,7 +480,7 @@ export default function PerfilScreen() {
         >
           <View style={[localS.banner, { backgroundColor: c.primaryBg, borderColor: "#1D4ED8", marginTop: 16 }]}>
             <View style={localS.bannerIcono}>
-              <Text style={{ fontSize: 22 }}>👤</Text>
+              <Ionicons name="person-add-outline" size={22} color="#FFFFFF" />
             </View>
             <View style={localS.bannerTextos}>
               <Text style={localS.bannerTitulo}>{t("perfil.invitadoTitulo")}</Text>
@@ -538,7 +547,7 @@ export default function PerfilScreen() {
             activeOpacity={0.85}
           >
             <View style={localS.bannerIcono}>
-              <Text style={{ fontSize: 22 }}>👤</Text>
+              <Ionicons name="person-circle-outline" size={22} color="#FFFFFF" />
             </View>
             <View style={localS.bannerTextos}>
               <Text style={localS.bannerTitulo}>{t("perfil.completarPerfil")}</Text>
@@ -555,7 +564,7 @@ export default function PerfilScreen() {
             onPress={() => router.push("/(tabs)/my-bookings")}
           >
             <View style={[styles.menuIconWrap, { backgroundColor: c.primaryBg }]}>
-              <Text style={styles.menuIcon}>📋</Text>
+              <Ionicons name="receipt-outline" size={18} color={c.primary} />
             </View>
             <View style={styles.menuTextos}>
               <Text style={[styles.menuLabel, { color: c.textPrimary }]}>{t("perfil.historial")}</Text>
@@ -569,7 +578,7 @@ export default function PerfilScreen() {
             onPress={() => setMostrarModalCorreo(true)}
           >
             <View style={[styles.menuIconWrap, { backgroundColor: c.primaryBg }]}>
-              <Text style={styles.menuIcon}>🔐</Text>
+              <Ionicons name="lock-closed-outline" size={18} color={c.primary} />
             </View>
             <View style={styles.menuTextos}>
               <Text style={[styles.menuLabel, { color: c.textPrimary }]}>{t("perfil.seguridad")}</Text>
@@ -721,6 +730,11 @@ const configStyles = StyleSheet.create({
   filaLabel: {
     marginBottom: 8,
   },
+  filaLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   label: {
     fontSize: 13,
     fontWeight: "600",
@@ -736,6 +750,9 @@ const configStyles = StyleSheet.create({
   },
   temaBtn: {
     flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
     paddingVertical: 11,
     borderRadius: 10,
     borderWidth: 1,
