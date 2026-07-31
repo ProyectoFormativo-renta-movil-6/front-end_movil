@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import {
   Alert,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -14,6 +14,7 @@ import { useCompletarPerfil } from "@/modules/profile/hooks/useProfile";
 import { Nacionalidad, TipoDocumento } from "@/modules/profile/types/profile.types";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { InputField } from "@/components/ui/InputField";
+import { inputFieldStyles } from "@/components/ui/InputField.styles";
 import { DateField } from "@/components/ui/DateField";
 import { getPrefijoPorNacionalidad } from "@/modules/reservation/constants/reservation.constants";
 
@@ -121,16 +122,21 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
           </Text>
         </View>
         <View style={{ flex: 1 }}>
-          <InputField
-            label=""
-            placeholder={hayPrefijo ? "1234567890" : t("perfil.eligeNacionalidadPrimero")}
+          <TextInput
+            style={[
+              inputFieldStyles.input,
+              errores.telefono ? inputFieldStyles.inputError : undefined,
+              !hayPrefijo ? { backgroundColor: c.oscuro ? "#1F2937" : "#F3F4F6", color: c.textMuted } : undefined,
+            ]}
+            placeholder="1234567890"
+            placeholderTextColor="#9CA3AF"
+            autoCorrect={false}
             keyboardType="phone-pad"
             value={form.telefono}
             onChangeText={v => actualizarCampo("telefono", v.replace(/\D/g, ""))}
-            error={errores.telefono}
             editable={hayPrefijo}
-            style={!hayPrefijo ? { backgroundColor: c.oscuro ? "#1F2937" : "#F3F4F6", color: c.textMuted } : undefined}
           />
+          {errores.telefono && <Text style={s.error}>{errores.telefono}</Text>}
         </View>
       </View>
 

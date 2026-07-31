@@ -41,20 +41,27 @@ export default function TabLayout() {
           headerShown: false,
           tabBarActiveTintColor: activeColor,
           tabBarInactiveTintColor: c.textMuted,
-          tabBarStyle: {
-            backgroundColor: c.bgCard,
-            borderTopColor: c.border,
-            borderTopWidth: 1,
-            height: tabBarHeight,
-            paddingBottom:
-              Platform.OS === "android" ? insets.bottom + 4 : insets.bottom + 8,
-            paddingTop: 6,
-            elevation: 12,
-            shadowColor: c.oscuro ? "#000" : "#000",
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: c.oscuro ? 0.3 : 0.06,
-            shadowRadius: 8,
-          },
+          // En modo invitado no hay tabs reales a las que navegar (Mis
+          // reservas y Perfil están bloqueadas detrás de login, y mostrar
+          // la barra completa hace creer que hay una sesión iniciada).
+          // Se oculta del todo; el catálogo queda como única pantalla
+          // accesible, con sus propios botones de Ingresar/Registrarme.
+          tabBarStyle: usuario
+            ? {
+                backgroundColor: c.bgCard,
+                borderTopColor: c.border,
+                borderTopWidth: 1,
+                height: tabBarHeight,
+                paddingBottom:
+                  Platform.OS === "android" ? insets.bottom + 4 : insets.bottom + 8,
+                paddingTop: 6,
+                elevation: 12,
+                shadowColor: c.oscuro ? "#000" : "#000",
+                shadowOffset: { width: 0, height: -2 },
+                shadowOpacity: c.oscuro ? 0.3 : 0.06,
+                shadowRadius: 8,
+              }
+            : { display: "none" },
           tabBarLabelStyle: {
             fontSize: 11,
             fontWeight: "600",
