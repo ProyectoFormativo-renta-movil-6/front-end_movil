@@ -7,6 +7,8 @@ import { useFavoritos } from "@/modules/catalog/hooks/useFavorites";
 import { useAuthStore } from "@/store/authStore";
 import { useUsuarioStore } from "@/store/userStore";
 import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
+import { ConfiguracionModal } from "@/modules/i18n/components/ConfiguracionModal";
+import { useAuditoria } from "@/store/auditStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -117,6 +119,8 @@ export default function Catalogo() {
   const [modalFormVisible, setModalFormVisible] = useState(false);
   const [sweetAlertVisible, setSweetAlertVisible] = useState(false);
   const [alertTipo, setAlertTipo] = useState("busqueda" as AlertTipo);
+  const [ajustesVisible, setAjustesVisible] = useState(false);
+  const { registrarEvento } = useAuditoria();
 
   const ORDEN_OPCIONES = useMemo(
     () => [
@@ -187,6 +191,11 @@ export default function Catalogo() {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [paginaActual]);
 
+  // RF: la navegación del visitante queda registrada en auditoría.
+  useEffect(() => {
+    if (!usuario) registrarEvento("navegacion", "catalogo");
+  }, [usuario, registrarEvento]);
+
   // Cuando la búsqueda de disponibilidad no encuentra vehículos, se muestra
   // la misma alerta estándar de la app (sin dejar el catálogo vacío).
   useEffect(() => {
@@ -232,6 +241,7 @@ export default function Catalogo() {
   const abrirSweetAlert = (tipo: AlertTipo) => {
     setAlertTipo(tipo);
     setSweetAlertVisible(true);
+    if (!usuario) registrarEvento("accion_restringida", tipo);
   };
 
   const handleToggleSoloFavoritos = () => {
@@ -312,6 +322,13 @@ export default function Catalogo() {
           </TouchableOpacity>
         ) : (
           <View style={styles.headerBtns}>
+            <TouchableOpacity
+              style={styles.ajustesBtn}
+              onPress={() => setAjustesVisible(true)}
+              hitSlop={6}
+            >
+              <Ionicons name="settings-outline" size={19} color="#1E40AF" />
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.loginBtn}
               onPress={() => router.push("/(auth)/login")}
@@ -479,6 +496,11 @@ export default function Catalogo() {
         botones={alertBotones}
         onCerrar={() => setSweetAlertVisible(false)}
       />
+
+      <ConfiguracionModal
+        visible={ajustesVisible}
+        onClose={() => setAjustesVisible(false)}
+      />
     </View>
   );
 }
@@ -503,6 +525,15 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   headerBtns: { flexDirection: "row", gap: 8, alignItems: "center" },
+  ajustesBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: "#1E40AF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   loginBtn: {
     paddingHorizontal: 14,
     paddingVertical: 7,
