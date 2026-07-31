@@ -12,8 +12,8 @@ export interface UsuarioDemo {
 
 export const USUARIOS_DEMO: UsuarioDemo[] = [
   {
-    correo: "cliente@drivique.com",
-    contrasena: "cliente123*",
+    correo: "cliente@Drivique.com",
+    contrasena: "Cliente123*",
     id: "1",
     nombres: "Cliente",
     apellidos: "Demo",
@@ -27,7 +27,8 @@ export function buscarUsuarioDemo(
 ): UsuarioDemo | null {
   const encontrado = USUARIOS_DEMO.find(
     (u) =>
-      u.correo === correo.trim().toLowerCase() && u.contrasena === contrasena,
+      u.correo.toLowerCase() === correo.trim().toLowerCase() &&
+      u.contrasena === contrasena,
   );
   return encontrado ?? null;
 }
@@ -38,7 +39,7 @@ export function buscarUsuarioDemo(
 // producción esto se reemplaza por la llamada real DELETE /usuarios/:id.
 export function eliminarUsuarioDemo(correo: string): void {
   const indice = USUARIOS_DEMO.findIndex(
-    (u) => u.correo === correo.trim().toLowerCase(),
+    (u) => u.correo.toLowerCase() === correo.trim().toLowerCase(),
   );
   if (indice !== -1) USUARIOS_DEMO.splice(indice, 1);
 }

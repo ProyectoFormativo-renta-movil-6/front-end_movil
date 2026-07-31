@@ -1,17 +1,18 @@
 // components/ui/DateField.tsx
 //
-// Input de fecha multiplataforma para el formulario de perfil:
-//  - Web (Expo Web): usa un <input type="date"> nativo del navegador,
-//    con su propio selector de calendario y validación de formato.
-//  - iOS / Android: usa @react-native-community/datetimepicker, que ya
-//    se usaba en el formulario de "Completar perfil".
+// Input de fecha para el formulario de perfil. Usa react-native-calendars
+// (ya es dependencia del proyecto, se usa igual en el calendario de
+// reservas) en vez del selector nativo del sistema/navegador: así el
+// calendario emergente queda 100% themeado por nosotros y no depende de
+// que el navegador/SO respete "colorScheme" — que era justo lo que
+// dejaba el texto invisible (blanco sobre blanco) en el selector nativo.
 //
-// El valor siempre se maneja como string "YYYY-MM-DD" (mismo formato que
-// ya validaba el resto del módulo de perfil).
+// El valor siempre se maneja como string "YYYY-MM-DD".
 
 import React, { useState } from "react";
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Calendar, DateData } from "react-native-calendars";
 
 export function stringAFecha(valor: string): Date {
   if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
@@ -43,17 +44,12 @@ function formatearFechaVisible(valor: string): string {
 interface ColoresTema {
   border: string;
   bgInput: string;
+  bgCard: string;
   textPrimary: string;
   textSecondary: string;
   textMuted: string;
   primaryBg: string;
   primary: string;
-  /** Si el tema activo de la app es oscuro. Se usa para fijar el
-   *  color-scheme del <input type="date"> nativo del navegador — sin
-   *  esto, el navegador decide con la preferencia del SISTEMA operativo,
-   *  no con el tema elegido dentro de la app, y eso puede volver
-   *  invisibles el texto/ícono del selector cuando ambos no coinciden
-   *  (ej: app en modo claro pero el SO en modo oscuro). */
   oscuro?: boolean;
 }
 
@@ -78,104 +74,70 @@ export function DateField({
   minimumDate,
   colores: c,
 }: Props) {
-  const [mostrarPicker, setMostrarPicker] = useState(false);
+  const [visible, setVisible] = useState(false);
 
-  const handleCambiarFecha = (event: DateTimePickerEvent, fechaSeleccionada?: Date) => {
-    // En Android el picker es un diálogo nativo que se cierra solo;
-    // en iOS queda embebido, así que solo lo ocultamos al confirmar.
-    if (Platform.OS === "android") setMostrarPicker(false);
-    if (event.type === "dismissed") return;
-    if (fechaSeleccionada) onChange(fechaAString(fechaSeleccionada));
+  const handleDayPress = (day: DateData) => {
+    onChange(day.dateString);
+    setVisible(false);
   };
 
-  // ── Web: input tipo fecha nativo del navegador ─────────────────────────
-  if (Platform.OS === "web") {
-    // El texto interno que dibuja el navegador dentro de un
-    // <input type="date"> (día/mes/año) NO siempre respeta la propiedad
-    // CSS "color" — en varios navegadores (Chrome/Edge incluidos) ese
-    // texto se pinta solo según "color-scheme", ignorando por completo
-    // cualquier color que le pongamos. Eso es lo que causaba el bug:
-    // en modo claro el texto podía salir en blanco sobre fondo blanco.
-    //
-    // Solución: dejamos el <input> nativo ahí (para que siga abriendo el
-    // calendario del navegador al hacer click), pero le hacemos el texto
-    // transparente y dibujamos NOSOTROS el valor encima con un <Text>
-    // normal de React Native, que sí respeta el color del tema al 100%.
-    return (
-      <View style={s.wrap}>
-        <Text style={[s.label, { color: c.textSecondary }]}>{label}</Text>
-        <View style={{ position: "relative", justifyContent: "center" }}>
-          {/* Elemento HTML nativo — capta el click y abre el calendario,
-              pero su texto queda invisible a propósito (ver arriba). */}
-          {React.createElement("input", {
-            type: "date",
-            value: value || "",
-            max: maximumDate ? fechaAString(maximumDate) : undefined,
-            min: minimumDate ? fechaAString(minimumDate) : undefined,
-            onChange: (e: any) => onChange(e.target.value),
-            style: {
-              border: `1px solid ${error ? "#EF4444" : c.border}`,
-              backgroundColor: c.bgInput,
-              color: "transparent",
-              WebkitTextFillColor: "transparent",
-              caretColor: "transparent",
-              borderRadius: 10,
-              padding: "13px 14px",
-              fontSize: 14,
-              fontFamily: "inherit",
-              outline: "none",
-              width: "100%",
-              boxSizing: "border-box",
-              // Ayuda a que el ícono del calendario y el popup emergente
-              // del navegador combinen con el tema de la app.
-              colorScheme: c.oscuro ? "dark" : "light",
-            },
-          })}
-          {/* Nuestro propio texto, siempre visible, encima del input */}
-          <View pointerEvents="none" style={s.webOverlay}>
-            <Text style={[s.selectorText, { color: value ? c.textPrimary : c.textMuted }]} numberOfLines={1}>
-              {value ? formatearFechaVisible(value) : placeholder}
-            </Text>
-          </View>
-        </View>
-        {error ? <Text style={s.error}>{error}</Text> : null}
-      </View>
-    );
-  }
-
-  // ── iOS / Android: selector nativo con DateTimePicker ──────────────────
   return (
     <View style={s.wrap}>
       <Text style={[s.label, { color: c.textSecondary }]}>{label}</Text>
       <TouchableOpacity
         style={[s.selector, { borderColor: error ? "#EF4444" : c.border, backgroundColor: c.bgInput }]}
-        onPress={() => setMostrarPicker(true)}
+        onPress={() => setVisible(true)}
       >
         <Text style={[s.selectorText, { color: value ? c.textPrimary : c.textMuted }]}>
           {value ? formatearFechaVisible(value) : placeholder}
         </Text>
-        <Text style={{ color: c.textSecondary }}>📅</Text>
+        <Ionicons name="calendar-outline" size={18} color={c.textSecondary} />
       </TouchableOpacity>
       {error ? <Text style={s.error}>{error}</Text> : null}
 
-      {mostrarPicker && (
-        <DateTimePicker
-          value={stringAFecha(value)}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          maximumDate={maximumDate}
-          minimumDate={minimumDate}
-          onChange={handleCambiarFecha}
-        />
-      )}
-      {mostrarPicker && Platform.OS === "ios" && (
-        <TouchableOpacity
-          style={[s.botonListo, { backgroundColor: c.primaryBg }]}
-          onPress={() => setMostrarPicker(false)}
-        >
-          <Text style={[s.botonListoTexto, { color: c.primary }]}>Listo</Text>
-        </TouchableOpacity>
-      )}
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
+        <Pressable style={s.overlay} onPress={() => setVisible(false)}>
+          <Pressable style={[s.sheet, { backgroundColor: c.bgCard }]} onPress={() => {}}>
+            <View style={[s.handle, { backgroundColor: c.border }]} />
+            <View style={s.sheetHeader}>
+              <Text style={[s.sheetTitulo, { color: c.textPrimary }]}>{label}</Text>
+              <TouchableOpacity onPress={() => setVisible(false)} hitSlop={10}>
+                <Ionicons name="close" size={22} color={c.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            <Calendar
+              key={c.oscuro ? "dark-cal" : "light-cal"}
+              current={value || (maximumDate ? fechaAString(maximumDate) : undefined)}
+              maxDate={maximumDate ? fechaAString(maximumDate) : undefined}
+              minDate={minimumDate ? fechaAString(minimumDate) : undefined}
+              onDayPress={handleDayPress}
+              markedDates={
+                value ? { [value]: { selected: true, selectedColor: c.primary } } : undefined
+              }
+              theme={{
+                backgroundColor: c.bgCard,
+                calendarBackground: c.bgCard,
+                todayTextColor: c.primary,
+                todayBackgroundColor: c.primaryBg,
+                arrowColor: c.primary,
+                monthTextColor: c.textPrimary,
+                textMonthFontWeight: "700",
+                textMonthFontSize: 15,
+                textSectionTitleColor: c.textSecondary,
+                textDayHeaderFontWeight: "600",
+                textDayHeaderFontSize: 11,
+                dayTextColor: c.textPrimary,
+                textDisabledColor: c.textMuted,
+                textDayFontSize: 13,
+                textDayFontWeight: "500",
+                selectedDayBackgroundColor: c.primary,
+                selectedDayTextColor: "#FFFFFF",
+              }}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -183,14 +145,6 @@ export function DateField({
 const s = StyleSheet.create({
   wrap: { marginBottom: 4 },
   label: { fontSize: 13, fontWeight: "600", marginBottom: 6 },
-  webOverlay: {
-    position: "absolute",
-    left: 14,
-    right: 36,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-  },
   selector: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -202,12 +156,33 @@ const s = StyleSheet.create({
   },
   selectorText: { fontSize: 14 },
   error: { fontSize: 12, color: "#EF4444", marginTop: 4 },
-  botonListo: {
-    alignSelf: "flex-end",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 8,
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
   },
-  botonListoTexto: { fontWeight: "700", fontSize: 13 },
+  sheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: "center",
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  sheetTitulo: {
+    fontSize: 16,
+    fontWeight: "800",
+  },
 });

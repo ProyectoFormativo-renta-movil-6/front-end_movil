@@ -45,11 +45,6 @@ function getSafeImages(vehiculo: Vehiculo): string[] {
   return [];
 }
 
-function formatPrecio(precio: number): string {
-  const { monedaActual, tasaUSD } = useMonedaStore.getState();
-  return formatCurrency(precio, monedaActual, tasaUSD);
-}
-
 function Estrella({ llena }: { llena: boolean }) {
   return (
     <Ionicons
@@ -68,9 +63,11 @@ function VehiculoCard({
   onToggleFavorito,
   datosPrecarga,
 }: Props) {
-  // Nos suscribimos al store de moneda para re-renderizar los precios
-  // cuando cambie COP↔USD o llegue una tasa nueva.
-  useMonedaStore();
+  // Suscripción con selector: garantiza el re-render cuando cambie
+  // COP↔USD o llegue una tasa nueva (suscribirse sin selector no lo
+  // hacía de forma confiable dentro de las filas del FlatList).
+  const monedaActual = useMonedaStore((s) => s.monedaActual);
+  const tasaUSD = useMonedaStore((s) => s.tasaUSD);
   const c = useTemaColores();
   const { t } = useTranslation();
   const [fotoActiva, setFotoActiva] = useState(0);
@@ -239,7 +236,7 @@ function VehiculoCard({
             </View>
 
             <Text style={styles.precio}>
-              {formatPrecio(vehiculo.precio)}
+              {formatCurrency(vehiculo.precio, monedaActual, tasaUSD)}
               <Text style={[styles.precioDia, { color: c.textMuted }]}> /{t("catalogo.porDia")}</Text>
             </Text>
 
