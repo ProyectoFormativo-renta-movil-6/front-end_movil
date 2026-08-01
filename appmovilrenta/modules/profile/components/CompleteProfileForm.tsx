@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { useCompletarPerfil } from "@/modules/profile/hooks/useProfile";
@@ -16,6 +17,7 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { InputField } from "@/components/ui/InputField";
 import { inputFieldStyles } from "@/components/ui/InputField.styles";
 import { DateField } from "@/components/ui/DateField";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { getPrefijoPorNacionalidad } from "@/modules/reservation/constants/reservation.constants";
 
 const TIPOS_DOCUMENTO: TipoDocumento[] = ["CC", "TI", "Doc. Extranjero", "Pasaporte"];
@@ -58,8 +60,25 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
     );
   };
 
+  const colores = {
+    textSecondary: c.textSecondary,
+    border: c.border,
+    bgInput: c.bgInput,
+    textPrimary: c.textPrimary,
+  };
+
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
+      {/* Intro */}
+      <View style={s.intro}>
+        <View style={[s.introIconWrap, { backgroundColor: c.primaryBg }]}>
+          <Ionicons name="person-circle-outline" size={30} color="#1D4ED8" />
+        </View>
+        <Text style={[s.introTitulo, { color: c.textPrimary }]}>{t("perfil.completarPerfil")}</Text>
+        <Text style={[s.introSub, { color: c.textSecondary }]}>{t("perfil.completarPerfilSub")}</Text>
+      </View>
+
+      <SectionLabel icono="person-outline" texto={t("perfil.datosPersonales")} primaryBg={c.primaryBg} />
 
       <InputField
         label={t("perfil.nombres")}
@@ -68,6 +87,7 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
         value={form.nombres}
         onChangeText={v => actualizarCampo("nombres", v)}
         error={errores.nombres}
+        colores={colores}
       />
       <InputField
         label={t("perfil.apellidos")}
@@ -76,19 +96,22 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
         value={form.apellidos}
         onChangeText={v => actualizarCampo("apellidos", v)}
         error={errores.apellidos}
+        colores={colores}
       />
+
       {/* Nacionalidad (primero, para poder derivar el prefijo del teléfono) */}
       <Text style={[s.label, { color: c.textSecondary }]}>{t("perfil.nacionalidad")}</Text>
       <TouchableOpacity
         style={[s.selector, { borderColor: errores.nacionalidad ? "#EF4444" : c.border, backgroundColor: c.bgInput }]}
         onPress={() => setShowNacionalidad(v => !v)}
+        activeOpacity={0.7}
       >
         <Text style={[s.selectorText, { color: form.nacionalidad ? c.textPrimary : "#9CA3AF" }]}>
           {form.nacionalidad
             ? `${NACIONALIDADES.find(n => n.valor === form.nacionalidad)?.bandera} ${form.nacionalidad}`
             : t("perfil.seleccionar")}
         </Text>
-        <Text style={{ color: c.textSecondary }}>▾</Text>
+        <Ionicons name={showNacionalidad ? "chevron-up" : "chevron-down"} size={16} color={c.textSecondary} />
       </TouchableOpacity>
       {showNacionalidad && (
         <View style={[s.dropdown, { borderColor: c.border, backgroundColor: c.bgCard }]}>
@@ -97,15 +120,21 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
               key={valor}
               style={[s.dropdownItem, form.nacionalidad === valor && { backgroundColor: c.primaryBg }]}
               onPress={() => { actualizarCampo("nacionalidad", valor); setShowNacionalidad(false); }}
+              activeOpacity={0.7}
             >
               <Text style={[s.dropdownText, { color: form.nacionalidad === valor ? "#1D4ED8" : c.textPrimary }]}>
                 {bandera} {valor}
               </Text>
+              {form.nacionalidad === valor && (
+                <Ionicons name="checkmark-circle" size={18} color="#1D4ED8" />
+              )}
             </TouchableOpacity>
           ))}
         </View>
       )}
       {errores.nacionalidad && <Text style={s.error}>{errores.nacionalidad}</Text>}
+
+      <SectionLabel icono="call-outline" texto={t("perfil.seccionContacto")} primaryBg={c.primaryBg} />
 
       {/* Teléfono: el prefijo del país se completa solo según la nacionalidad elegida arriba */}
       <Text style={[s.label, { color: c.textSecondary }]}>{t("perfil.telefono")}</Text>
@@ -125,6 +154,7 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
           <TextInput
             style={[
               inputFieldStyles.input,
+              { borderColor: c.border, backgroundColor: c.bgInput, color: c.textPrimary },
               errores.telefono ? inputFieldStyles.inputError : undefined,
               !hayPrefijo ? { backgroundColor: c.oscuro ? "#1F2937" : "#F3F4F6", color: c.textMuted } : undefined,
             ]}
@@ -139,6 +169,8 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
           {errores.telefono && <Text style={s.error}>{errores.telefono}</Text>}
         </View>
       </View>
+
+      <SectionLabel icono="card-outline" texto={t("perfil.seccionDocumento")} primaryBg={c.primaryBg} />
 
       <DateField
         label={t("perfil.fechaNac")}
@@ -155,13 +187,14 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
       <TouchableOpacity
         style={[s.selector, { borderColor: errores.tipoDocumento ? "#EF4444" : c.border, backgroundColor: c.bgInput }]}
         onPress={() => setShowTipoDoc(v => !v)}
+        activeOpacity={0.7}
       >
         <Text style={[s.selectorText, { color: form.tipoDocumento ? c.textPrimary : "#9CA3AF" }]}>
           {form.tipoDocumento
             ? t(`reserva.datosPersonales.tiposDocumento.${form.tipoDocumento === "Doc. Extranjero" ? "DocExtranjero" : form.tipoDocumento}`, { defaultValue: form.tipoDocumento })
             : t("perfil.seleccionar")}
         </Text>
-        <Text style={{ color: c.textSecondary }}>▾</Text>
+        <Ionicons name={showTipoDoc ? "chevron-up" : "chevron-down"} size={16} color={c.textSecondary} />
       </TouchableOpacity>
       {showTipoDoc && (
         <View style={[s.dropdown, { borderColor: c.border, backgroundColor: c.bgCard }]}>
@@ -170,10 +203,14 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
               key={tipo}
               style={[s.dropdownItem, form.tipoDocumento === tipo && { backgroundColor: c.primaryBg }]}
               onPress={() => { actualizarCampo("tipoDocumento", tipo); setShowTipoDoc(false); }}
+              activeOpacity={0.7}
             >
               <Text style={[s.dropdownText, { color: form.tipoDocumento === tipo ? "#1D4ED8" : c.textPrimary }]}>
                 {t(`reserva.datosPersonales.tiposDocumento.${tipo === "Doc. Extranjero" ? "DocExtranjero" : tipo}`, { defaultValue: tipo })}
               </Text>
+              {form.tipoDocumento === tipo && (
+                <Ionicons name="checkmark-circle" size={18} color="#1D4ED8" />
+              )}
             </TouchableOpacity>
           ))}
         </View>
@@ -187,6 +224,7 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
         value={form.numeroDocumento}
         onChangeText={v => actualizarCampo("numeroDocumento", v)}
         error={errores.numeroDocumento}
+        colores={colores}
       />
 
       <View style={{ marginTop: 24 }}>
@@ -197,6 +235,30 @@ export function FormCompletarPerfil({ onGuardado }: Props) {
 }
 
 const s = StyleSheet.create({
+  intro: {
+    alignItems: "center",
+    marginBottom: 20,
+    paddingHorizontal: 8,
+  },
+  introIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  introTitulo: {
+    fontSize: 17,
+    fontWeight: "800",
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  introSub: {
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 18,
+  },
   label: {
     fontSize: 13,
     fontWeight: "600",
@@ -223,6 +285,9 @@ const s = StyleSheet.create({
     overflow: "hidden",
   },
   dropdownItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 14,
     paddingVertical: 13,
   },
@@ -260,8 +325,7 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   botonConfirmarFechaTexto: {
-    color: "#1D4ED8",
-    fontWeight: "700",
     fontSize: 13,
+    fontWeight: "700",
   },
 });

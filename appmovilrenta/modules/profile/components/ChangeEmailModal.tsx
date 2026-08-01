@@ -150,8 +150,9 @@ export function ModalCambiarCorreo({
 
             {/* Nota seguridad */}
             <View style={styles.notaWrap}>
+              <Ionicons name="lock-closed-outline" size={16} color="#1D4ED8" />
               <Text style={styles.notaText}>
-                🔐 {t("perfil.cambiarCorreo.notaSeguridad")}
+                {t("perfil.cambiarCorreo.notaSeguridad")}
               </Text>
             </View>
 
@@ -312,6 +313,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   notaWrap: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
     backgroundColor: "#EFF6FF",
     borderRadius: 10,
     padding: 12,
@@ -320,6 +324,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   notaText: {
+    flex: 1,
     fontSize: 12,
     color: "#1D4ED8",
     lineHeight: 18,
