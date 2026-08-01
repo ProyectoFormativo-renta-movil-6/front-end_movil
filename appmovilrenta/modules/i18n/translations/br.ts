@@ -276,6 +276,7 @@ export default {
     registro: 'Cadastrar',
     vehiculosContador: '{{count}} veículos',
     sinFavoritosGuardados: 'Você ainda não tem favoritos salvos',
+    sinResultadosFiltros: 'Nenhum veículo corresponde a esses filtros. Tente ajustá-los ou limpá-los para ver o catálogo completo.',
     bannerRegistro: {
       titulo: 'Funcionalidade exclusiva',
       mensaje: 'Cadastre-se para reservar este veículo e acessar todas as funcionalidades.',
@@ -475,6 +476,8 @@ export default {
     guardarDatos: 'Salvar dados',
     seleccionar: 'Selecionar...',
     datosPersonales: 'DADOS PESSOAIS',
+    seccionContacto: 'CONTATO',
+    seccionDocumento: 'DOCUMENTO DE IDENTIDADE',
     documento: 'Documento',
     correoElectronico: 'ENDEREÇO DE E-MAIL',
     correoActual: 'E-mail atual',

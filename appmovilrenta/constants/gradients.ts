@@ -10,7 +10,7 @@ export type GradienteConfig = {
   colors: [string, string, ...string[]];
   start: { x: number; y: number };
   end: { x: number; y: number };
-  locations?: number[];
+  locations?: [number, number, ...number[]];
 };
 
 export const GRADIENTES: Record<string, GradienteConfig> = {
