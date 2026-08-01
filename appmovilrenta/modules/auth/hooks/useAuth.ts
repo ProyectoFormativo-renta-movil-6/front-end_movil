@@ -1,14 +1,7 @@
 import { useState } from 'react';
 import { LoginForm, RegistroForm, OlvideContrasenaForm, AuthError } from '../types/auth.types';
 import { buscarUsuarioDemo, UsuarioDemo } from '../../../mocks/demoUsers';
-
-function validarCorreo(correo: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) && !correo.includes(' ');
-}
-
-function validarContrasenaSegura(contrasena: string): boolean {
-  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(contrasena);
-}
+import { esCorreoValido as validarCorreo, esContrasenaSegura as validarContrasenaSegura } from '@/utils/validators';
 
 // ── useLogin (RF43) ──────────────────────────────────────────────────────────
 

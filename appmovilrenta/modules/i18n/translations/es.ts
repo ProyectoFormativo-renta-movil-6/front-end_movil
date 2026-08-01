@@ -288,6 +288,7 @@ export default {
     registro: 'Registro',
     vehiculosContador: '{{count}} vehículos',
     sinFavoritosGuardados: 'Aún no tienes favoritos guardados',
+    sinResultadosFiltros: 'No hay vehículos con estos filtros. Prueba ajustarlos o límpialos para ver todo el catálogo.',
     bannerRegistro: {
       titulo: 'Función exclusiva',
       mensaje: 'Regístrate para reservar este vehículo y acceder a todas las funcionalidades.',
@@ -505,6 +506,8 @@ export default {
     guardarDatos: 'Guardar datos',
     seleccionar: 'Seleccionar...',
     datosPersonales: 'DATOS PERSONALES',
+    seccionContacto: 'CONTACTO',
+    seccionDocumento: 'DOCUMENTO DE IDENTIDAD',
     documento: 'Documento',
     correoElectronico: 'CORREO ELECTRÓNICO',
     correoActual: 'Correo actual',

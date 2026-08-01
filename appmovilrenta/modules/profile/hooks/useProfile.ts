@@ -12,6 +12,7 @@
 import { useUsuarioStore } from "@/store/userStore";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { calcularEdad, esCorreoValido, esTelefonoValido } from "@/utils/validators";
 import {
   ErroresCambiarCorreo,
   ErroresCompletarPerfil,
@@ -96,7 +97,7 @@ export function usePerfil() {
 
     if (!form.telefono.trim()) {
       nuevosErrores.telefono = t("perfil.validacion.telefonoObligatorio");
-    } else if (!/^\+?[\d\s\-(). ]{7,20}$/.test(form.telefono.trim())) {
+    } else if (!esTelefonoValido(form.telefono)) {
       nuevosErrores.telefono = t("perfil.validacion.telefonoInvalido");
     }
 
@@ -105,21 +106,13 @@ export function usePerfil() {
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.fechaNacimiento)) {
       nuevosErrores.fechaNacimiento = t("perfil.validacion.fechaFormato");
     } else {
-      const fechaNac = new Date(form.fechaNacimiento);
-      if (isNaN(fechaNac.getTime())) {
+      const edad = calcularEdad(form.fechaNacimiento);
+      if (edad === null) {
         nuevosErrores.fechaNacimiento = t("perfil.validacion.fechaFormato");
-      } else {
-        const hoy = new Date();
-        let edad = hoy.getFullYear() - fechaNac.getFullYear();
-        const mesDiff = hoy.getMonth() - fechaNac.getMonth();
-        if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < fechaNac.getDate())) {
-          edad--;
-        }
-        if (hoy < fechaNac) {
-          nuevosErrores.fechaNacimiento = t("perfil.validacion.fechaFutura", { defaultValue: "La fecha no puede ser futura" });
-        } else if (edad < 16) {
-          nuevosErrores.fechaNacimiento = t("perfil.validacion.menorEdad", { defaultValue: "Debes tener al menos 16 años" });
-        }
+      } else if (new Date() < new Date(form.fechaNacimiento)) {
+        nuevosErrores.fechaNacimiento = t("perfil.validacion.fechaFutura", { defaultValue: "La fecha no puede ser futura" });
+      } else if (edad < 16) {
+        nuevosErrores.fechaNacimiento = t("perfil.validacion.menorEdad", { defaultValue: "Debes tener al menos 16 años" });
       }
     }
 
@@ -136,7 +129,7 @@ export function usePerfil() {
 
     if (!formCorreo.nuevoCorreo.trim()) {
       nuevosErrores.nuevoCorreo = t("perfil.validacion.correoObligatorio");
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formCorreo.nuevoCorreo)) {
+    } else if (!esCorreoValido(formCorreo.nuevoCorreo)) {
       nuevosErrores.nuevoCorreo = t("perfil.validacion.correoInvalido");
     } else if (formCorreo.nuevoCorreo === usuario.correo) {
       nuevosErrores.nuevoCorreo = t("perfil.validacion.correoDebeSerDiferente");
@@ -284,7 +277,7 @@ export function useCompletarPerfil() {
       e.apellidos = t("perfil.validacion.apellidosSoloLetras");
 
     if (!form.telefono.trim()) e.telefono = t("perfil.validacion.telefonoObligatorio");
-    else if (!/^\+?[\d\s\-(). ]{7,20}$/.test(form.telefono.trim()))
+    else if (!esTelefonoValido(form.telefono))
       e.telefono = t("perfil.validacion.telefonoInvalido");
 
     if (!form.fechaNacimiento) {
@@ -292,21 +285,13 @@ export function useCompletarPerfil() {
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.fechaNacimiento)) {
       e.fechaNacimiento = t("perfil.validacion.fechaFormato");
     } else {
-      const fechaNac = new Date(form.fechaNacimiento);
-      if (isNaN(fechaNac.getTime())) {
+      const edad = calcularEdad(form.fechaNacimiento);
+      if (edad === null) {
         e.fechaNacimiento = t("perfil.validacion.fechaFormato");
-      } else {
-        const hoy = new Date();
-        let edad = hoy.getFullYear() - fechaNac.getFullYear();
-        const mesDiff = hoy.getMonth() - fechaNac.getMonth();
-        if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < fechaNac.getDate())) {
-          edad--;
-        }
-        if (hoy < fechaNac) {
-          e.fechaNacimiento = t("perfil.validacion.fechaFutura", { defaultValue: "La fecha no puede ser futura" });
-        } else if (edad < 16) {
-          e.fechaNacimiento = t("perfil.validacion.menorEdad", { defaultValue: "Debes tener al menos 16 años" });
-        }
+      } else if (new Date() < new Date(form.fechaNacimiento)) {
+        e.fechaNacimiento = t("perfil.validacion.fechaFutura", { defaultValue: "La fecha no puede ser futura" });
+      } else if (edad < 16) {
+        e.fechaNacimiento = t("perfil.validacion.menorEdad", { defaultValue: "Debes tener al menos 16 años" });
       }
     }
 
