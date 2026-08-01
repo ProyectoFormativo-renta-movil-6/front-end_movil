@@ -4,6 +4,7 @@
     "strict": true,
     "skipLibCheck": true,
     "jsx": "react-native",
+    "moduleSuffixes": [".native", ".ios", ".android", ".web", ""],
     "paths": {
       "@/*": [
         "./*"

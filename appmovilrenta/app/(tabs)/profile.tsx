@@ -35,6 +35,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { GRADIENTES } from "@/constants/gradients";
 import { eliminarUsuarioDemo } from "@/mocks/demoUsers";
 import { DateField } from "@/components/ui/DateField";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Ionicons } from "@expo/vector-icons";
 import { getPrefijoPorNacionalidad, NACIONALIDADES } from "@/modules/reservation/constants/reservation.constants";
 import CampoSelectorLista from "@/modules/reservation/components/ListSelectorField";
@@ -320,22 +321,15 @@ export default function PerfilScreen() {
           <Text style={[styles.editHeaderTitle, { color: "#ffffff" }]}>{t("perfil.editarTitulo")}</Text>
         </LinearGradient>
 
-        {/* Avatar */}
-        <View style={styles.editAvatarWrap}>
-          <View style={styles.editAvatar}>
-            <Text style={styles.editAvatarText}>
-              {usuario.nombres.charAt(0)}{usuario.apellidos.charAt(0)}
-            </Text>
-          </View>
-        </View>
-
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: Platform.OS === "android" ? 100 : 60 }}
+          contentContainerStyle={{ paddingTop: 20, paddingBottom: Platform.OS === "android" ? 100 : 60 }}
         >
           {/* Formulario */}
-          <View style={[styles.editCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+          <View style={styles.editFormWrap}>
+            <SectionLabel icono="person-outline" texto={t("perfil.datosPersonales")} primaryBg={c.primaryBg} />
+
             <View style={styles.editCampoWrap}>
               <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.nombres")}</Text>
               <TextInput
@@ -374,6 +368,20 @@ export default function PerfilScreen() {
             </View>
 
             <View style={styles.editCampoWrap}>
+              <DateField
+                label={t("perfil.fechaNac")}
+                value={form.fechaNacimiento}
+                onChange={(val) => actualizarCampo("fechaNacimiento", val)}
+                error={errores.fechaNacimiento}
+                placeholder={t("perfil.seleccionar")}
+                maximumDate={new Date()}
+                colores={c}
+              />
+            </View>
+
+            <SectionLabel icono="call-outline" texto={t("perfil.seccionContacto")} primaryBg={c.primaryBg} />
+
+            <View style={styles.editCampoWrap}>
               <Text style={[styles.editCampoLabel, { color: c.textSecondary }]}>{t("perfil.telefono")}</Text>
               <View style={styles.editFilaCelular}>
                 <View
@@ -403,18 +411,6 @@ export default function PerfilScreen() {
                 />
               </View>
               {errores.telefono && <Text style={styles.editErrorText}>{errores.telefono}</Text>}
-            </View>
-
-            <View style={styles.editCampoWrap}>
-              <DateField
-                label={t("perfil.fechaNac")}
-                value={form.fechaNacimiento}
-                onChange={(val) => actualizarCampo("fechaNacimiento", val)}
-                error={errores.fechaNacimiento}
-                placeholder={t("perfil.seleccionar")}
-                maximumDate={new Date()}
-                colores={c}
-              />
             </View>
           </View>
 

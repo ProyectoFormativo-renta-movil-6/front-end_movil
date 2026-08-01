@@ -276,6 +276,7 @@ export default {
     registro: 'Inscription',
     vehiculosContador: '{{count}} véhicules',
     sinFavoritosGuardados: "Vous n'avez pas encore de favoris enregistrés",
+    sinResultadosFiltros: "Aucun véhicule ne correspond à ces filtres. Essayez de les ajuster ou de les effacer pour voir tout le catalogue.",
     bannerRegistro: {
       titulo: 'Fonctionnalité exclusive',
       mensaje: 'Inscrivez-vous pour réserver ce véhicule et accéder à toutes les fonctionnalités.',
@@ -475,6 +476,8 @@ export default {
     guardarDatos: 'Enregistrer',
     seleccionar: 'Sélectionner...',
     datosPersonales: 'DONNÉES PERSONNELLES',
+    seccionContacto: 'CONTACT',
+    seccionDocumento: "PIÈCE D'IDENTITÉ",
     documento: 'Document',
     correoElectronico: 'ADRESSE E-MAIL',
     correoActual: 'E-mail actuel',

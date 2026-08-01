@@ -126,14 +126,18 @@ export const reservaPersistService = {
     const reservas = await leer();
 
     const esEfectivo = reserva.metodoPago === "efectivo";
-    const reservaFinal: ReservaGuardada = esEfectivo
-      ? {
-          ...reserva,
-          estado: "PENDIENTE_EFECTIVO",
-          fechaLimitePago: calcularFechaLimitePago(),
-          horasLimitePago: HORAS_LIMITE_PAGO_EFECTIVO,
-        }
-      : { ...reserva, estado: reserva.estado ?? "PENDIENTE" };
+    // La firma de índice de ReservaGuardada ([extra: string]: unknown) hace
+    // que Omit<ReservaGuardada, "estado"> pierda el tipo de las propiedades
+    // específicas — es un problema de inferencia de TS, no de runtime (acá
+    // sí están todas, vienen del spread de `reserva`).
+    const reservaFinal = {
+      ...reserva,
+      estado: esEfectivo ? "PENDIENTE_EFECTIVO" : reserva.estado ?? "PENDIENTE",
+    } as ReservaGuardada;
+    if (esEfectivo) {
+      reservaFinal.fechaLimitePago = calcularFechaLimitePago();
+      reservaFinal.horasLimitePago = HORAS_LIMITE_PAGO_EFECTIVO;
+    }
 
     reservas.push(reservaFinal);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(reservas));
