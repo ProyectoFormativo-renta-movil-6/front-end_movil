@@ -5,7 +5,6 @@ import VehiculoCard from "@/modules/catalog/components/VehicleCard";
 import { useCatalogo } from "@/modules/catalog/hooks/useCatalog";
 import { useFavoritos } from "@/modules/catalog/hooks/useFavorites";
 import { useAuthStore } from "@/store/authStore";
-import { useUsuarioStore } from "@/store/userStore";
 import { useTemaColores } from "@/modules/i18n/hooks/useLanguage";
 import { ConfiguracionModal } from "@/modules/i18n/components/ConfiguracionModal";
 import { useAuditoria } from "@/store/auditStore";
@@ -24,17 +23,38 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type AlertTipo = "busqueda" | "reservar" | "favorito" | "sinResultados";
+type AlertTipo = "busqueda" | "reservar" | "favorito";
 
-function nombreDesdeCorreo(correo?: string): string {
-  if (!correo) return "Usuario";
-  const parteLocal = correo.split("@")[0] ?? "";
-  const limpio = parteLocal.replace(/[._-]+/g, " ").trim();
-  if (!limpio) return "Usuario";
-  return limpio
-    .split(" ")
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
-    .join(" ");
+// Aviso de "sin resultados" (buscador de fechas o filtros): a propósito NO
+// es un <Modal> — es un banner normal, dentro del árbol de la pantalla.
+// Antes se mostraba con el mismo AlertModal que usan "favorito"/"reservar",
+// pero eso significaba presentar un <Modal> nativo justo cuando otro
+// (Filtros o Buscar) recién se estaba cerrando, y en iOS/RN dos <Modal>
+// coincidiendo en pantalla — aunque sea un instante — deja todo bloqueado:
+// no responde ni al toque ni al scroll. Un banner normal no tiene ese
+// riesgo porque nunca compite con la presentación nativa de otro modal.
+function BannerSinResultados({
+  onCerrar,
+  c,
+}: {
+  onCerrar: () => void;
+  c: ReturnType<typeof useTemaColores>;
+}) {
+  const { t } = useTranslation();
+  return (
+    <View style={[styles.bannerSinResultados, { backgroundColor: c.primaryBg, borderColor: "#1E40AF" }]}>
+      <Ionicons name="car-outline" size={22} color="#1E40AF" />
+      <View style={styles.bannerSinResultadosTextos}>
+        <Text style={styles.bannerSinResultadosTitulo}>{t("catalogo.alertas.sinResultadosTitulo")}</Text>
+        <Text style={[styles.bannerSinResultadosMensaje, { color: c.textSecondary }]}>
+          {t("catalogo.alertas.sinResultadosMensaje")}
+        </Text>
+      </View>
+      <TouchableOpacity onPress={onCerrar} hitSlop={8}>
+        <Ionicons name="close" size={18} color={c.textMuted} />
+      </TouchableOpacity>
+    </View>
+  );
 }
 
 function ListFooter({
@@ -114,7 +134,6 @@ export default function Catalogo() {
   const c = useTemaColores();
   const { t } = useTranslation();
   const usuario = useAuthStore((state) => state.usuario);
-  const usuarioDetalle = useUsuarioStore((state) => state.usuario);
   const [textBusqueda, setTextBusqueda] = useState("");
   const [modalFormVisible, setModalFormVisible] = useState(false);
   const [sweetAlertVisible, setSweetAlertVisible] = useState(false);
@@ -148,11 +167,6 @@ export default function Catalogo() {
         titulo: t("catalogo.alertas.favoritoTitulo"),
         mensaje: t("catalogo.alertas.favoritoMensaje"),
       },
-      sinResultados: {
-        icono: "car-outline" as const,
-        titulo: t("catalogo.alertas.sinResultadosTitulo"),
-        mensaje: t("catalogo.alertas.sinResultadosMensaje"),
-      },
     }),
     [t]
   );
@@ -166,6 +180,7 @@ export default function Catalogo() {
     error,
     filtros,
     setFiltro,
+    vehiculosFiltrados,
     vehiculosPaginados,
     limpiarFiltros,
     limpiarBusqueda,
@@ -176,11 +191,13 @@ export default function Catalogo() {
     errorBusqueda,
     sinResultadosBusqueda,
     cerrarAlertaSinResultados,
+    sinResultadosFiltros,
     paginaActual,
     totalPaginas,
     paginaSiguiente,
     paginaAnterior,
-  } = useCatalogo();
+    setPagina,
+  } = useCatalogo({ soloFavoritos, esFavorito, textoBusqueda: textBusqueda });
 
   const [filtrosVisible, setFiltrosVisible] = useState(false);
   const [ordenVisible, setOrdenVisible] = useState(false);
@@ -196,35 +213,23 @@ export default function Catalogo() {
     if (!usuario) registrarEvento("navegacion", "catalogo");
   }, [usuario, registrarEvento]);
 
-  // Cuando la búsqueda de disponibilidad no encuentra vehículos, se muestra
-  // la misma alerta estándar de la app (sin dejar el catálogo vacío).
-  useEffect(() => {
-    if (sinResultadosBusqueda) {
-      setAlertTipo("sinResultados");
-      setSweetAlertVisible(true);
-      cerrarAlertaSinResultados();
-    }
-  }, [sinResultadosBusqueda, cerrarAlertaSinResultados]);
-
   const ordenLabel =
     ORDEN_OPCIONES.find((o) => o.valor === filtros.orden)?.label ??
     t("catalogo.ordenar.porDefecto");
 
   const filtrosActivos =
+    filtros.categoria !== "Todos" ||
+    filtros.ciudad !== "Todas las ciudades" ||
     filtros.sucursal !== "Todas las sucursales" ||
+    filtros.transmision !== "Todas" ||
+    filtros.combustible !== "Todos" ||
     !!filtros.precioMin ||
     !!filtros.precioMax ||
     soloFavoritos;
 
-  const vehiculosAMostrar = vehiculosPaginados.filter((vehiculo: any) => {
-    const busqueda = textBusqueda.toLowerCase();
-    const coincideTexto =
-      (vehiculo.nombre || "").toLowerCase().includes(busqueda) ||
-      (vehiculo.marca || "").toLowerCase().includes(busqueda) ||
-      (vehiculo.modelo || "").toLowerCase().includes(busqueda);
-    const coincideFavorito = soloFavoritos ? esFavorito(vehiculo.id) : true;
-    return coincideTexto && coincideFavorito;
-  });
+  // El hook ya aplica favoritos y texto de búsqueda ANTES de paginar
+  // (ver useCatalogo), así que lo que llega acá ya viene correcto.
+  const vehiculosAMostrar = vehiculosPaginados;
 
   // Si el usuario completó una búsqueda válida en "Consultar disponibilidad",
   // esos datos precargan (editables) el resumen de la reserva. lugarDevolucion
@@ -244,56 +249,49 @@ export default function Catalogo() {
     if (!usuario) registrarEvento("accion_restringida", tipo);
   };
 
+  // Si la combinación de filtros (categoría, ciudad, sucursal, precio,
+  // transmisión, combustible o el buscador de texto) no deja ningún
+  // vehículo, useCatalogo vuelve a mostrar el catálogo completo por su
+  // cuenta (ver sinResultadosFiltros/resultado en useCatalog.ts) y acá se
+  // muestra el banner (no modal) encima de la lista. Se "re-arma" cada vez
+  // que el usuario toca un filtro, para que vuelva a aparecer si la nueva
+  // combinación también da 0.
+  const [bannerFiltrosCerrado, setBannerFiltrosCerrado] = useState(false);
+  useEffect(() => {
+    setBannerFiltrosCerrado(false);
+  }, [filtros, soloFavoritos, textBusqueda]);
+  const mostrarBannerFiltros = sinResultadosFiltros && !bannerFiltrosCerrado;
+
   const handleToggleSoloFavoritos = () => {
     setSoloFavoritos((prev) => !prev);
+    setPagina(1);
   };
 
-  // Al tocar el bloque "Bienvenido, ..." + avatar, lleva al tab Perfil
-  // (mismo destino que la pestaña "Perfil" de la barra de navegación).
-  const irAPerfil = () => {
-    router.push("/(tabs)/profile");
+  const handleLimpiarFiltros = () => {
+    limpiarFiltros();
+    setSoloFavoritos(false);
   };
 
   const alertInfo = ALERT_CONTENT[alertTipo];
 
-  // La alerta de "sin resultados" es informativa: solo botón "Entendido".
-  // El resto de alertas mantiene los botones Cancelar / Iniciar sesion.
-  const alertBotones =
-    alertTipo === "sinResultados"
-      ? [
-          {
-            texto: t("catalogo.alertas.entendido"),
-            variante: "primario" as const,
-            onPress: () => setSweetAlertVisible(false),
-          },
-        ]
-      : [
-          {
-            texto: t("catalogo.alertas.cancelar"),
-            variante: "secundario" as const,
-            onPress: () => setSweetAlertVisible(false),
-          },
-          {
-            texto: t("catalogo.alertas.iniciarSesion"),
-            variante: "primario" as const,
-            onPress: () => {
-              setSweetAlertVisible(false);
-              router.push("/(auth)/login");
-            },
-          },
-        ];
-
-  const nombreUsuario = usuario
-    ? ((usuarioDetalle.nombres?.trim() || usuarioDetalle.apellidos?.trim())
-      ? `${usuarioDetalle.nombres} ${usuarioDetalle.apellidos}`.trim()
-      : nombreDesdeCorreo(usuarioDetalle.correo || usuario.correo))
-    : "";
-
-  const inicialUsuario = usuario
-    ? ((usuarioDetalle.nombres || usuarioDetalle.apellidos)
-      ? `${usuarioDetalle.nombres.charAt(0)}${usuarioDetalle.apellidos.charAt(0)}`.toUpperCase()
-      : nombreDesdeCorreo(usuarioDetalle.correo || usuario.correo).charAt(0).toUpperCase())
-    : "";
+  // "sinResultados" ya no pasa por acá — ahora es el banner no-modal (ver
+  // BannerSinResultados). AlertModal queda solo para las 3 acciones que sí
+  // necesitan Cancelar / Iniciar sesión.
+  const alertBotones = [
+    {
+      texto: t("catalogo.alertas.cancelar"),
+      variante: "secundario" as const,
+      onPress: () => setSweetAlertVisible(false),
+    },
+    {
+      texto: t("catalogo.alertas.iniciarSesion"),
+      variante: "primario" as const,
+      onPress: () => {
+        setSweetAlertVisible(false);
+        router.push("/(auth)/login");
+      },
+    },
+  ];
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
@@ -307,20 +305,7 @@ export default function Catalogo() {
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Drivique</Text>
         </View>
-        {usuario ? (
-          <TouchableOpacity
-            style={styles.headerUsuario}
-            onPress={irAPerfil}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.headerUsuarioTexto, { color: c.textSecondary }]} numberOfLines={1}>
-              {t("catalogo.bienvenido", { nombre: nombreUsuario })}
-            </Text>
-            <View style={styles.headerAvatar}>
-              <Text style={styles.headerAvatarTexto}>{inicialUsuario}</Text>
-            </View>
-          </TouchableOpacity>
-        ) : (
+        {!usuario && (
           <View style={styles.headerBtns}>
             <TouchableOpacity
               style={styles.ajustesBtn}
@@ -384,7 +369,7 @@ export default function Catalogo() {
 
         <View style={styles.controlsRight}>
           <Text style={[styles.contadorText, { color: c.textSecondary }]}>
-            {t("catalogo.vehiculosContador", { count: vehiculosAMostrar.length })}
+            {t("catalogo.vehiculosContador", { count: vehiculosFiltrados.length })}
           </Text>
           <TouchableOpacity
             style={[styles.ordenBtn, { backgroundColor: c.bgInput, borderColor: c.border }]}
@@ -425,6 +410,13 @@ export default function Catalogo() {
         </View>
       )}
 
+      {sinResultadosBusqueda && (
+        <BannerSinResultados c={c} onCerrar={cerrarAlertaSinResultados} />
+      )}
+      {mostrarBannerFiltros && (
+        <BannerSinResultados c={c} onCerrar={() => setBannerFiltrosCerrado(true)} />
+      )}
+
       {cargando ? (
         <View style={styles.estadoCentro}>
           <ActivityIndicator size="large" color="#1E40AF" />
@@ -452,14 +444,26 @@ export default function Catalogo() {
           contentContainerStyle={styles.lista}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            soloFavoritos ? (
+            soloFavoritos && favoritos.length === 0 ? (
               <View style={styles.estadoCentro}>
                 <Ionicons name="heart-outline" size={48} color={c.textMuted} />
                 <Text style={[styles.emptyText, { color: c.textMuted }]}>
                   {t("catalogo.sinFavoritosGuardados")}
                 </Text>
               </View>
-            ) : null
+            ) : (
+              <View style={styles.estadoCentro}>
+                <Ionicons name="car-outline" size={48} color={c.textMuted} />
+                <Text style={[styles.emptyText, { color: c.textMuted }]}>
+                  {t("catalogo.sinResultadosFiltros")}
+                </Text>
+                {filtrosActivos && (
+                  <TouchableOpacity style={styles.limpiarFiltrosBtn} onPress={handleLimpiarFiltros}>
+                    <Text style={styles.limpiarFiltrosBtnText}>{t("catalogo.limpiarFiltros")}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )
           }
           ListFooterComponent={() => (
             <ListFooter
@@ -478,10 +482,7 @@ export default function Catalogo() {
         onClose={() => setFiltrosVisible(false)}
         filtros={filtros}
         setFiltro={setFiltro}
-        limpiar={() => {
-          limpiarFiltros();
-          setSoloFavoritos(false);
-        }}
+        limpiar={handleLimpiarFiltros}
         usuario={!!usuario}
         soloFavoritos={soloFavoritos}
         onToggleSoloFavoritos={handleToggleSoloFavoritos}
@@ -549,27 +550,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E40AF",
   },
   registerBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
-  headerUsuario: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    maxWidth: 200,
-  },
-  headerUsuarioTexto: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#475569",
-    flexShrink: 1,
-  },
-  headerAvatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#1E40AF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerAvatarTexto: { fontSize: 13, fontWeight: "800", color: "#fff" },
   controlsBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -615,10 +595,31 @@ const styles = StyleSheet.create({
   ordenOpcionActiva: { backgroundColor: "#F1F5F9" },
   ordenOpcionText: { fontSize: 13, color: "#1F2937" },
   ordenOpcionTextActiva: { color: "#1E40AF", fontWeight: "700" },
+  bannerSinResultados: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  bannerSinResultadosTextos: { flex: 1 },
+  bannerSinResultadosTitulo: { fontSize: 13.5, fontWeight: "700", color: "#1E40AF", marginBottom: 2 },
+  bannerSinResultadosMensaje: { fontSize: 12.5, lineHeight: 17 },
   lista: { padding: 16 },
   estadoCentro: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60 },
   errorTexto: { fontSize: 14, color: "#EF4444", textAlign: "center" },
-  emptyText: { fontSize: 14, color: "#94A3B8", marginTop: 12, fontWeight: "600" },
+  emptyText: { fontSize: 14, color: "#94A3B8", marginTop: 12, fontWeight: "600", textAlign: "center", paddingHorizontal: 24 },
+  limpiarFiltrosBtn: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "#1E40AF",
+  },
+  limpiarFiltrosBtnText: { color: "#fff", fontSize: 13, fontWeight: "700" },
   paginacionContainer: {
     flexDirection: "row",
     alignItems: "center",

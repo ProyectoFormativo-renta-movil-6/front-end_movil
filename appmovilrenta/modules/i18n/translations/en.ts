@@ -276,6 +276,7 @@ export default {
     registro: 'Sign up',
     vehiculosContador: '{{count}} vehicles',
     sinFavoritosGuardados: "You don't have any saved favorites yet",
+    sinResultadosFiltros: "No vehicles match these filters. Try adjusting or clearing them to see the full catalog.",
     bannerRegistro: {
       titulo: 'Exclusive feature',
       mensaje: 'Sign up to book this vehicle and access all features.',
@@ -477,6 +478,8 @@ export default {
     guardarDatos: 'Save data',
     seleccionar: 'Select...',
     datosPersonales: 'PERSONAL DATA',
+    seccionContacto: 'CONTACT',
+    seccionDocumento: 'IDENTITY DOCUMENT',
     documento: 'Document',
     correoElectronico: 'EMAIL ADDRESS',
     correoActual: 'Current email',
