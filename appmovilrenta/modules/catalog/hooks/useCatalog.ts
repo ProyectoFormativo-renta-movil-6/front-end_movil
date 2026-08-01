@@ -65,7 +65,19 @@ const BUSQUEDA_FORM_BASE: BusquedaForm = {
   mismoLugar: true,
 };
 
-export function useCatalogo() {
+interface OpcionesCatalogo {
+  // "Mis Favoritos" y el buscador de texto del header viven fuera del
+  // dominio de `filtros`, pero deben aplicarse ANTES de paginar (si no,
+  // el filtro solo actúa sobre los 6 vehículos de la página actual y
+  // puede mostrar "sin resultados" aunque sí haya coincidencias en otra
+  // página).
+  soloFavoritos?: boolean;
+  esFavorito?: (id: number) => boolean;
+  textoBusqueda?: string;
+}
+
+export function useCatalogo(opciones: OpcionesCatalogo = {}) {
+  const { soloFavoritos = false, esFavorito, textoBusqueda = "" } = opciones;
   const { t } = useTranslation();
   const [vehiculos] = useState<Vehiculo[]>(VEHICULOS_MOCK);
   const [cargando] = useState(false);
@@ -155,12 +167,41 @@ export function useCatalogo() {
     setPagina(1);
   };
 
-  const resultado = useMemo(() => {
+  // "Mis Favoritos" queda afuera a propósito: si está activo y no hay (o
+  // no coinciden) favoritos, eso ya tiene su propio estado vacío dedicado
+  // en la UI (ver ListEmptyComponent en catalog.tsx) — no debe disparar
+  // el aviso genérico de "sin disponibilidad" ni mostrar de vuelta el
+  // catálogo completo, porque eso ignoraría el filtro que el usuario
+  // activó a propósito.
+  const hayFiltrosActivos =
+    filtros.categoria !== "Todos" ||
+    filtros.ciudad !== "Todas las ciudades" ||
+    filtros.sucursal !== "Todas las sucursales" ||
+    filtros.transmision !== "Todas" ||
+    filtros.combustible !== "Todos" ||
+    !!filtros.precioMin ||
+    !!filtros.precioMax ||
+    !!textoBusqueda.trim();
+
+  // Aplica TODOS los criterios (favoritos, texto, categoría, ciudad,
+  // sucursal, precio, transmisión, combustible). Puede quedar vacío de
+  // forma legítima si la combinación no coincide con ningún vehículo del
+  // mock (ej: ciudad Medellín + sucursal de Bogotá).
+  const resultadoCrudo = useMemo(() => {
     let arr = [...vehiculos];
 
-    if (filtros.busqueda.trim()) {
-      const busq = filtros.busqueda.toLowerCase();
-      arr = arr.filter((v) => v.nombre.toLowerCase().includes(busq));
+    if (textoBusqueda.trim()) {
+      const busq = textoBusqueda.toLowerCase();
+      arr = arr.filter(
+        (v) =>
+          (v.nombre || "").toLowerCase().includes(busq) ||
+          (v.marca || "").toLowerCase().includes(busq) ||
+          (v.modelo || "").toLowerCase().includes(busq),
+      );
+    }
+
+    if (soloFavoritos && esFavorito) {
+      arr = arr.filter((v) => esFavorito(v.id));
     }
 
     if (filtros.categoria !== "Todos")
@@ -191,13 +232,32 @@ export function useCatalogo() {
       arr = aplicarCriteriosBusqueda(arr, busquedaForm);
     }
 
+    return arr;
+  }, [vehiculos, filtros, busquedaRealizada, busquedaForm, soloFavoritos, esFavorito, textoBusqueda]);
+
+  // Si los filtros activos (categoría/ciudad/sucursal/precio/transmisión/
+  // combustible/favoritos/texto) no dejan NINGÚN vehículo, no se deja el
+  // catálogo vacío: se vuelve a mostrar el catálogo completo (respetando
+  // solo las fechas de "Consultar Disponibilidad" si el usuario buscó) y
+  // se avisa aparte con la alerta — mismo criterio que ya usa esa
+  // búsqueda por fechas más abajo.
+  const sinResultadosFiltros = hayFiltrosActivos && resultadoCrudo.length === 0;
+
+  const resultado = useMemo(() => {
+    const base = sinResultadosFiltros
+      ? busquedaRealizada
+        ? aplicarCriteriosBusqueda([...vehiculos], busquedaForm)
+        : [...vehiculos]
+      : resultadoCrudo;
+
+    const arr = [...base];
     if (filtros.orden === "precio_asc") arr.sort((a, b) => a.precio - b.precio);
     if (filtros.orden === "precio_desc") arr.sort((a, b) => b.precio - a.precio);
     if (filtros.orden === "calificacion")
       arr.sort((a, b) => (b.calificacion ?? 0) - (a.calificacion ?? 0));
 
     return arr;
-  }, [vehiculos, filtros, busquedaRealizada, busquedaForm]);
+  }, [resultadoCrudo, sinResultadosFiltros, busquedaRealizada, busquedaForm, vehiculos, filtros.orden]);
 
   const POR_PAGINA = 6;
   const totalPaginas = Math.max(1, Math.ceil(resultado.length / POR_PAGINA));
@@ -219,6 +279,7 @@ export function useCatalogo() {
     errorBusqueda,
     sinResultadosBusqueda,
     cerrarAlertaSinResultados,
+    sinResultadosFiltros,
     limpiarFiltros,
     limpiarBusqueda,
     handleBuscarInvitado,
